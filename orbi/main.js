@@ -136,7 +136,7 @@ scene.add(rim);
 // ~5× fewer pixels than a full-screen WebGL layer over a scrolling page.
 const VIEW = {
   home: { cx: 327, cy: 681.5, unit: 30 },        // 1068:81084 — 80×80 FAB at (287, 644)
-  page: { cx: 187.5, cy: 122, unit: 45 },       // the full page (2026-10-19): at rest centred at its top, under the status bar (was on the 1086:92697 sheet's edge)
+  page: { cx: 336, cy: 72, unit: 17 },          // the Yellow Friday page (2026-11-07): resting small at its top right, beside "Hi Neha!"
 };
 const view = { ...VIEW.home };
 // room around the ball for hops, the dizzy orbit, Zz and the soft shadows, even
@@ -1494,10 +1494,11 @@ const PAGE_CURVE = { open: { ms: 760, ease: cubicBezier(0.4, 0, 0.2, 1) }, close
 const UNDER = { dim: 0.1 };
 let arcLUT = null;                                           // arc length → bezier u, so the bot's speed is the ease's, not the curve's
 function flightAt(e) {                                       // the bot's arc, Home spot (e 0) → rest on the page (e 1)
-  const a = VIEW.home, b = VIEW.page;
+  // (opening onto a staged spot — the page's "Curating for you" beat at the screen's centre — the arc lands there)
+  const a = VIEW.home, b = pageNav.open && stage ? stage : VIEW.page;
   // leaves upward (a little left), swings in to the centre from the right — a soft, single curve
   const c1 = { cx: a.cx - 12, cy: a.cy - (a.cy - b.cy) * 0.55 }, c2 = { cx: b.cx + 64, cy: b.cy + 90 };
-  const key = `${a.cx},${a.cy},${b.cx},${b.cy}`;
+  const key = `${a.cx},${a.cy},${b.cx},${b.cy}`;   // (b.unit isn't in the arc)
   if (!arcLUT || arcLUT.key !== key) {
     const n = 64, len = [0]; let px = a.cx, py = a.cy;
     for (let i = 1; i <= n; i++) { const u = i / n, x = bez(a.cx, c1.cx, c2.cx, b.cx, u), y = bez(a.cy, c1.cy, c2.cy, b.cy, u); len.push(len[i - 1] + Math.hypot(x - px, y - py)); px = x; py = y; }
@@ -1532,6 +1533,7 @@ function goPage(open, { settle = false, v0 = 0, glide = 0, fade = false } = {}) 
     curve: !glide && !v0 && !settle ? { ...(open ? PAGE_CURVE.open : PAGE_CURVE.close), t: 0 } : null,
     off: { cx: here.cx - arc0.cx, cy: here.cy - arc0.cy, unit: here.unit - arc0.unit }, last: 0, prev: here };
   pageNav.show = fromHome ? pageNav.anim : null;             // (a scripted turn: the yaw spring stays out of it)
+  if (open && fromHome) pageEvent('opening');                // (yf/page.js stages the bot for its "Curating for you" beat)
   pageNav.lift = 0;
   setSheetLive(true);
 }
@@ -1572,7 +1574,6 @@ function placePage() {
   const cx = view.cx, cy = view.cy, r0 = view.unit * 1.2;
   const R = Math.hypot(Math.max(cx, W - cx), Math.max(cy, Hh - cy)) + 2;
   const pageTop = 0;
-  // (radius ∝ p^1.6: the circle swells out of the ball before it races to the corners — linear covered the frame in ~100 ms)
   // (the radius follows p directly — p is already eased; a second ease on top doubled the mid-way speed and the circle
   // lurched across the screen. A circle's area grows with r², so linear r already swells gently out of the ball)
   const rr = pageNav.fade ? R : r0 + (R - r0) * THREE.MathUtils.clamp(p, 0, 1.05);
@@ -1652,7 +1653,7 @@ function stepPage(now) {
 // the sheet's hello: the intro's greeting (eyes blink into ^^, smile, cheeks,
 // a little hop and wobble), then after GREET_FOR it blinks back into Idle
 function greetOnSheet() {
-  if (state === 'sleepy') return;
+  if (state === 'sleepy' || stage) return;                   // (a staged bot is busy with the page's own beat)
   setState('greeting', { quiet: true });
   hop(2.2);
   haptic('success');
@@ -1664,7 +1665,7 @@ function restoreVisorNow() {
 }
 // ─── stage: an experience on the page can place the bot (window.orbi.stage) ──
 // orbi.stage({ cx, cy, unit }, { snap }) — while the page is open and still, the bot goes there: on a soft spring
-// (ω 11, ζ .9), or glued to it every frame (`snap`, for riding the claw machine's carriage). orbi.stage(null)
+// (ω 11, ζ 1), or glued to it every frame (`snap`, for riding the claw machine's carriage). orbi.stage(null)
 // hands it back to its rest spot. orbi.lock(true): a tap on it is a playful hop, not a spin/drag/carry.
 let stage = null, stageSnap = false, locked = false, inkOverride = null;
 const stageV = { cx: 0, cy: 0, unit: 0 };
@@ -1673,7 +1674,7 @@ function updateStage(dt) {
   const t = stage || VIEW.page;
   if (stageSnap && stage) { view.cx = t.cx; view.cy = t.cy; view.unit = t.unit; stageV.cx = stageV.cy = stageV.unit = 0; }
   else {
-    const w = 11, z = 0.9;
+    const w = 11, z = 1;                                      // (critically damped: the bot glides in, no wobble)
     for (const k of ['cx', 'cy', 'unit']) {
       stageV[k] += (w * w * (t[k] - view[k]) - 2 * z * w * stageV[k]) * dt;
       view[k] += stageV[k] * dt;

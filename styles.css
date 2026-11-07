@@ -694,7 +694,7 @@ img.contain { object-fit: contain; }
   background: #000; opacity: 0; visibility: hidden;
 }
 .sheet {
-  /* a full page (2026-10-19): the whole frame, revealed as a circle growing out of the bot */
+  /* a full page (2026-10-19): the whole frame (since 2026-11-07 the Yellow Friday page, yf/), revealed as a circle growing out of the bot */
   position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 29;
   background: #f9f9fb; overflow: hidden;
   visibility: hidden; clip-path: circle(0 at 50% 100%);   /* (2026-11-06: opens as a circle out of the bot — orbi/main.js placePage) */
