@@ -67,7 +67,8 @@
 /* inventory rows */
 .yf-inv { height: 230px; }
 .yf-row.yf-inv { overflow: hidden; touch-action: pan-y; scroll-snap-type: none; -webkit-user-select: none; user-select: none; }
-.yf-inv .rail { position: relative; width: 375px; height: 230px; }
+.yf-inv .rail { position: absolute; left: 0; top: 0; width: 375px; height: 230px; }
+.yf-inv .rail.is-leaving { pointer-events: none; }   /* (the outgoing set during a tab swap) */
 .yf-li { position: absolute; left: 0; top: 0; will-change: transform; }   /* a looping row's card holder (yf/page.js places it) */
 .yf-ic { flex: none; width: 146.3px; height: 225.9px; scroll-snap-align: start; scroll-margin-left: 21.7px; }
 .yf-ic .ph { width: 146.3px; height: 182px; border-radius: 10.7px; background: #f5f5f7; overflow: hidden; display: flex; align-items: center; justify-content: center; }

@@ -271,19 +271,10 @@ $$('.yf-tab').forEach((t) => t.addEventListener('click', () => {
   line.animate([{ transform: `translateX(${tabAt * TAB_W}px)` }, { transform: `translateX(${i * TAB_W}px)` }], { duration: SNAPPY.ms, easing: SNAPPY.ease, fill: 'forwards' });
   const dir = i > tabAt ? 1 : -1;
   tabAt = i; H('tick');
-  // the row's cards swap: the old ones slip out the way the tab moved, the new ones slide in after them (60 ms stagger)
-  rows.yfRestock.cards().forEach((c, k) => { c.getAnimations().forEach((a) => a.cancel()); c.style.opacity = 1;
-    c.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-dir * 24}px)` }],
-      { duration: 160, delay: k * 25, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'forwards' }); });
-  setTimeout(() => {
-    if (tabAt !== i) return;
-    rows.yfRestock.set(DATA.restock[i]);
-    rows.yfRestock.cards().forEach((c, k) => {
-      c.animate([{ transform: reduce.matches ? 'none' : `translateX(${dir * 36}px)` }, { transform: 'none' }], { duration: SMOOTH.ms, easing: SMOOTH.ease, delay: k * 60, fill: 'both' });
-      c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, easing: FADE, delay: k * 60, fill: 'both' });
-    });
-  }, 180);
+  rows.yfRestock.swap(DATA.restock[i], dir);                   // the row cross-fades to the tab's products
 }));
+// every tab's photos are fetched up front, so a swap never waits on the network
+DATA.restock.flat().forEach((it) => { const im = new Image(); im.src = IMG(it.img); });
 // hero parallax while scrolling (the card lags, the peeks drift, the greeting fades)
 const heroEls = { stage: $('.yf-hero'), hi: $('.yf-hi'), date: $('.yf-date') };
 let lastY = 0;
@@ -498,17 +489,40 @@ const coupons = (() => {
 // the product rows (Wishlist, Restock): cards 146.3 wide, 16 apart, from the 16 px margin, going round
 const rows = {};
 for (const row of $$('.yf-inv')) {
-  const rail = row.querySelector('.rail'), pad = +row.dataset.pad, PITCH = 146.3 + M;   // (cards as far apart as the margin: the one before sits just off the edge)
-  let els = [];
+  const pad = +row.dataset.pad, PITCH = 146.3 + M;   // (cards as far apart as the margin: the one before sits just off the edge)
+  let rail = row.querySelector('.rail'), els = [];
   const loop = loopCarousel({ stage: row, count: 1, step: PITCH, place: (wrapD) => els.forEach((el, i) => {
     let d = wrapD(i); if (d < -1.5) d += els.length;                   // (a row runs left → right: keep one card to spare on the left)
     el.style.transform = `translate3d(${(pad + d * PITCH).toFixed(2)}px, 0, 0)`;
   }) });
+  const fill = (items) => {
+    let list = items; while (list.length * PITCH < 375 + 3 * PITCH) list = list.concat(items);   // enough cards to fill the turn
+    rail.innerHTML = list.map((it, i) => `<div class="yf-li" data-i="${i}">${icCard(it)}</div>`).join('');
+    els = [...rail.children]; loop.resize(els.length);
+  };
   rows[row.id] = {
-    set(items) {
-      let list = items; while (list.length * PITCH < 375 + 3 * PITCH) list = list.concat(items);   // enough cards to fill the turn
-      rail.innerHTML = list.map((it, i) => `<div class="yf-li" data-i="${i}">${icCard(it)}</div>`).join('');
-      els = [...rail.children]; loop.resize(els.length);
+    set: fill,
+    // a new set of products (a tab change): built on a fresh rail over the old one, shown once its photos are decoded.
+    // The old row drifts a little the opposite way and fades; the new cards in view slide in the way the tab moved
+    // (45 ms apart, a long soft settle) — one continuous cross-fade, never an empty row, never a photo popping in.
+    async swap(items, dir) {
+      row.querySelectorAll('.rail.is-leaving').forEach((r) => r.remove());      // (a swap still in flight: finish it)
+      const old = rail, nu = document.createElement('div');
+      nu.className = 'rail'; row.appendChild(nu); rail = nu; fill(items);
+      old.classList.add('is-leaving');
+      old.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-dir * 18}px)` }],
+        { duration: 200, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }).onfinish = () => old.remove();   // (out quickly: no ghosting)
+      const cards = els.map((el) => el.firstElementChild);
+      await Promise.race([Promise.all(cards.map((c) => c.querySelector('img').decode().catch(() => {}))), new Promise((r) => setTimeout(r, 240))]);
+      if (rail !== nu) return;                                                    // (another tab was picked meanwhile)
+      const inView = (c) => { const x = parseFloat(c.parentElement.style.transform.slice(12)); return x > -100 && x < 375; };
+      let k = 0;
+      cards.forEach((c) => {
+        if (!inView(c) || reduce.matches) { c.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); return; }
+        const delay = 110 + k++ * 45;
+        c.animate([{ transform: `translateX(${dir * 30}px)` }, { transform: 'none' }], { duration: 760, easing: REVEAL.ease, delay, fill: 'both' });
+        c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380, easing: 'cubic-bezier(0.33, 1, 0.68, 1)', delay, fill: 'both' });
+      });
     },
     jump: loop.jump,
     cards: () => els.map((el) => el.firstElementChild).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left),
