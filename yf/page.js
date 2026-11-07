@@ -108,7 +108,9 @@ const L = (() => {
   return o;
 })();
 const heroCard = (it, i) => `<div class="yf-hc" data-i="${i}"><div class="in yf-rv"><div class="ph"><img src="${IMG(it.img)}" alt="" draggable="false"></div><i class="shade"></i><p class="cap">${it.tag}<br><b>${it.name}</b></p><i class="dim"></i></div></div>`;
-const coupon = (c, i) => `<div class="yf-cslot" data-i="${i}"><div class="yf-coupon yf-press yf-rv"><div class="in"><div class="ph${c.cover ? ' cover' : ''}"><img src="${IMG(c.img)}" alt="" draggable="false"></div><p>${c.l1}<b>${c.l2}</b></p></div></div></div>`;
+const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const coupon = (c, i) => `<div class="yf-cslot" data-i="${i}" data-o="${i % DATA.coupons.length}"><div class="yf-coupon yf-press yf-rv"><div class="in"><div class="ph${c.cover ? ' cover' : ''}"><img src="${IMG(c.img)}" alt="" draggable="false"></div><p>${c.l1}<b>${c.l2}</b></p></div>
+  <div class="back"><i class="ck">${CHECK}</i><b>Collected</b><span>${c.l1} ${c.l2}</span><em>Applied at checkout</em></div></div></div>`;
 
 const scroller = document.createElement('div');
 scroller.className = 'yf-scroll';
@@ -146,6 +148,11 @@ curate.className = 'yf-curate';
 curate.setAttribute('aria-live', 'polite');
 curate.innerHTML = '<b>Curating for you</b>';
 sheet.appendChild(curate);
+// …and its backdrop: soft ripples rising from behind the bot (it's searching)
+const curFx = document.createElement('div');
+curFx.className = 'yf-cfx';
+curFx.innerHTML = [0, 1, 2].map((i) => `<i class="rip" style="--d:${(i * 1.1).toFixed(2)}s"></i>`).join('');
+sheet.insertBefore(curFx, curate);
 const page = scroller.firstElementChild;
 const $ = (s) => page.querySelector(s), $$ = (s) => [...page.querySelectorAll(s)];
 
@@ -184,6 +191,8 @@ function reset() {
   page.querySelectorAll('.yf-rv').forEach((el) => el.getAnimations().forEach((a) => a.cancel()));
   scroller.scrollTop = 0; onScroll();
   hero.jump(1); coupons.jump(1); Object.values(rows).forEach((r) => r.jump(0));
+  page.querySelectorAll('.yf-coupon.is-collected').forEach((c) => c.classList.remove('is-collected'));
+  mini.reset();
 }
 
 // ─── interactions ───────────────────────────────────────────────────────────────────────────────────────────
@@ -213,6 +222,46 @@ page.addEventListener('click', (e) => {
   b.querySelector('span').textContent = on ? 'Reminder set' : 'Remind me';
   H(on ? 'success' : 'tap');
   if (on && !reduce.matches) b.querySelector('svg').animate([{ transform: 'rotate(0)' }, { transform: 'rotate(18deg)' }, { transform: 'rotate(-14deg)' }, { transform: 'rotate(8deg)' }, { transform: 'rotate(0)' }], { duration: 520, easing: 'ease-out' });
+  if (on) flyToBot(b.closest('.yf-pc').querySelector('.ph'));
+});
+// a reminded product flies up into the bot on an arc (shrinking, tipping), and the bot catches it with a hop
+function flyToBot(src) {
+  if (!src || reduce.matches || !window.orbi) { bot.hop(1.4); return; }
+  const sr = sheet.getBoundingClientRect(), r = src.getBoundingClientRect(), v = window.orbi.view;
+  const fly = src.cloneNode(true); fly.className += ' yf-fly';
+  Object.assign(fly.style, { left: `${r.left - sr.left}px`, top: `${r.top - sr.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+  sheet.appendChild(fly);
+  const x0 = 0, y0 = 0, x1 = v.cx - (r.left - sr.left) - r.width / 2, y1 = v.cy - (r.top - sr.top) - r.height / 2;
+  const cx = x1 * 0.35, cy = Math.min(y0, y1) - 120;                       // the arc's control point: up and over
+  const ease = (u) => (u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2);
+  const kf = Array.from({ length: 17 }, (_, i) => {
+    const u = ease(i / 16), q = 1 - u;
+    const x = q * q * x0 + 2 * q * u * cx + u * u * x1, y = q * q * y0 + 2 * q * u * cy + u * u * y1;
+    return { transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${(1 - 0.84 * u).toFixed(3)}) rotate(${(-14 * u).toFixed(1)}deg)`, opacity: i > 14 ? 0 : 1, offset: i / 16 };
+  });
+  fly.animate(kf, { duration: 760, easing: 'linear', fill: 'both' }).onfinish = () => {
+    fly.remove(); bot.hop(1.6); H('pop'); bot.cheer();
+  };
+}
+// the bot, from the page: hops, a happy beat, glances at what's touched, looks the way the page scrolls
+const bot = {
+  hop(v) { try { window.orbi && window.orbi.hop(v); } catch {} },
+  cheer() {
+    const o = window.orbi; if (!o || curating) return;
+    o.setState('greeting'); clearTimeout(bot.t); bot.t = setTimeout(() => { if (o.state === 'greeting') o.setState('idle'); }, 1300);
+  },
+  look(yaw, pitch, ms) {
+    const o = window.orbi; if (!o || curating) return;
+    o.gazeAt(yaw, pitch); clearTimeout(bot.lt); bot.lt = setTimeout(() => o.gazeAt(null), ms);
+  },
+  t: 0, lt: 0,
+};
+// a tap on a card: the bot glances at it
+page.addEventListener('pointerup', (e) => {
+  const el = e.target.closest('.yf-pc, .yf-ic, .yf-low, .yf-coupon, .yf-hc, .yf-cta, .yf-tab'); if (!el || !window.orbi) return;
+  const sr = sheet.getBoundingClientRect(), r = el.getBoundingClientRect(), v = window.orbi.view;
+  const x = r.left + r.width / 2 - sr.left, y = r.top + r.height / 2 - sr.top;
+  bot.look(Math.max(-0.55, Math.min(0.55, (x - v.cx) / 260)), Math.max(-0.15, Math.min(0.32, (y - v.cy) / 900)), 1100);
 });
 // tabs: the underline slides on a spring
 const line = $('.yf-tabline'), TAB_W = (375 - 2 * M) / 4; let tabAt = 0;
@@ -237,13 +286,91 @@ $$('.yf-tab').forEach((t) => t.addEventListener('click', () => {
 }));
 // hero parallax while scrolling (the card lags, the peeks drift, the greeting fades)
 const heroEls = { stage: $('.yf-hero'), hi: $('.yf-hi'), date: $('.yf-date') };
+let lastY = 0;
 function onScroll() {
-  const y = Math.min(scroller.scrollTop, 700);
+  const top = scroller.scrollTop, y = Math.min(top, 700);
   heroEls.stage.style.translate = `0 ${(y * 0.12).toFixed(1)}px`;
   heroEls.hi.style.translate = heroEls.date.style.translate = `0 ${(y * 0.3).toFixed(1)}px`;
+  if (live && Math.abs(top - lastY) > 2 && top > 0) bot.look(0, top > lastY ? 0.22 : -0.1, 380);   // reading down / back up
+  lastY = top;
+  mini.update(top);
 
 }
 scroller.addEventListener('scroll', onScroll, { passive: true });
+// the mini header: once the hero has scrolled away a frosted bar settles in at the top with the section you're in
+// (the name rolls over as you cross into the next one) and a hairline of how far down you are
+const mini = (() => {
+  const el = document.createElement('div');
+  el.className = 'yf-mini'; el.setAttribute('aria-hidden', 'true');
+  el.innerHTML = '<div class="tt"><span></span></div><i class="prog"></i>';
+  sheet.appendChild(el);
+  const tt = el.querySelector('.tt'), prog = el.querySelector('.prog');
+  const SECS = [[0, 'Yellow Friday sale'], [L.wishT - 160, 'Wishlist'], [L.flashT - 160, 'Flash deals'], [L.restT - 160, 'Restock'], [L.megaT - 160, 'Mega deals'], [L.lowT - 160, 'Lowest price']];
+  let at = -1, on = false;
+  const name = (top) => { let k = 0; SECS.forEach(([y], i) => { if (top >= y) k = i; }); return k; };
+  function setName(k, dir) {
+    const old = tt.querySelector('span:last-child'), nu = document.createElement('span'); nu.textContent = SECS[k][1]; tt.appendChild(nu);
+    if (at < 0 || reduce.matches) { tt.querySelectorAll('span').forEach((s) => s !== nu && s.remove()); at = k; return; }
+    old.animate([{ transform: 'none', opacity: 1 }, { transform: `translateY(${-dir * 12}px)`, opacity: 0 }], { duration: 220, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'forwards' }).onfinish = () => old.remove();
+    nu.animate([{ transform: `translateY(${dir * 12}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: REVEAL.ease, delay: 60, fill: 'both' });
+    at = k;
+  }
+  return {
+    update(top) {
+      const show = top > 150;
+      if (show !== on) { on = show; el.classList.toggle('is-on', on); if (on) H('tick'); }
+      const k = name(top); if (k !== at) setName(k, k > at ? 1 : -1);
+      prog.style.transform = `scaleX(${Math.min(1, top / Math.max(1, scroller.scrollHeight - scroller.clientHeight)).toFixed(4)})`;
+    },
+    reset() { on = false; el.classList.remove('is-on'); at = -1; tt.innerHTML = '<span></span>'; setName(0, 1); prog.style.transform = 'scaleX(0)'; },
+  };
+})();
+mini.reset();
+
+// pull down at the top of the page to close it: the page lifts into the card it closes as and follows the finger
+// (a little resistance); let go past 110 px (or with a flick) and it drops away, otherwise it springs back
+(() => {
+  let g = null, raf = 0;
+  const rubber = (dy) => (dy <= 0 ? 0 : (dy * 0.92) / (1 + dy / 1100));
+  const begin = (x, y, target) => {
+    if (!window.orbi || !window.orbi.pageOpen || curating || scroller.scrollTop > 0) return;
+    if (target.closest('button, .yf-tabs')) return;                       // (the carousels lock to sideways drags, so a pull still works on them)
+    cancelAnimationFrame(raf); g = { x, y, on: false, py: 0, v: 0, lt: performance.now(), ly: y, armed: false };
+  };
+  const move = (x, y, ev) => {
+    if (!g) return false;
+    const dx = x - g.x, dy = y - g.y;
+    if (!g.on) {
+      if (dy > 8 && dy > Math.abs(dx) * 1.2 && scroller.scrollTop <= 0) g.on = true;
+      else if (Math.abs(dx) > 8 || dy < -8) { g = null; return false; }
+      else return false;
+    }
+    const now = performance.now(), dt = Math.max(1, now - g.lt);
+    g.v = 0.75 * ((y - g.ly) / dt * 1000) + 0.25 * g.v; g.ly = y; g.lt = now;
+    g.py = rubber(dy); window.orbi.pull(g.py);
+    const armed = g.py > 110; if (armed !== g.armed) { g.armed = armed; H('tick'); }
+    if (ev && ev.cancelable) ev.preventDefault();
+    return true;
+  };
+  const end = () => {
+    if (!g) return; const d = g; g = null; if (!d.on) return;
+    if (d.py > 110 || d.v > 650) { window.orbi.release(true, Math.max(0, d.v)); return; }
+    let py = d.py, v = 0, last = performance.now();                       // spring back (critically damped)
+    const tick = (now) => {
+      const dt = Math.min(0.032, (now - last) / 1000); last = now;
+      for (let h = dt; h > 1e-6; h -= 1 / 240) { const k = Math.min(h, 1 / 240); v += (-260 * py - 32 * v) * k; py += v * k; }
+      if (py < 0.3 && Math.abs(v) < 5) { window.orbi.pull(0); return; }
+      window.orbi.pull(py); raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+  };
+  scroller.addEventListener('touchstart', (e) => { if (e.touches.length === 1) begin(e.touches[0].clientX, e.touches[0].clientY, e.target); }, { passive: true });
+  scroller.addEventListener('touchmove', (e) => { if (e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY, e); }, { passive: false });
+  scroller.addEventListener('touchend', end); scroller.addEventListener('touchcancel', end);
+  scroller.addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse' && !e.button) begin(e.clientX, e.clientY, e.target); });
+  addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') move(e.clientX, e.clientY, null); });
+  addEventListener('pointerup', (e) => { if (e.pointerType === 'mouse') end(); });
+})();
 // press haptics on cards
 page.addEventListener('pointerdown', (e) => { if (e.target.closest('.yf-press') && !e.target.closest('.yf-remind')) H('tick'); });
 
@@ -252,7 +379,7 @@ page.addEventListener('pointerdown', (e) => { if (e.target.closest('.yf-press') 
 // speed into a spring (stiffness 240, damping 30.4 — ζ .98, no visible overshoot) which lands on a whole item, and every item is
 // placed from its wrapped distance to `pos` — so there is no first or last card, the row just keeps going round.
 // Axis-locked: a mostly-vertical drag is left to the page's scroll. One selection tick per item that lands.
-function loopCarousel({ stage, count, step, place, tapToFocus = false }) {
+function loopCarousel({ stage, count, step, place, tapToFocus = false, onTap = null }) {
   let n = count, pos = 0, vel = 0, target = 0, raf = 0, drag = null, landed = 0, idleUntil = 0;
   const norm = (i) => ((i % n) + n) % n;
   const wrapD = (i) => { let d = i - pos; d -= Math.round(d / n) * n; return d; };
@@ -288,7 +415,10 @@ function loopCarousel({ stage, count, step, place, tapToFocus = false }) {
     if (!drag || e.pointerId !== drag.id) return;
     const d = drag; drag = null; idleUntil = performance.now() + 8000;
     if (d.axis === 'x') { const v = -d.v * 1000 / step; vel = v; go(Math.round(pos + Math.max(-1.4, Math.min(1.4, v * 0.18)))); }
-    else if (!d.axis && tapToFocus && d.item) go(Math.round(pos + wrapD(+d.item.dataset.i)));   // a tap on a side item brings it forward
+    else if (!d.axis && tapToFocus && d.item) {
+      const dd = wrapD(+d.item.dataset.i);
+      if (Math.abs(dd) < 0.5 && onTap) { onTap(d.item); go(Math.round(pos)); } else go(Math.round(pos + dd));   // a tap on a side item brings it forward
+    }
     else go(Math.round(pos));
   };
   addEventListener('pointerup', end); addEventListener('pointercancel', end);
@@ -334,6 +464,7 @@ const hero = (() => {
     c.style.opacity = a >= 2 ? 0 : a <= 1 ? 1 : (2 - a).toFixed(3);
     c.style.zIndex = String(10 - Math.round(a * 3));
     c.style.setProperty('--dim', Math.min(1, a).toFixed(3));        // side cards dim (Figma: 60 %), captions fade
+    c.style.setProperty('--px', `${(Math.max(-1.5, Math.min(1.5, d)) * -18).toFixed(2)}px`);   // the product lags the card: depth
     c.style.visibility = a >= 2 ? 'hidden' : '';
   }) });
   stage.addEventListener('click', (e) => e.preventDefault());
@@ -364,7 +495,13 @@ const coupons = (() => {
     const off = k === 0 ? B.cx * t : A.cx + (B.cx - A.cx) * t;
     return { cx: 187.5 + Math.sign(d) * off, y: A.y + (B.y - A.y) * t, s: A.s + (B.s - A.s) * t };
   };
-  const loop = loopCarousel({ stage, count: N, step: 167, tapToFocus: true, place: (wrapD) => slots.forEach((el, i) => {
+  const collect = (slot) => {
+    const o = slot.dataset.o, on = !slot.firstElementChild.classList.contains('is-collected');
+    slots.filter((s) => s.dataset.o === o).forEach((s) => s.firstElementChild.classList.toggle('is-collected', on));   // (its twin too)
+    H(on ? 'success' : 'tap');
+    if (on) bot.hop(1.2);
+  };
+  const loop = loopCarousel({ stage, count: N, step: 167, tapToFocus: true, onTap: collect, place: (wrapD) => slots.forEach((el, i) => {
     const d = wrapD(i), p = at(d);
     el.style.transform = `translate3d(${(p.cx - 84 * p.s).toFixed(2)}px, ${p.y.toFixed(2)}px, 0) scale(${p.s.toFixed(4)})`;
     el.style.zIndex = String(10 - Math.round(Math.abs(d) * 2));
@@ -412,7 +549,11 @@ function curateStart() {
   curating = true;
   const spot = curateSpot();
   window.orbi.stage(spot);
-  curate.style.top = `${spot.cy + spot.unit + 34}px`;
+  curate.style.top = `${spot.cy + spot.unit + 58}px`;
+  curFx.style.setProperty('--cx', `${spot.cx}px`); curFx.style.setProperty('--cy', `${spot.cy}px`);
+  curFx.getAnimations().forEach((a) => a.cancel());
+  curFx.classList.add('is-on');
+  curFx.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: 'cubic-bezier(0.33, 1, 0.68, 1)', delay: reduce.matches ? 0 : 300, fill: 'both' });
   curate.getAnimations().forEach((a) => a.cancel());
   curate.animate([{ opacity: 0, transform: 'translateY(10px) scale(.96)', filter: 'blur(8px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }],
     { duration: SMOOTH.ms, easing: SMOOTH.ease, delay: reduce.matches ? 0 : CURATE.textIn, fill: 'both' });
@@ -423,6 +564,9 @@ function curateEnd() {
   curate.getAnimations().forEach((a) => a.cancel());
   curate.animate([{ opacity: 1, transform: 'none', filter: 'blur(0)' }, { opacity: 0, transform: 'translateY(-6px) scale(.98)', filter: 'blur(6px)' }],
     { duration: 220, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'both' });
+  curFx.getAnimations().forEach((a) => a.cancel());
+  curFx.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 520, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'both' })
+    .onfinish = () => curFx.classList.remove('is-on');
   window.orbi.setState('idle');
   window.orbi.stage(null);                                     // the bot springs up to its corner…
   H('tick');
@@ -431,6 +575,7 @@ function curateEnd() {
 function curateCancel() {
   curating = false; clearTimeout(curateT);
   curate.getAnimations().forEach((a) => a.cancel());
+  curFx.getAnimations().forEach((a) => a.cancel()); curFx.classList.remove('is-on');
   window.orbi.stage(null);
 }
 

@@ -1516,7 +1516,9 @@ const pageEvent = (name) => dispatchEvent(new CustomEvent('orbi:page', { detail:
 function goPage(open, { settle = false, v0 = 0, glide = 0, fade = false } = {}) {
   if (pageNav.open === open && !pageNav.anim && !pageNav.drag && !pageNav.show) return;
   if (!open && pageNav.open) pageEvent('closing');
-  pageNav.exitFrom = open ? 0 : Math.max(0.05, pageNav.p);   // (the close's starting point, for placePage's fold)
+  pageNav.exitFrom = open ? 0 : Math.max(0.05, pageNav.p);   // (the close's starting point, for placePage's card)
+  if (open) pageNav.exitPull = null;
+  pageNav.pull = 0;
   pageNav.fade = !open && fade;                              // (a dissolve: the page stays put and fades as Home returns)
   const fromHome = open && !settle && pageNav.p <= 0.001 && !pageNav.anim && !pageNav.drag;
   pageNav.open = open; pageNav.drag = null; pageNav.visorAt = 0; pageNav.greetAt = 0;
@@ -1581,11 +1583,23 @@ function placePage() {
   // closing: the page doesn't get cut away — it lifts off as a card (a touch smaller, corners rounding to the phone's)
   // and drops away down the screen in one piece, uncovering Home as it goes, while the bot leaves it and flies home.
   // `d` runs 0 → 1 from wherever the close started (a swipe may let go mid-way), so nothing jumps on the first frame.
+  // A pull-down on the open page (orbi.pull, px) shows the same card, following the finger; let go past the point and
+  // the close carries on from where the finger left it (exitPull), at the finger's speed.
   const closing = !pageNav.open && !pageNav.fade && pageNav.exitFrom > 0;
   const d = closing ? 1 - THREE.MathUtils.clamp(p / pageNav.exitFrom, 0, 1) : 0;
-  if (closing) {
-    const lift = THREE.MathUtils.smoothstep(d, 0, 0.32);                           // the lift: scale + corners, early
-    const drop = Math.min(1, Math.pow(d, 1.55) * 1.12) * (Hh + 70);               // the drop: gathers speed, gone by d ≈ .93
+  const pull = pageNav.open && !pageNav.anim ? pageNav.pull || 0 : 0;
+  let uiGone = closing ? THREE.MathUtils.smoothstep(d, 0, 0.25) : Math.min(1, pull / 90);
+  if (closing || pull > 0) {
+    let lift, drop;
+    if (closing && pageNav.exitPull) {                                              // (released from a pull)
+      const e0 = pageNav.exitPull;
+      lift = e0.lift + (1 - e0.lift) * THREE.MathUtils.smoothstep(d, 0, 0.3);
+      drop = e0.y + (Hh + 70 - e0.y) * Math.min(1, d * 1.08);
+      uiGone = 1;
+    } else if (closing) {
+      lift = THREE.MathUtils.smoothstep(d, 0, 0.32);                                // the lift: scale + corners, early
+      drop = Math.min(1, Math.pow(d, 1.55) * 1.12) * (Hh + 70);                    // the drop: gathers speed, gone by d ≈ .93
+    } else { lift = Math.min(1, pull / 140); drop = pull; }
     sheetEl.style.clipPath = 'none';
     sheetEl.style.transformOrigin = '50% 40%';
     sheetEl.style.transform = `translate3d(0, ${drop.toFixed(2)}px, 0) scale(${(1 - 0.075 * lift).toFixed(4)})`;
@@ -1595,7 +1609,7 @@ function placePage() {
     sheetEl.style.transform = sheetEl.style.borderRadius = sheetEl.style.boxShadow = sheetEl.style.transformOrigin = '';
     sheetEl.style.clipPath = rr >= R ? 'none' : `circle(${rr.toFixed(1)}px at ${cx.toFixed(1)}px ${cy.toFixed(1)}px)`;
   }
-  sheetEl.style.setProperty('--exit-ui', (1 - THREE.MathUtils.smoothstep(d, 0, 0.25)).toFixed(3));   // the ✕ goes first
+  sheetEl.style.setProperty('--exit-ui', (1 - uiGone).toFixed(3));                 // the ✕ goes first
   sheetEl.style.opacity = pageNav.fade ? THREE.MathUtils.clamp(p * 1.6 - 0.25, 0, 1).toFixed(3) : '';   // (dissolve: gone a little before Home is back)
   // the status bar: dark content on the (light, noon DS) page; the page's content can ask for light content over a
   // dark surface (orbi.statusInk), applied once the page is under the bar
@@ -1658,7 +1672,7 @@ function stepPage(now) {
       pageEvent('landed');
     } else {
       Object.assign(view, VIEW.home);
-      pageNav.fade = false; pageNav.exitFrom = 0;
+      pageNav.fade = false; pageNav.exitFrom = 0; pageNav.exitPull = null;
       placePage();
       setSheetLive(false);
       haptic('land', 0.35);                                  // a soft landing back in its corner
@@ -1688,8 +1702,13 @@ let stage = null, stageSnap = false, locked = false, inkOverride = null;
 const stageV = { cx: 0, cy: 0, unit: 0 };
 function updateStage(dt) {
   if (!pageNav.open || pageNav.anim || pageNav.drag || pageNav.show) return;
-  const t = stage || VIEW.page;
-  if (stageSnap && stage) { view.cx = t.cx; view.cy = t.cy; view.unit = t.unit; stageV.cx = stageV.cy = stageV.unit = 0; }
+  let t = stage || VIEW.page;
+  const pulled = !stage && pageNav.pull > 0;
+  if (pulled) {                                              // the page pulled down: the bot rides on it (same scale / origin as placePage's card)
+    const W = screenEl.clientWidth || 375, Hh = screenEl.clientHeight || 812, s = 1 - 0.075 * Math.min(1, pageNav.pull / 140);
+    t = { cx: W / 2 + (t.cx - W / 2) * s, cy: Hh * 0.4 + (t.cy - Hh * 0.4) * s + pageNav.pull, unit: t.unit * s };
+  }
+  if ((stageSnap && stage) || pulled) { view.cx = t.cx; view.cy = t.cy; view.unit = t.unit; stageV.cx = stageV.cy = stageV.unit = 0; }
   else {
     const w = 11, z = 1;                                      // (critically damped: the bot glides in, no wobble)
     for (const k of ['cx', 'cy', 'unit']) {
@@ -2146,6 +2165,16 @@ requestAnimationFrame(frame);
 // small hook for automated checks
 window.orbi = {
   stage(t, { snap = false } = {}) { stage = t ? { cx: t.cx, cy: t.cy, unit: t.unit } : null; stageSnap = !!(t && snap); },
+  // the page's pull-down: pull(px) while the finger is down; release(close, vy px/s) — closes from there or lets the page
+  // spring back (the caller animates pull → 0)
+  pull(px) { if (!pageNav.open || pageNav.anim) return; pageNav.pull = Math.max(0, px); placePage(); },
+  release(close, vy = 0) {
+    if (!close) return;
+    const y = pageNav.pull || 0, H = screenEl.clientHeight || 812;
+    pageNav.exitPull = { y, lift: Math.min(1, y / 140) };
+    haptic('tap');
+    goPage(false, { v0: -THREE.MathUtils.clamp(Math.max(vy, 900) / (H + 70 - y), 1.2, 8) });
+  },
   lock(on) { locked = !!on; }, statusInk(v) { inkOverride = v == null ? null : +v; placePage(); }, gazeAt(yaw, pitch) { gazeLock = yaw == null ? null : { yaw, pitch }; }, hop,
   get pageOpen() { return pageNav.open; },
   gov: GOV, tilt, restoreBot, carry, look, pageNav, get dozed() { return dozed; }, poke, goPage, view, setState, nudge, cycleColour, get theme() { return THEMES[themeIdx].name; }, helmet, toggleVisor, advance: update, faceCanvas, intro, gaze, replay: () => { setState('idle', { quiet: true }); helmet.setVisorDown(false); syncVisor(); Object.assign(intro, { active: true, t: 0, scale: 0, greeted: false, popped: false }); }, get state() { return state; }, motion: m, bodyUniforms: uniforms, bodyMat, renderer, scene, camera };
