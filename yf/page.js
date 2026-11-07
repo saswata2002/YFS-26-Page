@@ -297,35 +297,18 @@ function onScroll() {
 
 }
 scroller.addEventListener('scroll', onScroll, { passive: true });
-// the mini header: once the hero has scrolled away a frosted bar settles in at the top with the section you're in
-// (the name rolls over as you cross into the next one) and a hairline of how far down you are
+// the mini header: once the hero has scrolled away, a black feathered top settles in with the page's name
 const mini = (() => {
   const el = document.createElement('div');
   el.className = 'yf-mini'; el.setAttribute('aria-hidden', 'true');
-  el.innerHTML = '<div class="tt"><span></span></div><i class="prog"></i>';
+  el.innerHTML = '<div class="tt">Yellow Friday sale</div>';
   sheet.appendChild(el);
-  const tt = el.querySelector('.tt'), prog = el.querySelector('.prog');
-  const SECS = [[0, 'Yellow Friday sale'], [L.wishT - 160, 'Wishlist'], [L.flashT - 160, 'Flash deals'], [L.restT - 160, 'Restock'], [L.megaT - 160, 'Mega deals'], [L.lowT - 160, 'Lowest price']];
-  let at = -1, on = false;
-  const name = (top) => { let k = 0; SECS.forEach(([y], i) => { if (top >= y) k = i; }); return k; };
-  function setName(k, dir) {
-    const old = tt.querySelector('span:last-child'), nu = document.createElement('span'); nu.textContent = SECS[k][1]; tt.appendChild(nu);
-    if (at < 0 || reduce.matches) { tt.querySelectorAll('span').forEach((s) => s !== nu && s.remove()); at = k; return; }
-    old.animate([{ transform: 'none', opacity: 1 }, { transform: `translateY(${-dir * 12}px)`, opacity: 0 }], { duration: 220, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'forwards' }).onfinish = () => old.remove();
-    nu.animate([{ transform: `translateY(${dir * 12}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: REVEAL.ease, delay: 60, fill: 'both' });
-    at = k;
-  }
+  let on = false;
   return {
-    update(top) {
-      const show = top > 150;
-      if (show !== on) { on = show; el.classList.toggle('is-on', on); if (on) H('tick'); }
-      const k = name(top); if (k !== at) setName(k, k > at ? 1 : -1);
-      prog.style.transform = `scaleX(${Math.min(1, top / Math.max(1, scroller.scrollHeight - scroller.clientHeight)).toFixed(4)})`;
-    },
-    reset() { on = false; el.classList.remove('is-on'); at = -1; tt.innerHTML = '<span></span>'; setName(0, 1); prog.style.transform = 'scaleX(0)'; },
+    update(top) { const show = top > 150; if (show !== on) { on = show; el.classList.toggle('is-on', on); } },
+    reset() { on = false; el.classList.remove('is-on'); },
   };
 })();
-mini.reset();
 
 // pull down at the top of the page to close it: the page lifts into the card it closes as and follows the finger
 // (a little resistance); let go past 110 px (or with a flick) and it drops away, otherwise it springs back

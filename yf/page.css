@@ -2,7 +2,7 @@
    Every box is placed at its Figma x / y (the frame is 375 wide, like this page). Big titles are Modak (Google
    Fonts, as in Figma); Figma's "Radial Trial" isn't available on the web, so its text falls back to Figtree.
    Art is exported from the file at 3× (yf/*.webp). yf/page.js builds it and runs the reveal + interactions. */
-.yf-scroll { position: absolute; inset: 0; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch;
+.yf-scroll { position: absolute; inset: 0; z-index: 1; /* (its own stacking context: the cards' z-indexes stay inside it, under the top) */ overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain; touch-action: pan-y; scrollbar-width: none; background: #000; }
 .yf-scroll::-webkit-scrollbar { display: none; }
 .yf { position: relative; width: 375px; height: 3215px; /* (yf/page.js sets the laid-out height) */ overflow: hidden; color: #fff; font-family: var(--noon); }
@@ -169,15 +169,12 @@
 .yf-coupon .back span { margin-top: 4px; font: 500 13px/17px var(--noon); }
 .yf-coupon .back em { margin-top: 10px; padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,.08); font: 600 11px/14px var(--noon); font-style: normal; }
 
-/* the mini header (yf/page.js): a frosted bar with the section you're in and how far down you are */
-.yf-mini { position: absolute; left: 0; right: 0; top: 0; height: 100px; z-index: 4; pointer-events: none; opacity: 0; transform: translateY(-8px);
-  background: linear-gradient(180deg, rgba(0,0,0,.82), rgba(0,0,0,.6)); -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
-  box-shadow: inset 0 -1px 0 rgba(255,255,255,.07); transition: opacity .32s cubic-bezier(0.33, 1, 0.68, 1), transform .5s cubic-bezier(0.16, 1, 0.3, 1); }
+/* the mini header (yf/page.js): black feathering down into the page, with the page's name */
+.yf-mini { position: absolute; left: 0; right: 0; top: 0; height: 132px; z-index: 4; pointer-events: none; opacity: 0; transform: translateY(-8px);
+  background: linear-gradient(180deg, #000 0%, rgba(0,0,0,.94) 52%, rgba(0,0,0,.6) 74%, rgba(0,0,0,0) 100%);
+  transition: opacity .32s cubic-bezier(0.33, 1, 0.68, 1), transform .5s cubic-bezier(0.16, 1, 0.3, 1); }
 .yf-mini.is-on { opacity: 1; transform: none; }
-.yf-mini .tt { position: absolute; left: 70px; right: 70px; top: 62px; height: 20px; overflow: hidden; }
-.yf-mini .tt span { position: absolute; left: 0; right: 0; top: 0; text-align: center; font: 600 15px/20px Figtree, var(--noon); letter-spacing: -0.2px; color: #fff; white-space: nowrap; }
-.yf-mini .prog { position: absolute; left: 0; bottom: 0; width: 100%; height: 2px; transform-origin: 0 50%; transform: scaleX(0);
-  background: linear-gradient(90deg, rgba(254,238,0,.4), #feee00); }
+.yf-mini .tt { position: absolute; left: 70px; right: 70px; top: 62px; text-align: center; font: 600 16px/20px Figtree, var(--noon); letter-spacing: -0.2px; color: #fff; white-space: nowrap; }
 
 /* a reminded product on its way into the bot */
 .yf-fly { position: absolute; z-index: 6; margin: 0; pointer-events: none; will-change: transform, opacity; box-shadow: 0 10px 26px rgba(0,0,0,.45);
