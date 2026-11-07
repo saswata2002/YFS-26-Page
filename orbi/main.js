@@ -1490,7 +1490,7 @@ const PAGE_TURN = { omega: 9, zeta: 0.86, kick: 2.6 };
 // 175 ms) — this one leaves gently and settles long. Swipes keep the spring / glide with the finger's speed.
 // (0.4, 0, 0.2, 1): an even lift-off and a long, quiet settle — its peak speed is ~2× the average, where (0.45, 0, 0.12, 1)
 // spiked to ~2.6× mid-way and read as a lurch
-const PAGE_CURVE = { open: { ms: 760, ease: cubicBezier(0.4, 0, 0.2, 1) }, close: { ms: 580, ease: cubicBezier(0.4, 0, 0.2, 1) } };
+const PAGE_CURVE = { open: { ms: 760, ease: cubicBezier(0.4, 0, 0.2, 1) }, close: { ms: 620, ease: cubicBezier(0.4, 0, 0.2, 1) } };   // (close: the page lifts off and drops away while the bot flies home)
 const UNDER = { dim: 0.1 };
 let arcLUT = null;                                           // arc length → bezier u, so the bot's speed is the ease's, not the curve's
 function flightAt(e) {                                       // the bot's arc, Home spot (e 0) → rest on the page (e 1)
@@ -1516,6 +1516,7 @@ const pageEvent = (name) => dispatchEvent(new CustomEvent('orbi:page', { detail:
 function goPage(open, { settle = false, v0 = 0, glide = 0, fade = false } = {}) {
   if (pageNav.open === open && !pageNav.anim && !pageNav.drag && !pageNav.show) return;
   if (!open && pageNav.open) pageEvent('closing');
+  pageNav.exitFrom = open ? 0 : Math.max(0.05, pageNav.p);   // (the close's starting point, for placePage's fold)
   pageNav.fade = !open && fade;                              // (a dissolve: the page stays put and fades as Home returns)
   const fromHome = open && !settle && pageNav.p <= 0.001 && !pageNav.anim && !pageNav.drag;
   pageNav.open = open; pageNav.drag = null; pageNav.visorAt = 0; pageNav.greetAt = 0;
@@ -1577,9 +1578,25 @@ function placePage() {
   // (the radius follows p directly — p is already eased; a second ease on top doubled the mid-way speed and the circle
   // lurched across the screen. A circle's area grows with r², so linear r already swells gently out of the ball)
   const rr = pageNav.fade ? R : r0 + (R - r0) * THREE.MathUtils.clamp(p, 0, 1.05);
-  sheetEl.style.transform = '';
-  sheetEl.style.clipPath = rr >= R ? 'none' : `circle(${rr.toFixed(1)}px at ${cx.toFixed(1)}px ${cy.toFixed(1)}px)`;
-  sheetEl.style.opacity = pageNav.fade ? THREE.MathUtils.clamp(p * 1.6 - 0.25, 0, 1).toFixed(3) : '';   // gone a little before Home is back
+  // closing: the page doesn't get cut away — it lifts off as a card (a touch smaller, corners rounding to the phone's)
+  // and drops away down the screen in one piece, uncovering Home as it goes, while the bot leaves it and flies home.
+  // `d` runs 0 → 1 from wherever the close started (a swipe may let go mid-way), so nothing jumps on the first frame.
+  const closing = !pageNav.open && !pageNav.fade && pageNav.exitFrom > 0;
+  const d = closing ? 1 - THREE.MathUtils.clamp(p / pageNav.exitFrom, 0, 1) : 0;
+  if (closing) {
+    const lift = THREE.MathUtils.smoothstep(d, 0, 0.32);                           // the lift: scale + corners, early
+    const drop = Math.min(1, Math.pow(d, 1.55) * 1.12) * (Hh + 70);               // the drop: gathers speed, gone by d ≈ .93
+    sheetEl.style.clipPath = 'none';
+    sheetEl.style.transformOrigin = '50% 40%';
+    sheetEl.style.transform = `translate3d(0, ${drop.toFixed(2)}px, 0) scale(${(1 - 0.075 * lift).toFixed(4)})`;
+    sheetEl.style.borderRadius = `${(40 * lift).toFixed(2)}px`;
+    sheetEl.style.boxShadow = `0 -12px 44px rgba(0, 0, 0, ${(0.32 * lift).toFixed(3)})`;
+  } else {
+    sheetEl.style.transform = sheetEl.style.borderRadius = sheetEl.style.boxShadow = sheetEl.style.transformOrigin = '';
+    sheetEl.style.clipPath = rr >= R ? 'none' : `circle(${rr.toFixed(1)}px at ${cx.toFixed(1)}px ${cy.toFixed(1)}px)`;
+  }
+  sheetEl.style.setProperty('--exit-ui', (1 - THREE.MathUtils.smoothstep(d, 0, 0.25)).toFixed(3));   // the ✕ goes first
+  sheetEl.style.opacity = pageNav.fade ? THREE.MathUtils.clamp(p * 1.6 - 0.25, 0, 1).toFixed(3) : '';   // (dissolve: gone a little before Home is back)
   // the status bar: dark content on the (light, noon DS) page; the page's content can ask for light content over a
   // dark surface (orbi.statusInk), applied once the page is under the bar
   if (sbar) sbar.style.setProperty('--sb-ink', (inkOverride != null && !pageNav.fade ? inkOverride * THREE.MathUtils.clamp((46 - pageTop) / 30, 0, 1) * pc : 0).toFixed(3));
@@ -1641,7 +1658,7 @@ function stepPage(now) {
       pageEvent('landed');
     } else {
       Object.assign(view, VIEW.home);
-      pageNav.fade = false;
+      pageNav.fade = false; pageNav.exitFrom = 0;
       placePage();
       setSheetLive(false);
       haptic('land', 0.35);                                  // a soft landing back in its corner
