@@ -193,26 +193,37 @@ function reveal({ withBot = false } = {}) {
   else revealWithBot(items);
   setTimeout(() => H('tick'), 320);
   io && io.disconnect();
+  // each block below plays in as it scrolls into view — and resets once it has gone back below the screen (scrolling
+  // up), so scrolling down again plays it in again
+  const shown = new Set();
   io = new IntersectionObserver((ents) => {
     let k = 0;
-    ents.filter((e) => e.isIntersecting).forEach((e) => {
-      io.unobserve(e.target);
+    ents.forEach((e) => {
       const el = e.target;
-      if (el.classList.contains('d3-refill')) { refill.reveal((k++) * 80); return; }
-      playIn(el, el.classList.contains('d3-cta') ? 'translateY(16px) scale(.97)' : 'translateY(24px)', (k++) * 80);
+      if (e.isIntersecting) {
+        if (shown.has(el)) return; shown.add(el);
+        if (el.classList.contains('d3-refill')) { refill.reveal((k++) * 80); return; }
+        playIn(el, el.classList.contains('d3-cta') ? 'translateY(16px) scale(.97)' : 'translateY(24px)', (k++) * 80);
+      } else if (shown.has(el) && belowView(e)) {
+        shown.delete(el);
+        if (el.classList.contains('d3-refill')) refill.hide(); else cancelOwn(el);
+      }
     });
   }, { root: scroller, threshold: 0.1, rootMargin: '0px 0px -6% 0px' });   // (a touch inside the edge, so the glide is seen)
   $$('[data-scroll]').forEach((el) => io.observe(el));
 }
+// gone back out through the bottom of the screen (the user scrolled back up past it)
+const belowView = (e) => e.rootBounds && e.boundingClientRect.bottom > e.rootBounds.bottom;   // (left through the bottom edge, not the top — tall blocks stop counting as visible while their top is still on screen)
 function revealWithBot(items) {
   const sr = sheet.getBoundingClientRect(), VH = scroller.clientHeight || 812;
   const topOf = { title: $('.d3-title'), coupons: $('.d3-coupons'), cta: $('.d3-cta.redeem'), shape: $('.d3-shape'), picks: $$('.d3-title')[1], deck: $('.d3-deck .d3-dk.is-top') || $('.d3-deck .d3-dk') };
+  const anchorOf = { deck: $('.d3-deck') };
   const groups = {};
   items.forEach((el) => {
     const [g, off] = GROUP[el.dataset.k] || ['bg', 0];
     if (!groups[g]) {
       const r = g === 'bg' ? null : topOf[g].getBoundingClientRect();
-      groups[g] = { name: g, y: r ? r.top - sr.top : -1e9, h: r ? r.height : 0, anchor: topOf[g], els: [] };
+      groups[g] = { name: g, y: r ? r.top - sr.top : -1e9, h: r ? r.height : 0, anchor: anchorOf[g] || topOf[g], els: [] };
     }
     groups[g].els.push([el, off]);
   });
@@ -225,9 +236,16 @@ function revealWithBot(items) {
     (seen < Math.min(60, g.h * 0.5) ? below : seq).push(g);   // (less than half of it, or 60 px, showing)
   });
   if (below.length) {
+    const shownLazy = new Set();
     const lazy = new IntersectionObserver((ents) => ents.forEach((e) => {
-      if (!e.isIntersecting) return;
-      lazy.unobserve(e.target); const g = below.find((x) => x.anchor === e.target); if (g) play(g);
+      const g = below.find((x) => x.anchor === e.target); if (!g) return;
+      if (e.isIntersecting && !shownLazy.has(g)) {
+        shownLazy.add(g);
+        if (g.name === 'deck') { deck.roles(); playBeat($('.d3-dk.is-top .in'), 0); } else play(g);   // (the deck: whichever card is in front now)
+      } else if (!e.isIntersecting && shownLazy.has(g) && belowView(e)) {
+        shownLazy.delete(g);                                                    // back below the screen: hidden again, ready to replay
+        if (g.name === 'deck') deck.hide(); else g.els.forEach(([el]) => cancelOwn(el));
+      }
     }), { root: scroller, threshold: 0.1, rootMargin: '0px 0px -6% 0px' });
     below.forEach((g) => lazy.observe(g.anchor));
   }
@@ -609,6 +627,14 @@ const deck = (() => {
   cubesL.addEventListener('click', () => throwTop(-1)); cubesR.addEventListener('click', () => throwTop(1));
   return {
     reset() { order = cards.map((_, i) => i); fanned = 0; st.forEach((s) => { s.fly = 0; Object.assign(s, SLOT[0]); KEYS.forEach((p) => { s.v[p] = 0; }); }); aim(); order.forEach((ci, k) => { if (k) st[ci].o = 0; }); layer(); paint(); },
+    // scrolled back away below the screen: the cards behind tuck back under the front one (instantly, it's off screen)
+    // and the front one goes back to hidden, so the next scroll down plays the whole entrance again
+    hide() {
+      fanned = 0;
+      order.forEach((ci, k) => { const st0 = st[ci]; if (k && !st0.fly) { Object.assign(st0, { ...slot(0), o: 0 }); KEYS.forEach((p) => { st0.v[p] = 0; }); } });
+      aim(); paint();
+      cards.forEach((c) => cancelOwn(c.firstElementChild));
+    },
     // the reveal: the front card lands first; then the cards behind it come out from under it one at a time
     fan(delay) {
       const d = reduce.matches ? 0 : delay, step = reduce.matches ? 0 : 140;
@@ -646,6 +672,7 @@ const refill = (() => {
   });
   return {
     jump: loop.jump,
+    hide() { slots.forEach((sl) => cancelOwn(sl.firstElementChild)); },   // (back to hidden, to play in again)
     reveal(delay) {
       // the main card rises in, then its neighbours slide out from behind it
       slots.forEach((s) => {
