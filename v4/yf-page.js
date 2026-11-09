@@ -85,11 +85,32 @@ const tickerUnit = `<span class="u"><b>Flash deal offers</b><span class="pc">${P
 const cta = (label, cls) => `<button class="d3-abs d3-cta ${cls} rv" type="button"><span class="lb">${label}</span></button>`;
 const two = (y, a, b, k) => `<h2 class="d3-abs d3-title" style="top:${y}px"><span class="ln rv" data-k="${k}a">${a}</span><span class="ln rv" data-k="${k}b">${b}</span></h2>`;
 
+// the top chevrons, Figma "Group 1410130025" (1473:49856) layer by layer — the same paths, paints, 52 % and 2 px blur as
+// its export (f/ce7ef.svg) — except the lines: Figma's 1 px INSIDE strokes are drawn as strokes clipped by their masks, and
+// the export dropped the width (a 0.5 px line the blur all but erased); 2.7 matches Figma's rendered line brightness
+// (measured against its frame render — the browser's blur spreads a thin line more) — split so each chevron can carry the quiet loop in yf-page.css (.cv-i / .cv-m / .cv-o)
+const CHEVRONS = `<defs>
+  <filter id="cvBlur" x="1.88921" y="96.7729" width="712.349" height="522.582" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="2"/></filter>
+  <linearGradient id="cvP0" x1="358.064" y1="472.569" x2="358.064" y2="780.875" gradientUnits="userSpaceOnUse"><stop/><stop offset="1" stop-color="#D2D2D2"/></linearGradient>
+  <linearGradient id="cvP1" x1="358.064" y1="210.686" x2="358.064" y2="552.914" gradientUnits="userSpaceOnUse"><stop offset="0.6" stop-color="#3D3D3D"/><stop offset="1" stop-color="white"/></linearGradient>
+  <linearGradient id="cvP2" x1="358.064" y1="222.13" x2="358.064" y2="494.075" gradientUnits="userSpaceOnUse"><stop offset="0.6" stop-color="#3D3D3D"/><stop offset="1" stop-color="#D2D2D2"/></linearGradient>
+  <path id="cvS1" d="M353.166 212.414C356.088 210.299 360.039 210.299 362.962 212.414L587.498 374.987C592.103 378.321 592.103 385.182 587.498 388.516L362.962 551.088C360.039 553.204 356.088 553.204 353.166 551.088L128.629 388.516C124.024 385.182 124.024 378.321 128.629 374.987L353.166 212.414Z"/>
+  <path id="cvS3" d="M353.166 224.232C356.088 222.116 360.039 222.116 362.961 224.232L538.461 351.299C543.066 354.633 543.066 361.494 538.461 364.828L362.961 491.896C360.039 494.012 356.088 494.012 353.166 491.896L177.667 364.828C173.062 361.494 173.062 354.633 177.667 351.299L353.166 224.232Z"/>
+  <mask id="cvM0" fill="white"><path d="M353.166 102.36C356.088 100.244 360.039 100.244 362.962 102.36L706.785 351.299C711.39 354.633 711.39 361.494 706.785 364.828L362.962 613.768C360.039 615.884 356.089 615.884 353.166 613.768L9.34293 364.828C4.73797 361.494 4.73797 354.633 9.34293 351.299L353.166 102.36Z"/></mask>
+  <mask id="cvM2" fill="white"><use href="#cvS1"/></mask>
+  <mask id="cvM4" fill="white"><use href="#cvS3"/></mask>
+</defs>
+<g opacity="0.52" filter="url(#cvBlur)">
+  <path d="M353.166 254.269C356.088 252.153 360.039 252.153 362.962 254.269L559.513 396.579C564.118 399.913 564.118 406.774 559.513 410.108L362.962 552.418C360.039 554.534 356.088 554.534 353.166 552.418L156.614 410.108C152.009 406.774 152.009 399.913 156.614 396.579L353.166 254.269Z" fill="black"/>
+  <g class="cvr rv" data-r="2"><g class="cv cv-o"><path d="M9.34293 364.828L353.166 613.768C356.088 615.884 360.039 615.884 362.962 613.768L706.785 364.828C711.39 361.494 711.39 354.633 706.785 351.299L362.962 102.36C360.039 100.244 356.088 100.244 353.166 102.36L9.34294 351.299C4.73797 354.633 4.73796 361.494 9.34293 364.828Z" stroke="#8A8A8A" stroke-width="2.7" mask="url(#cvM0)"/></g></g>
+  <g class="cvr rv" data-r="1"><g class="cv cv-m" opacity="0.7"><use href="#cvS1" fill="url(#cvP0)"/><path d="M128.629 388.516L353.166 551.088C356.088 553.204 360.039 553.204 362.962 551.088L587.498 388.516C592.103 385.182 592.103 378.321 587.498 374.987L362.962 212.414C360.039 210.299 356.088 210.299 353.166 212.414L128.629 374.987C124.024 378.321 124.024 385.182 128.629 388.516Z" stroke="url(#cvP1)" stroke-width="2.7" mask="url(#cvM2)"/></g></g>
+  <g class="cvr rv" data-r="0"><g class="cv cv-i" opacity="0.7"><use href="#cvS3" fill="#161616"/><path d="M177.667 364.828L353.166 491.896C356.088 494.012 360.039 494.012 362.961 491.896L538.461 364.828C543.066 361.494 543.066 354.633 538.461 351.299L362.961 224.232C360.039 222.116 356.088 222.116 353.166 224.232L177.667 351.299C173.062 354.633 173.062 361.494 177.667 364.828Z" stroke="url(#cvP2)" stroke-width="2.7" mask="url(#cvM4)"/></g></g>
+</g>`;
 const scroller = document.createElement('div');
 scroller.className = 'yf-scroll d3-scroll';
 scroller.setAttribute('data-no-drag', '');
 scroller.innerHTML = `<div class="d3">
-  <img class="d3-abs d3-bg rv" data-k="bg" src="${A('ce7ef.svg')}" alt="" draggable="false">
+  <svg class="d3-abs d3-bg rv" data-k="bg" viewBox="0 0 716.128 716.128" fill="none" aria-hidden="true" data-node-id="1473:49856">${CHEVRONS}</svg>
   <span class="d3-abs d3-leaf l0 rv" data-k="leafL"><img src="${A('cc1fe.svg')}" alt="" draggable="false"></span>
   <span class="d3-abs d3-leaf l1 rv" data-k="leafR"><img src="${A('c576a.svg')}" alt="" draggable="false"></span>
   ${two(117.26, 'Deals we', 'think you\'ll love', 't')}
@@ -150,7 +171,13 @@ function playIn(el, from, delay, o = {}) {
 // within its group — title lines, coupon fan — and the group starts when the bot has risen clear of it)
 function playBeat(el, delay) {
   const k = el.dataset.k, b = BEATS[k];
-  if (k === 'bg') playIn(el, b[1], delay, { ms: 1600, fadeMs: 1100 });
+  if (k === 'bg') {
+    // the top chevrons: each line comes in on its own after a short beat — the inner one behind the bot first, then
+    // outwards, 180 ms apart — easing down 10 px into place as it fades up (wrappers .cvr, so the loop on .cv keeps running)
+    cancelOwn(el); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' });
+    [...el.querySelectorAll('.cvr')].sort((a, c) => a.dataset.r - c.dataset.r).forEach((g, i) =>
+      playIn(g, 'translateY(-10px)', delay + (reduce.matches ? 0 : 260 + i * 180), { ms: 1300, fadeMs: 900 }));
+  }
   else if (k === 'arrows') [...el.children].forEach((c, i) => playIn(c, b[1], delay + i * 70));   // small cube to big
   else playIn(el, b[1], delay);
   if (k === 'deck') deck.fan(delay + 480);   // (once the front card is mostly in, so the ones behind never show through it)

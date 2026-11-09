@@ -241,10 +241,17 @@
 .d3-fly img { max-width: 86%; max-height: 86%; object-fit: contain; mix-blend-mode: multiply; }
 
 /* ── the quiet loops: slow, low-contrast, never moving anything you're reading ──
-   the chevrons up top breathe a touch. yf-page.js pauses each block while it's off screen (.is-off) */
-.d3-bg { animation: d3Breathe 9s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
-@keyframes d3Breathe { 0%, 100% { scale: 1; } 50% { scale: 1.018; } }
+   the chevrons up top carry a slow wave of light. yf-page.js pauses each block while it's off screen (.is-off) */
+/* the top chevrons (behind the bot): a soft light travels out from the bot through them — inner, middle, outer —
+   the inner two brightening from their 70 % to full, each easing 2.5 px down towards it, then settling; one slow wave every 6 s */
+.d3-bg { overflow: visible; }
+.d3-bg .cvr { transform-box: view-box; }   /* (reveal wrappers: their translate is in the svg's own px, 1 : 1 here) */
+.d3-bg .cv { transform-box: fill-box; transform-origin: 50% 100%; animation: d3Chevron 6s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+.d3-bg .cv-i { --cv0: .7; --cv1: 1; animation-delay: 0s; }
+.d3-bg .cv-m { --cv0: .7; --cv1: 1; animation-delay: .45s; }
+.d3-bg .cv-o { --cv0: 1; --cv1: 1; animation-delay: .9s; }   /* (already at full strength in Figma: it only eases down) */
+@keyframes d3Chevron { 0%, 60%, 100% { opacity: var(--cv0); translate: 0 0; } 25% { opacity: var(--cv1); translate: 0 2.5px; } }   /* (opacity + translate only: CSS filters on SVG parts aren't reliable in Safari) */
 .is-off, .is-off *, .is-off::before, .is-off::after, .is-off *::before, .is-off *::after { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) {
-  .d3-bg { animation: none !important; }
+  .d3-bg, .d3-bg .cv { animation: none !important; }
 }
