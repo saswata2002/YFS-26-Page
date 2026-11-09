@@ -19,6 +19,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Modak&display=swap" />
 <link rel="stylesheet" href="yf/page.css" />
+<link rel="stylesheet" href="switcher.css">
 </head>
 <body>
 
@@ -80,5 +81,12 @@
 <script type="module" src="orbi/main.js"></script>
 <!-- the bot's full page: Yellow Friday (Figma Sas-Motion 543:78780) -->
 <script type="module" src="yf/page.js"></script>
+<nav class="vswitch" id="vswitch" aria-label="Design variations">
+  <button class="vswitch__b" data-v="1" aria-pressed="true">1</button>
+  <button class="vswitch__b" data-v="2" aria-pressed="false">2</button>
+  <i class="vswitch__sep" aria-hidden="true"></i>
+  <button class="vswitch__b vswitch__reset vswitch__tip" id="vreset" data-tip="Reset" aria-label="Reset the flow — start again from the top"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 10a6.5 6.5 0 1 0 1.9-4.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3.8 2.8v3.4h3.4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+</nav>
+<script src="switcher.js"></script>
 </body>
 </html>
