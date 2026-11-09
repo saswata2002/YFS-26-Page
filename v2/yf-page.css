@@ -730,3 +730,6 @@
 .p-end .top svg { width: 18px; height: 18px; } .p-end .top:active { transform: scale(.95); }
 .p-page { padding-bottom: 40px; }
 @media (prefers-reduced-motion: reduce) { .p-end .spark, .p-title .eb.live i { animation: none; } }
+
+/* off-screen calm (yf-page.js): looping decorations hold still while their section is out of view */
+.is-off, .is-off *, .is-off::before, .is-off::after, .is-off *::before, .is-off *::after { animation-play-state: paused !important; }

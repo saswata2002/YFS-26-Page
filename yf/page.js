@@ -562,12 +562,12 @@ function curateEnd() {
   curate.animate([{ opacity: 1, transform: 'none', filter: 'blur(0)' }, { opacity: 0, transform: 'translateY(-6px) scale(.98)', filter: 'blur(6px)' }],
     { duration: 220, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'both' });
   curFx.getAnimations().forEach((a) => a.cancel());
-  curFx.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 520, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'both' })
+  curFx.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'both' })
     .onfinish = () => curFx.classList.remove('is-on');
   window.orbi.setState('idle');
   window.orbi.stage(null);                                     // the bot springs up to its corner…
   H('tick');
-  setTimeout(() => { if (window.orbi.pageOpen) reveal(); }, 90);   // …and the page arrives behind it
+  setTimeout(() => { if (window.orbi.pageOpen) reveal(); }, 200);  // …and once the words have cleared, the page arrives
 }
 function curateCancel() {
   curating = false; clearTimeout(curateT);

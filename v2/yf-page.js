@@ -347,7 +347,9 @@ function stagger(box) {
   kids.forEach((c, i) => {
     if (reduce.matches) return;
     const d = Math.min(i, 8) * 55;
-    c.animate([{ transform: 'translateY(22px) scale(.97)', filter: 'blur(6px)' }, { transform: 'none', filter: 'blur(0)' }], { duration: 900, easing: REVEAL.ease, delay: d, fill: 'backwards' });
+    const soft = box.classList.contains('p-title');                         // (blur only on the light title text)
+    c.animate(soft ? [{ transform: 'translateY(18px)', filter: 'blur(5px)' }, { transform: 'none', filter: 'blur(0)' }] : [{ transform: 'translateY(22px) scale(.97)' }, { transform: 'none' }],
+      { duration: 900, easing: REVEAL.ease, delay: d, fill: 'backwards' });
     c.animate([{ opacity: 0 }, { opacity: getComputedStyle(c).opacity }], { duration: 520, easing: REVEAL.fade, delay: d, fill: 'backwards' });
   });
 }
@@ -549,7 +551,18 @@ const deck = (() => {
     });
     done.classList.remove('is-on');
     void stage.offsetWidth;
-    setTimeout(() => { layout(true, reduce.matches ? 0 : 70); H('tick'); }, reduce.matches ? 0 : delay);
+    // dealt back to front: the third card lands first and the top one last, each turning opaque in a blink, so a card
+    // never shows through the one in front of it (all fading together read as a ghost)
+    setTimeout(() => {
+      cards.forEach((c, i) => {
+        const k = i - at, d = reduce.matches ? 0 : Math.max(0, 2 - k) * 90;
+        c.style.zIndex = String(20 - k); c.classList.toggle('is-top', k === 0);
+        if (k > 2) { c.style.transition = 'none'; c.style.transform = slot(k); c.style.opacity = 0; return; }
+        c.style.transition = `transform .66s cubic-bezier(0.16, 1, 0.3, 1) ${d}ms, opacity .14s linear ${d}ms`;
+        c.style.transform = slot(k); c.style.opacity = 1;
+      });
+      H('tick');
+    }, reduce.matches ? 0 : delay);
   }
   return {
     deal,
@@ -1330,8 +1343,14 @@ const wallet = (() => {
   setInterval(() => {
     if (!visible || open || printing || stack.children.length < 2 || document.hidden || reduce.matches) return;
     const top = stack.firstElementChild;
-    top.animate([{ transform: top.style.transform, opacity: 1 }, { transform: 'translate3d(0, -22px, 0) scale(.96)', opacity: 0 }], { duration: 300, easing: 'cubic-bezier(0.4, 0, 1, 1)' })
-      .onfinish = () => { stack.appendChild(top); list.push(list.shift()); layout(); };
+    top.animate([{ transform: top.style.transform, opacity: 1 }, { opacity: 0, offset: 0.55 }, { transform: 'translate3d(0, -30px, 0) scale(.94)', opacity: 0 }], { duration: 320, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' })
+      .onfinish = () => {
+        stack.appendChild(top); list.push(list.shift());
+        const k = stack.children.length - 1;                                    // (re-placed at the back while invisible…)
+        top.style.transition = 'none'; top.style.opacity = 0; top.style.transform = k <= 2 ? `translate3d(0, ${k * 12}px, 0) scale(${(1 - k * 0.05).toFixed(3)})` : 'translate3d(0, 24px, 0) scale(.9)';
+        top.getAnimations().forEach((a) => a.cancel()); void top.offsetWidth;
+        layout();                                                               // (…then everything settles, and it fades in there)
+      };
   }, 2800);
   stack.addEventListener('click', () => { if (printing) return; open = !open; layout(); H('tick'); });
   return {
@@ -1568,6 +1587,10 @@ const rate = (() => {
   return { reset() { v = 0; stars.forEach((s) => s.classList.remove('on')); face.textContent = FACES[0]; say.textContent = WORDS[0]; } };
 })();
 
+// ─── off-screen calm: looping decorations pause while their section is out of view ─────────────────────────
+const calm = new IntersectionObserver((ents) => ents.forEach((e) => e.target.classList.toggle('is-off', !e.isIntersecting)), { root: scroller, rootMargin: '120px 0px' });
+$$('.p-tapes, .p-streak, .p-acts, .p-boxes, .p-near, .p-slide, .p-scan, .p-end, .p-title, .p-gold').forEach((el) => { el.classList.add('is-off'); calm.observe(el); });
+
 // ─── the rest of the page ───────────────────────────────────────────────────────────────────────────────────
 // Remind me: the bell rings, the product is sent up to the bot
 page.addEventListener('click', (e) => {
@@ -1602,17 +1625,20 @@ tick(); setInterval(tick, 1000);
 // scrolling: the greeting drifts, the tapes run faster with the scroll's speed, the bot looks the way you're going
 const heroEls = { hi: $('.p-hi'), date: $('.p-date'), tapes: $$('.tape .run') };
 let lastY = 0, lastT = 0, tapeBoost = 0, tapeRaf = 0;
+let tapeRate = 1;
 function tapeSpeed() {
-  tapeBoost *= 0.92;
-  heroEls.tapes.forEach((r) => r.getAnimations().forEach((a) => { a.playbackRate = 1 + tapeBoost; }));
-  tapeRaf = tapeBoost > 0.02 ? requestAnimationFrame(tapeSpeed) : 0;
+  tapeBoost *= 0.94;
+  tapeRate += (1 + tapeBoost - tapeRate) * 0.12;                           // the rate eases toward the target: no lurch
+  heroEls.tapes.forEach((r) => r.getAnimations().forEach((a) => { a.playbackRate = tapeRate; }));
+  tapeRaf = Math.abs(tapeRate - 1) > 0.01 || tapeBoost > 0.02 ? requestAnimationFrame(tapeSpeed) : 0;
+  if (!tapeRaf) { tapeRate = 1; heroEls.tapes.forEach((r) => r.getAnimations().forEach((a) => { a.playbackRate = 1; })); }
 }
 function onScroll() {
   const top = scroller.scrollTop, y = Math.min(top, 700), now = performance.now();
   heroEls.hi.style.translate = heroEls.date.style.translate = `0 ${(y * 0.3).toFixed(1)}px`;
   if (live && Math.abs(top - lastY) > 2 && top > 0) bot.look(0, top > lastY ? 0.22 : -0.1, 380);   // reading down / back up
   const v = Math.abs(top - lastY) / Math.max(8, now - lastT);
-  tapeBoost = Math.min(5, Math.max(tapeBoost, v * 2.2)); if (!tapeRaf && tapeBoost > 0.02) tapeRaf = requestAnimationFrame(tapeSpeed);
+  tapeBoost = Math.min(3, Math.max(tapeBoost, v * 1.6)); if (!tapeRaf && tapeBoost > 0.02) tapeRaf = requestAnimationFrame(tapeSpeed);
   lastY = top; lastT = now;
   mini.update(top);
 }
@@ -1706,12 +1732,12 @@ function curateEnd() {
   curate.animate([{ opacity: 1, transform: 'none', filter: 'blur(0)' }, { opacity: 0, transform: 'translateY(-6px) scale(.98)', filter: 'blur(6px)' }],
     { duration: 220, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'both' });
   curFx.getAnimations().forEach((a) => a.cancel());
-  curFx.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 520, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'both' })
+  curFx.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'both' })
     .onfinish = () => curFx.classList.remove('is-on');
   window.orbi.setState('idle');
   window.orbi.stage(null);                                     // the bot springs up to its corner…
   H('tick');
-  setTimeout(() => { if (window.orbi.pageOpen) reveal(); }, 90);   // …and the page arrives behind it
+  setTimeout(() => { if (window.orbi.pageOpen) reveal(); }, 200);  // …and once the words have cleared, the page arrives
 }
 function curateCancel() {
   curating = false; clearTimeout(curateT);
