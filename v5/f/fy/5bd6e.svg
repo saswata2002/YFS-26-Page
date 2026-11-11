@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+<foreignObject x="-6" y="-6" width="38" height="38"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(3px);clip-path:url(#bgblur_0_0_49_clip_path);height:100%;width:100%"></div></foreignObject><g id="Add to wishlist" data-figma-bg-blur-radius="6">
+<rect width="26" height="26" rx="13" fill="#080808" fill-opacity="0.55"/>
+<rect x="0.5" y="0.5" width="25" height="25" rx="12.5" stroke="white" stroke-opacity="0.12"/>
+<path id="icon/heart" d="M6 11.566C6.00001 10.8466 6.21944 10.1441 6.62928 9.55138C7.03913 8.95863 7.62013 8.50347 8.29554 8.24601C8.97095 7.98855 9.70899 7.94091 10.4122 8.10938C11.1154 8.27785 11.7507 8.65449 12.2341 9.18958C12.2682 9.22579 12.3093 9.25466 12.3551 9.27439C12.4008 9.29413 12.4501 9.30431 12.5 9.30431C12.5498 9.30431 12.5991 9.29413 12.6449 9.27439C12.6906 9.25466 12.7318 9.22579 12.7658 9.18958C13.2478 8.65102 13.8832 8.2712 14.5875 8.10069C15.2919 7.93018 16.0317 7.97705 16.7086 8.23508C17.3855 8.4931 17.9674 8.95004 18.3767 9.54507C18.786 10.1401 19.0034 10.845 19 11.566C19 13.0463 18.025 14.1518 17.05 15.1215L13.4802 18.5561C13.3591 18.6944 13.2097 18.8056 13.0421 18.8821C12.8745 18.9586 12.6924 18.9988 12.508 19C12.3235 19.0011 12.141 18.9633 11.9724 18.8888C11.8038 18.8144 11.6531 18.7052 11.5302 18.5684L7.94999 15.1215C6.975 14.1518 6 13.0528 6 11.566Z" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
+</g>
+<defs>
+<clipPath id="bgblur_0_0_49_clip_path" transform="translate(6 6)"><rect width="26" height="26" rx="13"/>
+</clipPath></defs>
+</svg>

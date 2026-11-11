@@ -1,310 +1,264 @@
-/* ══ Iteration 2 — the bot's page as a playground ════════════════════════════════════════════════════════════
-   Same arrival as iteration 1 (the circle out of the bot, "Curating for you", the bot to its corner), then a page
-   made to be played with, built into #orbiSheet by this file (styles: v2/yf-page.css):
-     · Hi Neha + the Yellow Friday lettering, over two crossing sale tapes that run faster as you scroll
-     · a swipe deck of noon's top deals: drag the top card (it tilts and stamps WANT / PASS), fling it — a WANT flies
-       up into the bot and lands in "Your picks"; pass / want / undo buttons; when it's empty it deals again
-     · category bubbles that pour in and jostle (drag and fling them; tap to pick) and a grid that FLIP-shuffles to
-       what you picked
-     · three mystery boxes that bob and wiggle — tap one: the lid pops, a coupon rises, confetti, the bot cheers
-     · the flash deals (countdown, Remind me sends the product to the bot) and the lowest price
-   Kept from iteration 1: the curating beat, the black feathered mini header, pull-down-to-close, the bot's glances. */
+/* ══ Iteration 3 — the bot's full page: "Deals we think you'll love", 1:1 with Figma Saswata 1473:49855 ══════════════
+   A copy of iteration 1's flow (the circle reveal out of the bot, the "Curating for you" beat, pull-to-close, the
+   mini header, the bot's reactions) with this page built into #orbiSheet at Figma's own x / y (yf-page.css):
+     · a looping 3D coupon carousel (the bank offers live on noon.com), each one flips to its code on a tap
+     · a deck of top picks: swipe the front card away (or tap the pixel arrows), add to cart, the bot catches it
+     · a scrolling "Flash deal offers" strip, a swipeable refill card with a wishlist heart, "Shop all deals"
+   The reveal: the page plays in behind the bot as it leaves for its corner (one soft expo-out settle, front first,
+   the others fanning out from under it), then every block below the fold glides up as it scrolls into view. */
 const sheet = document.getElementById('orbiSheet');
-const D = '';                                            // Noontree's dirham glyph
+const D = '';                                       // Noontree's dirham glyph
 const H = (k) => { try { window.Haptics && window.Haptics[k] && window.Haptics[k](); } catch {} };
 const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
-// Apple-ish springs as CSS linear() (sampled damped spring; response r s, damping ζ)
-function springEase(response, zeta, n = 48) {
-  const w = (2 * Math.PI) / response, wd = w * Math.sqrt(Math.max(1e-6, 1 - zeta * zeta));
-  const at = (t) => (zeta >= 1 ? 1 - (1 + w * t) * Math.exp(-w * t) : 1 - Math.exp(-zeta * w * t) * (Math.cos(wd * t) + (zeta * w / wd) * Math.sin(wd * t)));
-  let T = 0.05; while (T < 4 && Math.abs(1 - at(T)) > 0.001) T += 0.02;
-  return { ms: Math.round(T * 1000), ease: `linear(${Array.from({ length: n + 1 }, (_, i) => (i === n ? 1 : at((i / n) * T)).toFixed(4)).join(', ')})` };
-}
-const SNAPPY = springEase(0.42, 0.96);                         // small UI (tabs, ticker, digits): quick, no visible bounce
 // the reveal: a long, soft settle (expo-out) for the move, a quicker fade — content glides in rather than pops
-const REVEAL = { ms: 1000, ease: 'cubic-bezier(0.16, 1, 0.3, 1)', fadeMs: 620, fade: 'cubic-bezier(0.25, 0.1, 0.25, 1)' };
-const SMOOTH = { ms: REVEAL.ms, ease: REVEAL.ease };
-const FADE = 'cubic-bezier(0.33, 1, 0.68, 1)';
+const REVEAL = { ms: 1100, ease: 'cubic-bezier(0.16, 1, 0.3, 1)', fadeMs: 640, fade: 'cubic-bezier(0.25, 0.1, 0.25, 1)' };
+const FADE_IN = 'cubic-bezier(0.33, 1, 0.68, 1)', FADE_OUT = 'cubic-bezier(0.65, 0, 0.35, 1)';
+const A = (f) => `f/${f}`;
+const N = (id) => `f/n/${id}.jpg`;                               // Neha's feed: noon.com product photos                                     // this iteration's art (Figma exports + noon photos)
 
-const BELL = '<svg viewBox="0 0 14 14" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.521 9.60368C11.521 9.95719 11.3806 10.2962 11.1306 10.5462C10.8807 10.7962 10.5416 10.9366 10.1881 10.9366L8.31269 10.9372C8.31269 11.2853 8.17441 11.6191 7.92827 11.8653C7.68213 12.1114 7.34829 12.2497 7.00019 12.2497C6.6521 12.2497 6.31826 12.1114 6.07212 11.8653C5.82597 11.6191 5.68769 11.2853 5.68769 10.9372L3.81228 10.9366C3.57112 10.9366 3.33449 10.8711 3.12759 10.7472C2.9207 10.6233 2.75129 10.4456 2.63743 10.233C2.52356 10.0204 2.4695 9.78095 2.48101 9.54007C2.49252 9.29918 2.56916 9.06593 2.70278 8.86517V8.86401C3.31821 7.94262 3.64647 6.85936 3.64603 5.75134V5.24967C3.64603 4.36009 3.99941 3.50695 4.62844 2.87792C5.25747 2.24889 6.11061 1.89551 7.00019 1.89551C7.88977 1.89551 8.74292 2.24889 9.37195 2.87792C10.001 3.50695 10.3544 4.36009 10.3544 5.24967V5.75076C10.3544 6.82409 10.6624 7.87409 11.2404 8.77709L11.2976 8.86459C11.4434 9.08276 11.521 9.34118 11.521 9.60368ZM7.00019 2.77051C6.34268 2.77051 5.71209 3.03171 5.24716 3.49664C4.78222 3.96157 4.52103 4.59216 4.52103 5.24967V5.75076C4.52103 7.03118 4.14186 8.28417 3.43078 9.34992C3.38485 9.41892 3.35851 9.49909 3.35456 9.58188C3.35061 9.66467 3.36921 9.74697 3.40837 9.82002C3.44753 9.89307 3.50578 9.95412 3.57692 9.99667C3.64805 10.0392 3.72939 10.0617 3.81228 10.0616H10.1881C10.2709 10.0615 10.3522 10.039 10.4233 9.99644C10.4943 9.95386 10.5525 9.8928 10.5916 9.81977C10.6307 9.74674 10.6492 9.66447 10.6452 9.58173C10.6413 9.49899 10.6149 9.41888 10.569 9.34992C9.85775 8.28442 9.47853 7.03186 9.47936 5.75076V5.24967C9.47936 4.59216 9.21816 3.96157 8.75323 3.49664C8.2883 3.03171 7.65771 2.77051 7.00019 2.77051Z" fill="white"/></svg>';
-
-// ─── data: live from noon.com/uae-en (2026-11-07) — the homepage's own modules: 11.11 flash sale, mega deals, lowest
-// prices, the appliance / home / beauty coupon carousels. Product photos are noon's (yf/noon/, trimmed to the product).
+// ─── data: live from noon.com/uae-en (2026-11-09) — the homepage's bank offers (Emirates Islamic 09–12 Nov, tabby
+// 08–12 Nov), the 11.11 sale's top deals, and household staples from the grocery store (prices as listed that day)
 const money = (v) => (Math.round(v * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
-const off = (it) => Math.round((1 - it.price / it.was) * 100);
+const pct = (it) => Math.floor((1 - it.price / it.was) * 100);   // (noon rounds its % off down)
 const DATA = {
-  hero: [   // the 3D carousel (starts on index 1): tagline, bold name
-    { img: 'hero0', tag: 'Hear every detail with', name: 'Galaxy Buds4 Pro', price: 519, was: 560 },
-    { img: 'hero1', tag: 'Run lighter in the', name: 'Nike Run Defy', price: 165, was: 329 },
-    { img: 'hero2', tag: 'Meet Galaxy AI on the', name: 'Samsung Galaxy S25', price: 1899, was: 3199 },
-    { img: 'hero3', tag: 'Style it your way with', name: 'Dyson Airwrap i.d.', price: 1529, was: 2299 },
-    { img: 'hero4', tag: 'Cinema at home with', name: 'Samsung OLED S90F', price: 4609, was: 9499 },
+  coupons: [   // the hero coupon first (Figma's "Midnight Gold"), then the others round the ring
+    { title: `30% extra off up to ${D}150`, sub: 'with Emirates Islamic', code: 'EIB30', ends: '12/11/2026', card: 'ei', look: 'gold' },
+    { title: `20% extra off up to ${D}100`, sub: 'with Emirates Islamic', code: 'EIB20', ends: '12/11/2026', card: 'ei2', look: 'ice' },
+    { title: `25% extra off up to ${D}100`, sub: 'when you pay with tabby', code: 'TABBYCASH25', ends: '12/11/2026', card: 'tabby', look: 'mint' },
   ],
-  coupons: [   // left, centre (hero), right
-    { img: 'cp0', l1: '10% off on', l2: 'Appliances' },
-    { img: 'cp1', l1: '10% off up to', l2: `${D}50`, cover: true },
-    { img: 'cp2', l1: 'Buy 2, get', l2: '15% off' },
+  // Neha (the Mystique dossier, InterOp data to 26 Oct 2026) — every product a live noon.com/uae-en listing (2026-11-10:
+  // name, price, was, rating as listed; photos in f/n/). Kept out on purpose, as the dossier asks: anything health-related,
+  // the child's gender or age, and birthday or anniversary framing.
+  deck: [      // "the big buys she is still researching": the MacBook, iPhone, office chair, dressing table, washing machine
+    { src: N('d0'), name: 'Apple MacBook Pro 16-inch, M4 Pro chip, 24GB RAM, 512GB SSD, Silver', price: 8599, was: 15019, rating: 4.5, express: true },
+    { src: N('d1'), name: 'Apple iPhone 17 Pro 256 GB (eSIM only) Cosmic Orange 5G', price: 3999, was: 4699, rating: 4.5, express: true },
+    { src: N('d2'), name: 'DROGO Ergonomic Office Chair, High Back with Adaptive Lumbar Support, Pro Grey', price: 929, was: 1699, rating: 5.0, express: true },
+    { src: N('d3'), name: 'SUNLIT HOME Modern Wooden Dressing Table Vanity Set with Mirror & 4 Drawers', price: 284, was: 699, rating: 3.9, express: true },
+    { src: N('d4'), name: 'Midea 8KG Front Load Washing Machine, BLDC Inverter, 1400 RPM, 15 Programs', price: 849, was: 1199, rating: 4.7, express: true },
   ],
-  wish: [
-    { img: 'wish0', name: 'Beauty of Joseon Relief Sun SPF 50+', price: 34.4, was: 100 },
-    { img: 'wish1', name: 'Anua Niacinamide 10% + TXA 4% Serum', price: 48.9, was: 108.27 },
-    { img: 'wish2', name: 'ISDIN Fusion Water Magic SPF 50+', price: 69.99, was: 185 },
+  refill: [    // "a toddler moving up a size": Size 6 pants from the brand she buys, her toddler snacks, the overdue bath care
+    { src: N('t0'), name: 'Pampers Ultimate Comfort Pants Diapers Size 6 (16+kg) Super Saving Pack', price: 44.89, was: 74.01, rating: 4.7, last: 'Your next size up' },
+    { src: N('t1'), name: 'Pampers Aloe Vera Pants Diapers Size 6 Mega Box 68 Count', price: 99, was: 175, rating: 4.6, last: 'Your next size up' },
+    { src: N('t2'), name: 'Gerber Puffs Vanilla 1.48 Oz', price: 21.5, was: 29.25, rating: 4.8, last: 'Last bought 8 Oct' },
+    { src: N('t3'), name: 'Kiddylicious Veggie Straws, 120g (10x12g)', price: 41.84, was: 60, rating: 5.0, last: 'Last bought 8 Oct' },
+    { src: N('t4'), name: 'Aveeno Baby Gentle Wash And Shampoo, 532 ml', price: 86, was: 94, rating: 5.0, last: 'Last bought 28 Aug' },
   ],
-  restock: [   // by tab: Home, Beauty, Laptops, Mobiles
-    [{ img: 'home0', name: 'Danube Home Urbane King Comforter Set', price: 79, was: 199, cover: true },
-     { img: 'home1', name: 'T G H Striped Flannel Fleece Blanket', price: 44.99, was: 80 },
-     { img: 'home2', name: 'Pan Home Grimsby 6-Door Wardrobe', price: 1399, was: 2199, cover: true }],
-    [{ img: 'beauty0', name: 'Dyson Airwrap i.d. Multi-styler', price: 1529, was: 2299 },
-     { img: 'beauty1', name: 'Arabiyat Oud Al Layl Gift Set', price: 34, was: 140 },
-     { img: 'beauty2', name: 'Some by Mi Cica Peptide Scalp Tonic', price: 34.2, was: 95 }],
-    [{ img: 'laptops0', name: 'Lenovo IdeaPad 5 2-in-1, Core i5, 1TB', price: 3099, was: 5099 },
-     { img: 'laptops1', name: 'ASUS Vivobook S14, Core 5, 512GB', price: 3708, was: 3995 },
-     { img: 'laptops2', name: 'SteelSeries Arctis Nova Pro Wired', price: 729, was: 1319 }],
-    [{ img: 'mobiles0', name: 'Nothing Phone 3, 12GB, 256GB', price: 1899, was: 2999 },
-     { img: 'mobiles1', name: 'Redmi Note 15 Pro+, 12GB, 512GB', price: 1449, was: 1799 },
-     { img: 'mobiles2', name: 'realme 16 Pro 5G, 12GB, 256GB', price: 1199, was: 1999 }],
-  ],
-  flash: [
-    { img: 'flash0', brand: 'PUMA', title: 'Softride Enzo 6 Running Shoes', price: 165, was: 369 },
-    { img: 'flash1', brand: 'TOMMY HILFIGER', title: 'Logo Crew Neck T-Shirt', price: 89, was: 209, cover: true },
-  ],
-  mega: [
-    { img: 'mega0', brand: 'Xiaomi', title: 'TV S Pro Mini LED 75"', price: 3379, was: 3999 },
-    { img: 'mega1', brand: 'Samsung', title: 'Galaxy A36 5G, 8GB RAM, 256GB, Awesome Lavender', price: 998, was: 1399 },
-    { img: 'mega2', brand: 'Adidas', title: 'Grand Court Base 2.0 Sneakers', price: 145, was: 329 },
-    { img: 'mega3', brand: 'EZVIZ', title: 'C6N G1 3K Indoor Security Camera, 360° View', price: 99, was: 159 },
-  ],
-  low: { img: 'low0', title: 'JBL Go 4 Portable Waterproof Speaker, Big Pro Sound with Punchy Bass', price: 106.88 },
-  sub: {
-    wish: 'Price drops on beauty you saved', flash: '11.11 flash sale, while stocks last', restock: 'Back in stock, picked for you',
-    mega: 'Top brands at their best prices', low: 'Lowest price in a year',
-  },
 };
-const IMG = (k) => `../yf/noon/${k}.webp`;
-
-const EXPRESS = '<img class="ex" src="../yf/express.svg" width="57" height="17" alt="express" draggable="false">';
-const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const X_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
-const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7.6-4.6-9.3-9.4C1.6 7.6 3.7 4.4 7 4.4c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.3 0 5.4 3.2 4.3 6.5-1.7 4.8-9.3 9.4-9.3 9.4z" fill="currentColor"/></svg>';
-const UNDO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7L4.5 11.5 9 16M5 11.5h9a5 5 0 010 10h-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-
-// ─── what the page plays with ─────────────────────────────────────────────────────────────────────────────────
-// the swipe deck: noon's top deals, each on its own pastel
-const DECK = [
-  { img: 'hero1', brand: 'Nike', name: 'Run Defy', price: 165, was: 329, bg: '#FFF1C9' },
-  { img: 'hero2', brand: 'Samsung', name: 'Galaxy S25, 12GB, 128GB', price: 1899, was: 3199, bg: '#DDF5EA' },
-  { img: 'hero3', brand: 'Dyson', name: 'Airwrap i.d. Multi-styler', price: 1529, was: 2299, bg: '#E7E4FF' },
-  { img: 'hero0', brand: 'Samsung', name: 'Galaxy Buds4 Pro', price: 519, was: 560, bg: '#E3EEFF' },
-  { img: 'mega2', brand: 'Adidas', name: 'Grand Court Base 2.0', price: 145, was: 329, bg: '#FFE1E1' },
-  { img: 'hero4', brand: 'Samsung', name: '65" OLED S90F 4K', price: 4609, was: 9499, bg: '#ECECF2' },
-  { img: 'wish0', brand: 'Beauty of Joseon', name: 'Relief Sun SPF 50+', price: 34.4, was: 100, bg: '#FFF4E0' },
-  { img: 'mega0', brand: 'Xiaomi', name: 'TV S Pro Mini LED 75"', price: 3379, was: 3999, bg: '#E0F4FF' },
-];
-// every product, one shape (for the grid)
-const ITEM = {};
-DATA.hero.forEach((it) => { ITEM[it.img] = { img: it.img, name: it.name, price: it.price, was: it.was }; });
-[...DATA.wish, ...DATA.restock.flat()].forEach((it) => { ITEM[it.img] = { img: it.img, name: it.name, price: it.price, was: it.was, cover: it.cover }; });
-[...DATA.flash, ...DATA.mega].forEach((it) => { ITEM[it.img] = { img: it.img, name: `${it.brand} ${it.title}`, price: it.price, was: it.was, cover: it.cover }; });
-ITEM.low0 = { img: 'low0', name: 'JBL Go 4 Portable Speaker', price: DATA.low.price, was: null };
-// the bubbles: what you're into → what the grid shows
-const CATS = [
-  { k: 'home', h: '#FF9F43', t: 'Home', e: '🏠', r: 48, items: ['home0', 'home1', 'home2'] },
-  { k: 'beauty', h: '#FF6FA5', t: 'Beauty', e: '💄', r: 46, items: ['wish0', 'wish1', 'wish2', 'beauty1', 'beauty2'] },
-  { k: 'laptops', h: '#4FA3FF', t: 'Laptops', e: '💻', r: 44, items: ['laptops0', 'laptops1'] },
-  { k: 'mobiles', h: '#36D399', t: 'Mobiles', e: '📱', r: 50, items: ['mobiles0', 'mobiles1', 'mobiles2', 'mega1'] },
-  { k: 'fashion', h: '#A698FF', t: 'Fashion', e: '👟', r: 46, items: ['flash0', 'flash1', 'mega2'] },
-  { k: 'tv', h: '#FF5A6E', t: 'TVs', e: '📺', r: 42, items: ['mega0', 'hero4'] },
-  { k: 'audio', h: '#FEEE00', t: 'Audio', e: '🎧', r: 44, items: ['hero0', 'laptops2', 'low0'] },
-  { k: 'gadgets', h: '#5EE7DF', t: 'Gadgets', e: '⌚', r: 42, items: ['mega3', 'hero3'] },
-];
-const TOP = ['hero2', 'mega2', 'wish1', 'laptops0', 'mobiles0', 'home1'];
-// the mystery boxes: noon's three homepage coupons, each in its own wrapping
-const BOXES = [
-  { c1: '#FFF25A', c2: '#F2C200', rib: '#141414' },
-  { c1: '#FF8DB8', c2: '#E2457F', rib: '#FFFFFF' },
-  { c1: '#A698FF', c2: '#6B55F0', rib: '#FEEE00' },
-];
-const TAPE = '11.11 ✦ UP TO 70% OFF ✦ FREE DELIVERY ✦ YELLOW FRIDAY ✦ ';
-// shop by budget: every deal, cheapest first
-const BUDGET = Object.values(ITEM).filter((it) => it.price).sort((a, b) => a.price - b.price);
-const STOPS = [100, 250, 500, 1000, 2000, 5000];                         // the slider's marked budgets (ticks as you pass them)
-// spin & win: the wheel's six prizes (clockwise from the top)
-const PRIZES = [
-  { t: '10% off', s: 'on your next order', c: '#FEEE00', ink: '#121212' },
-  { t: 'Free delivery', s: 'on any order', c: '#1E1E1E', ink: '#FFFFFF' },
-  { t: `${D}20 back`, s: 'cashback in your wallet', c: '#FF8DB8', ink: '#121212' },
-  { t: '5% off', s: 'on electronics', c: '#FFFFFF', ink: '#121212' },
-  { t: '15% off', s: 'on beauty', c: '#A698FF', ink: '#121212' },
-  { t: 'Free gift', s: 'with orders over 199', c: '#2A2A2A', ink: '#FEEE00' },
-];
-// scratch & reveal: the hidden deal
-const SCRATCH = { img: 'wish1', l1: 'Extra 20% off', l2: 'Beauty & skincare', code: 'GLOW20' };
+const IMG = (k) => A(`p/${k}.webp`);
+// every product card carries the same three: a wishlist heart, the express · Today tag and the rating (yf-page.css .meta)
+const EX = `<img class="ex" src="${A('d26a7.svg')}" alt="express · Today" draggable="false">`;
+const RT = (r) => `<span class="w-rt"><img src="${A('w/star.svg')}" alt="" draggable="false">${(+r || 4.3).toFixed(1)}</span>`;   // (4.3 where noon shows no rating yet)
+const META = () => `<div class="meta">${EX}</div>`;   // (the rating sits on the photo: RT, bottom-left)
 
 // ─── markup ──────────────────────────────────────────────────────────────────────────────────────────────────
-// every section opens the same way: a little eyebrow label, the Modak title, a line under it — and a soft wash of the
-// section's own colour behind it, so the long black page gets depth and each part its own feel
-const SECTION = {
-  'What are you into?': ['Pick your vibe', '#8D7BFF'], 'Deals by day': ['Coming up', '#4FA3FF'], 'Shop by budget': ['Smart shopping', '#36D399'],
-  'Bundle & save': ['Save more', '#FF9F43'], 'Scan my style': ['Just for you', '#FF6FA5'], 'Spin & win': ['Play', '#FEEE00'],
-  'Your rewards': ['Wallet', '#FFB400'], 'Mystery boxes': ['Surprise', '#FF6FA5'], 'Scratch & reveal': ['Play', '#E2457F'],
-  'Trending near you': ['Live', '#FF5A6E'], 'Flash deals': ['Ending soon', '#FF7A3D'], 'Golden deal': ['Best price', '#FFC93C'], 'Rate the sale': ['Feedback', '#FEEE00'],
+const PLUS = '<svg class="pl" viewBox="0 0 40 40" aria-hidden="true"><path d="M27.475 19.1375H20.8625V12.525C20.8625 12.2963 20.7716 12.0769 20.6099 11.9151C20.4481 11.7534 20.2287 11.6625 20 11.6625C19.7713 11.6625 19.5519 11.7534 19.3901 11.9151C19.2284 12.0769 19.1375 12.2963 19.1375 12.525V19.1375H12.525C12.2963 19.1375 12.0769 19.2284 11.9151 19.3901C11.7534 19.5519 11.6625 19.7713 11.6625 20C11.6625 20.2287 11.7534 20.4481 11.9151 20.6099C12.0769 20.7716 12.2963 20.8625 12.525 20.8625H19.1375V27.475C19.1375 27.7037 19.2284 27.9231 19.3901 28.0849C19.5519 28.2466 19.7713 28.3375 20 28.3375C20.2287 28.3375 20.4481 28.2466 20.6099 28.0849C20.7716 27.9231 20.8625 27.7037 20.8625 27.475V20.8625H27.475C27.7037 20.8625 27.9231 20.7716 28.0849 20.6099C28.2466 20.4481 28.3375 20.2287 28.3375 20C28.3375 19.7713 28.2466 19.5519 28.0849 19.3901C27.9231 19.2284 27.7037 19.1375 27.475 19.1375Z"/></svg>';
+const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const HEART = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7.99998 14.1066C7.99999 13.2163 8.27005 12.3471 8.77448 11.6135C9.27891 10.88 9.99399 10.3167 10.8253 9.99811C11.6565 9.6795 12.5649 9.62054 13.4304 9.82902C14.2959 10.0375 15.0778 10.5036 15.6728 11.1658C15.7147 11.2106 15.7654 11.2463 15.8216 11.2707C15.8779 11.2952 15.9386 11.3078 16 11.3078C16.0613 11.3078 16.122 11.2952 16.1783 11.2707C16.2346 11.2463 16.2853 11.2106 16.3272 11.1658C16.9203 10.4993 17.7024 10.0293 18.5693 9.81827C19.4362 9.60726 20.3468 9.66526 21.1799 9.98457C22.013 10.3039 22.7291 10.8693 23.2329 11.6057C23.7367 12.3421 24.0042 13.2144 24 14.1066C24 15.9386 22.8 17.3066 21.6 18.5066L17.2064 22.757C17.0573 22.9282 16.8735 23.0657 16.6672 23.1604C16.4609 23.2551 16.2368 23.3049 16.0098 23.3063C15.7828 23.3077 15.5581 23.2609 15.3506 23.1688C15.1431 23.0767 14.9576 22.9415 14.8064 22.7722L10.4 18.5066C9.19998 17.3066 7.99998 15.9466 7.99998 14.1066Z" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CUBES = (side) => `<div class="d3-abs d3-cubes ${side}" data-k="arrows" role="button" aria-label="${side === 'l' ? 'Previous pick' : 'Next pick'}">
+  <i class="c0 rv"><img src="${A('2a5d6.svg')}" alt="" draggable="false"></i><i class="c1 rv"><img src="${A('2a72d.svg')}" alt="" draggable="false"></i><i class="c2 rv"><img src="${A('f97bf.svg')}" alt="" draggable="false"></i></div>`;
+// a bank card on the coupon's holographic panel (131.9 × 83.4, Figma's "Image 14 3")
+const CARD = {
+  ei: `<i class="chip"></i><img class="lg" src="${A('p/logo-ei.png')}" alt="Emirates Islamic" draggable="false"><b class="visa">VISA</b><em class="tier">Platinum</em>`,
+  ei2: `<i class="chip"></i><img class="lg" src="${A('p/logo-ei.png')}" alt="Emirates Islamic" draggable="false"><b class="visa">VISA</b><em class="tier">Signature</em>`,
+  tabby: `<img class="tb" src="${A('p/logo-tabby.png')}" alt="tabby" draggable="false"><span class="split">Split in 4. No interest.</span>`,
 };
-const title = (h2, sub) => { const [eb, tint] = SECTION[h2] || ['', '#FEEE00']; return `<div class="p-title" data-stagger style="--tint:${tint}"><span class="eb${eb === 'Live' ? ' live' : ''}"><i></i>${eb}</span><h2>${h2}</h2><p>${sub}</p></div>`; };
-const pc = (p) => `<div class="yf-pc"><div class="ph${p.cover ? ' cover' : ''}"><img src="${IMG(p.img)}" alt="" draggable="false"></div>
-  <div class="nm"><b>${p.brand}</b>${p.title}</div><div class="prow"><span class="cur">${D}</span><span class="pz">${money(p.price)}</span><span class="was">${money(p.was)}</span></div>
-  <button class="yf-remind yf-press" type="button">${BELL}<span>Remind me</span></button></div>`;
-const card = (it, i) => `<div class="p-card" data-i="${i}" style="--bg:${it.bg}"><div class="ph"><img src="${IMG(it.img)}" alt="" draggable="false"></div>
-  <span class="off">-${off(it)}%</span><div class="info"><small>${it.brand}</small><b>${it.name}</b><p><i>${D}</i>${money(it.price)}<s>${D}${money(it.was)}</s></p></div>
-  <span class="st want">WANT</span><span class="st pass">PASS</span></div>`;
-const gc = (k) => { const it = ITEM[k]; return `<div class="p-gc yf-press" data-k="${k}" hidden><div class="ph${it.cover ? ' cover' : ''}"><img src="${IMG(k)}" alt="" draggable="false" loading="lazy"></div>
-  <button class="lk" type="button" aria-label="Like">${HEART}<i class="ring"></i>${'<i class="bit"></i>'.repeat(8)}</button>
-  <div class="nm">${it.name}</div><div class="pr"><b><i>${D}</i>${money(it.price)}</b>${it.was ? `<s>${D}${money(it.was)}</s><em>-${off(it)}%</em>` : '<em class="lo">Lowest</em>'}</div></div>`; };
-const box = (b, i) => { const c = DATA.coupons[i]; return `<button class="p-box" type="button" data-i="${i}" style="--c1:${b.c1};--c2:${b.c2};--rib:${b.rib};--d:${i * 0.45}s">
-  <span class="cpn"><small>${c.l1}</small><b>${c.l2}</b><em>${CHECK}Collected</em></span>
-  <span class="shadow"></span><span class="body"><i class="rv"></i></span><span class="lid"><i class="rv"></i><i class="bow l"></i><i class="bow r"></i></span></button>`; };
-const DAYS = [
-  { t: 'Today', when: 'Live now · ends midnight', items: ['flash0', 'mega1'] },
-  { t: 'Tomorrow', when: 'Drops tomorrow at 9 am', items: ['hero3', 'laptops0'] },
-  { t: 'Weekend', when: 'Saturday & Sunday only', items: ['mega0', 'home2'] },
-];
-const SCAN = ['hero1', 'wish0', 'hero2', 'mega2', 'hero0'];
-const NEAR = ['hero2', 'mega2', 'wish1', 'hero0', 'laptops1', 'beauty1', 'mega0', 'home1', 'flash1', 'mobiles1', 'hero3'];
-const NEAR_SPOTS = [[24, 34, 92], [128, 10, 74], [214, 44, 104], [62, 138, 70], [146, 104, 96], [252, 156, 68], [20, 214, 64], [110, 206, 80], [206, 228, 74]];   // left, top, size
-const GRID_KEYS = [...new Set([...TOP, ...CATS.flatMap((c) => c.items)])];
-
-const scroller = document.createElement('div');
-scroller.className = 'yf-scroll';
-scroller.setAttribute('data-no-drag', '');
-scroller.innerHTML = `<div class="yf p-page">
-  <div class="p-hi yf-rv" data-k="hi">Hi Neha!</div>
-  <img class="p-date yf-rv" data-k="date" src="../yf/date.webp" alt="Yellow Friday sale" draggable="false">
-  <div class="p-tapes yf-rv" data-k="tape" aria-hidden="true">
-    <div class="tape a"><div class="run"><span>${TAPE.repeat(3)}</span><span>${TAPE.repeat(3)}</span></div></div>
-    <div class="tape b"><div class="run"><span>${TAPE.repeat(3)}</span><span>${TAPE.repeat(3)}</span></div></div>
+const coupon = (c, i) => `<div class="d3-cslot" data-i="${i}" data-o="${i % DATA.coupons.length}"><div class="d3-cp rv look-${c.look}">
+  <div class="face">
+    <img class="body" src="${A('049d7.svg')}" alt="" draggable="false">
+    <i class="dodge"><img src="${A('c151b.svg')}" alt="" draggable="false"></i>
+    <img class="glow g0" src="${A('1f0f3.svg')}" alt="" draggable="false"><img class="glow g1" src="${A('7dc6b.svg')}" alt="" draggable="false">
+    <div class="holo"><i class="grad"></i><img class="rays" src="${A('9d964.svg')}" alt="" draggable="false"><div class="bank bank-${c.card}">${CARD[c.card]}</div></div>
+    <img class="dash" src="${A('40b1b.svg')}" alt="" draggable="false">
+    <p class="t1">${c.title}</p><p class="t2">${c.sub}</p>
+    <i class="strip"></i><p class="exp">EXPIRES ON ${c.ends}</p>
   </div>
-  <div class="p-streak yf-rv" data-k="streak">
-    <div class="fl"><svg class="flame" viewBox="0 0 48 60" aria-hidden="true"><defs><linearGradient id="pFl" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FF5A1F"/><stop offset=".6" stop-color="#FFB400"/><stop offset="1" stop-color="#FEEE00"/></linearGradient></defs><path class="o" d="M24 2c3 9 14 15 14 30a14 14 0 01-28 0c0-7 4-11 7-15 0 5 2 8 5 9-2-9 0-17 2-24z" fill="url(#pFl)"/><path class="i" d="M24 30c2 4 7 7 7 13a7 7 0 01-14 0c0-4 3-7 5-9 0 3 1 4 2 4-1-3-1-6 0-8z" fill="#FFF6B0"/></svg><i class="spk"></i><i class="spk"></i><i class="spk"></i></div>
-    <div class="mid"><b><span class="sn">2</span>-day streak</b><small class="sl">Check in today for 5% off</small>
-      <div class="days">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => `<i class="${i < 2 ? 'on' : i === 2 ? 'today' : ''}"><em>${CHECK}</em><u>${d}</u></i>`).join('')}</div></div>
-    <button class="go" type="button"><span>Check in</span></button>
-  </div>
-  <div class="p-title yf-rv" data-k="deckT" style="--tint:#FEEE00"><span class="eb"><i></i>Swipe to shop</span><h2>Swipe your <span class="flipw"><span>deals</span></span></h2><p>Right to want it, left to pass</p></div>
-  <div class="p-deck" data-no-drag>${DECK.map(card).join('')}
-    <div class="p-done"><b>That's your shortlist!</b><span>Every deal you wanted is with the bot</span><button class="p-again yf-press" type="button">Deal again</button></div>
-  </div>
-  <div class="p-acts yf-rv" data-k="acts"><i class="p-coach" aria-hidden="true"></i>
-    <button class="p-act pass yf-press" type="button" aria-label="Pass">${X_ICON}</button>
-    <button class="p-act undo yf-press" type="button" aria-label="Undo">${UNDO}</button>
-    <button class="p-act want yf-press" type="button" aria-label="Want">${HEART}</button>
-  </div>
-  <div class="p-picks yf-rv" data-k="picks"><span class="lbl">Your picks</span><span class="ava"></span><span class="n"><b>0</b></span></div>
+  <div class="back"><i class="ck">${CHECK}</i><b>Code copied</b><span class="cd">${c.code}</span><em>Applied at checkout</em></div>
+</div></div>`;
+const priceRow = (it) => `<div class="pr"><b><i>${D}</i>${money(it.price)}</b><s>${money(it.was)}</s><em>${pct(it)}%</em></div>`;
+const deckCard = (it, i) => `<div class="d3-dk" data-i="${i}"><div class="in rv">
+  <div class="main"><div class="ph"><img src="${it.src || IMG(it.img)}" alt="" draggable="false"></div><i class="tint"></i>${RT(it.rating)}
+    <button class="d3-wish" type="button" aria-label="Add to wishlist" aria-pressed="false">${HEART}</button></div>
+  <div class="info"><p class="nm">${it.name}</p>${priceRow(it)}${META()}
+    <button class="d3-add" type="button" aria-label="Add to cart">${PLUS}<span class="ok">${CHECK}</span></button></div>
+</div></div>`;
+const refillCard = (it, i) => `<div class="d3-rslot" data-i="${i}" data-drop="${Math.round(it.was - it.price)}"><div class="d3-rf rv">
+  <div class="main"><div class="ph"><img src="${it.src || IMG(it.img)}" alt="" draggable="false"></div><i class="tint"></i>${RT(it.rating)}
+    <button class="d3-wish" type="button" aria-label="Add to wishlist" aria-pressed="false">${HEART}</button></div>
+  <div class="info"><p class="nm">${it.name}</p><div class="pr"><b><i>${D}</i> ${money(it.price)}</b><span class="wp"><s>${money(it.was)}</s><em>${pct(it)}%</em></span></div>${META()}${it.last ? `<p class="last">${it.last}</p>` : ''}${it.badge ? `<p class="last drop">${it.badge}</p>` : ''}</div>
+  <button class="d3-add" type="button" aria-label="Add to cart">${PLUS}<span class="ok">${CHECK}</span></button>
+</div></div>`;
+const PCT = ['08887', '8b80f', 'a1be9'].map((f) => `<img src="${A(f + '.svg')}" alt="" draggable="false">`).join('');
+const HEART_SM = '<svg class="hs" viewBox="41 1.7 10.5 9.5" aria-hidden="true"><path d="M47.0508 2.71063H45.5508L45.0508 1.71063H42.5508L41.0508 3.21063V6.71063L45.5508 11.2106H47.0508L51.5508 6.71063V3.21063L50.0508 1.71063H47.5508L47.0508 2.71063Z" fill="#A493FF"/></svg>';
+const tickerUnit = `<span class="u"><b>Flash deals</b><span class="pc">${PCT}</span><b>Win discounts on ${HEART_SM} brands</b></span>`;
+const cta = (label, cls) => `<button class="d3-abs d3-cta ${cls} rv" type="button"><span class="lb">${label}</span></button>`;
+const two = (y, a, b, k) => `<h2 class="d3-abs d3-title" style="top:${y}px"><span class="ln rv" data-k="${k}a">${a}</span><span class="ln rv" data-k="${k}b">${b}</span></h2>`;
 
-  ${title('What are you into?', 'Tap a few, flick them around')}
-  <div class="p-bubbles" data-no-drag>${CATS.map((c, i) => `<button class="p-bubble" type="button" data-i="${i}" style="--r:${c.r}px;--h:${c.h}"><span class="e">${c.e}</span><span class="t">${c.t}</span><i class="ck">${CHECK}</i></button>`).join('')}</div>
-  <div class="p-gridhead yf-rv" data-scroll><b>Top picks</b><span>for you</span></div>
-  <div class="p-grid" data-stagger>${GRID_KEYS.map(gc).join('')}</div>
-
-  ${title('Deals by day', 'Swipe through what\'s dropping when')}
-  <div class="p-days yf-rv" data-scroll>
-    <div class="seg"><i class="pill"></i>${DAYS.map((d, i) => `<button type="button" data-i="${i}">${d.t}</button>`).join('')}</div>
-    <div class="pager" data-no-drag>${DAYS.map((d) => `<div class="pg"><div class="when">${d.when}</div><div class="two">${d.items.map((k) => { const it = ITEM[k]; return `<div class="dc"><div class="ph${it.cover ? ' cover' : ''}"><img src="${IMG(k)}" alt="" draggable="false" loading="lazy"></div><span>${it.name}</span><b><i>${D}</i>${money(it.price)}</b></div>`; }).join('')}</div></div>`).join('')}</div>
-  </div>
-
-  ${title('Shop by budget', 'Slide to set what you want to spend')}
-  <div class="p-budget yf-rv" data-scroll>
-    <span class="bagchip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8zM9 8a3 3 0 016 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><b>0</b></span>
-    <div class="val"><span>Under</span><b><i>${D}</i><em>1,000</em></b></div>
-    <div class="track" data-no-drag><i class="fill"></i>${STOPS.map((v) => `<i class="stop" data-v="${v}"></i>`).join('')}<span class="knob"></span></div>
-    <div class="ends"><span>${D}50</span><span>${D}5,000</span></div>
-    <div class="count"><b>0</b> deals in your budget</div>
-  </div>
-  <div class="p-brow" data-stagger data-no-drag>${BUDGET.map((it) => `<div class="p-bc" data-p="${it.price}"><div class="ph${it.cover ? ' cover' : ''}"><img src="${IMG(it.img)}" alt="" draggable="false" loading="lazy"><span class="step" data-n="0"><button class="mn" type="button" aria-label="One less">−</button><em>0</em><button class="pl" type="button" aria-label="Add to bag">+</button></span></div><b><i>${D}</i>${money(it.price)}</b><span>${it.name}</span></div>`).join('')}</div>
-
-  ${title('Bundle & save', 'Turn the dial: the more you add, the more you save')}
-  <div class="p-dial yf-rv" data-scroll>
-    <div class="ring" data-no-drag>
-      <svg viewBox="0 0 240 240" aria-hidden="true"><circle class="trk" cx="120" cy="120" r="98"/><circle class="arc" cx="120" cy="120" r="98" pathLength="100"/>
-        ${[...Array(6)].map((_, i) => { const a = (i / 6) * 2 * Math.PI - Math.PI / 2; return `<circle class="tk" cx="${(120 + 98 * Math.cos(a)).toFixed(1)}" cy="${(120 + 98 * Math.sin(a)).toFixed(1)}" r="3"/>`; }).join('')}</svg>
-      <span class="knob"></span>
-      <div class="mid"><b class="n">1</b><small>items</small></div>
-    </div>
-    <div class="save"><div><small>You save</small><b class="pct">0%</b></div><div><small>That's about</small><b class="amt"><i>${D}</i><em>0</em></b></div></div>
-    <div class="avas"></div>
-  </div>
-
-  ${title('Scan my style', 'Let the bot read your vibe')}
-  <div class="p-scan yf-rv" data-scroll>
-    <div class="deck">${SCAN.map((k, i) => `<div class="pol" style="--r:${[-6, 4, -2, 7, -9][i]}deg"><div class="ph"><img src="${IMG(k)}" alt="" draggable="false"></div><span>${ITEM[k].name.split(' ').slice(0, 2).join(' ')}</span></div>`).join('')}<i class="beam"></i></div>
-    <div class="res"><b>Your vibe: <em>Sporty minimal</em></b><span>Clean whites, everyday tech, easy skincare</span></div>
-    <button class="go" type="button"><span>Scan my style</span></button>
-  </div>
-
-  ${title('Spin & win', 'Give the wheel a flick')}
-  <div class="p-wheel yf-rv" data-scroll>
-    <div class="stage" data-no-drag>
-      <svg class="disc" viewBox="-130 -130 260 260" aria-hidden="true">${PRIZES.map((p, i) => {
-        const a0 = (i * 60 - 90 - 30) * Math.PI / 180, a1 = (i * 60 - 90 + 30) * Math.PI / 180, r = 126;
-        return `<path d="M0 0L${(r * Math.cos(a0)).toFixed(2)} ${(r * Math.sin(a0)).toFixed(2)}A${r} ${r} 0 0 1 ${(r * Math.cos(a1)).toFixed(2)} ${(r * Math.sin(a1)).toFixed(2)}Z" fill="${p.c}"/>
-          <text transform="rotate(${i * 60}) translate(0 -80)${i * 60 > 90 && i * 60 < 270 ? ' rotate(180)' : ''}" fill="${p.ink}" text-anchor="middle" dominant-baseline="middle">${p.t}</text>`;   // (the lower ones turned to read upright)
-      }).join('')}<circle r="126" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="2"/>${PRIZES.map((p, i) => `<circle cx="${(118 * Math.sin((i * 60 + 30) * Math.PI / 180)).toFixed(2)}" cy="${(-118 * Math.cos((i * 60 + 30) * Math.PI / 180)).toFixed(2)}" r="3" fill="rgba(255,255,255,.7)"/>`).join('')}</svg>
-      <span class="ptr"></span>
-      <button class="hub yf-press" type="button">SPIN</button>
-    </div>
-    <div class="won"><span class="ck">${CHECK}</span><div><b>Spin to win a prize</b><small>Drag the wheel or tap SPIN</small></div></div>
-  </div>
-
-  ${title('Your rewards', 'Everything you win prints right here · tap to fan out')}
-  <div class="p-wallet yf-rv" data-scroll data-no-drag>
-    <div class="slot"><i></i><span>noon rewards</span></div>
-    <div class="stack"></div>
-  </div>
-
-  ${title('Mystery boxes', 'Tap one to see what\'s inside')}
-  <div class="p-boxes" data-stagger>${BOXES.map(box).join('')}</div>
-
-  ${title('Scratch & reveal', 'Rub the card to see your deal')}
-  <div class="p-scratch yf-rv" data-scroll>
-    <div class="under"><div class="ph"><img src="${IMG(SCRATCH.img)}" alt="" draggable="false"></div>
-      <div class="tx"><small>You found</small><b>${SCRATCH.l1}</b><span>${SCRATCH.l2}</span><em>${SCRATCH.code}</em></div></div>
-    <canvas class="foil" data-no-drag></canvas>
-  </div>
-  <div class="p-slide yf-rv is-locked" data-scroll data-no-drag>
-    <i class="glow"></i><span class="lbl"><b>Slide to apply ${SCRATCH.code}</b><em>Scratch the card first</em></span>
-    <span class="done">${CHECK}<b>${SCRATCH.code} applied</b></span>
-    <span class="knob"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-  </div>
-
-  ${title('Trending near you', 'What Dubai Marina is buying right now')}
-  <div class="p-near yf-rv" data-scroll>${NEAR_SPOTS.map((sp, i) => `<button class="nb" type="button" style="left:${sp[0]}px;top:${sp[1]}px;--s:${sp[2]}px" data-i="${i}"><span class="in"><img src="${IMG(NEAR[i % NEAR.length])}" alt="" draggable="false"></span></button>`).join('')}<span class="badge"></span></div>
-
-  ${title('Flash deals', DATA.sub.flash)}
-  <div class="p-flip yf-rv" data-scroll>${['h', 'm', 's'].map((k, i) => `${i ? '<span class="col">:</span>' : ''}<div class="unit"><div class="flap" data-t="${k}"><span class="top"><b>00</b></span><span class="bot"><b>00</b></span><span class="ftop"><b>00</b></span><span class="fbot"><b>00</b></span><i class="hinge"></i></div><small>${['HRS', 'MIN', 'SEC'][i]}</small></div>`).join('')}</div>
-  <div class="p-flash" data-stagger>${pc(DATA.flash[0])}${pc(DATA.flash[1])}</div>
-
-  ${title('Golden deal', 'Lowest price in a year · tilt it')}
-  <div class="p-gold yf-rv" data-scroll data-no-drag><div class="card">
-    <i class="holo"></i><i class="glare"></i>
-    <div class="ph"><img src="${IMG(DATA.low.img)}" alt="" draggable="false"></div>
-    <div class="tx"><small>LOWEST PRICE ✦ 365 DAYS</small><b>JBL Go 4</b><span>Portable waterproof speaker</span><strong><i>${D}</i>${money(DATA.low.price)}</strong>${EXPRESS}</div>
-  </div></div>
-  <button class="p-hold yf-rv" data-scroll type="button"><i class="fill"></i><span class="lbl">Hold to grab it</span><span class="lbl ink" aria-hidden="true">Hold to grab it</span><span class="ok">${CHECK}<b>Grabbed! It's with the bot</b></span></button>
-
-  ${title('Rate the sale', 'How\'s your Yellow Friday? Drag across the stars')}
-  <div class="p-rate yf-rv" data-scroll>
-    <div class="face"><span>🙂</span></div>
-    <div class="stars" data-no-drag>${[...Array(5)].map((_, i) => `<i data-i="${i}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z"/></svg></i>`).join('')}</div>
-    <p class="say">Tap or slide to rate</p>
-  </div>
-
-  <div class="p-end yf-rv" data-scroll>
-    <span class="spark"></span><b>You're all caught up</b><small>Yellow Friday ends in <em class="endt">03:14:19</em></small>
-    <button class="top" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Back to top</span></button>
-  </div>
+// the top chevrons, Figma "Group 1410130025" (1473:49856) layer by layer — the same paths, paints, 52 % and 2 px blur as
+// its export (f/ce7ef.svg) — except the lines: Figma's 1 px INSIDE strokes are drawn as strokes clipped by their masks, and
+// the export dropped the width (a 0.5 px line the blur all but erased); 2.7 matches Figma's rendered line brightness
+// (measured against its frame render — the browser's blur spreads a thin line more) — split so each chevron can carry the quiet loop in yf-page.css (.cv-i / .cv-m / .cv-o)
+const CHEVRONS = `<defs>
+  <filter id="cvBlur" x="1.88921" y="96.7729" width="712.349" height="522.582" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="2"/></filter>
+  <linearGradient id="cvP0" x1="358.064" y1="472.569" x2="358.064" y2="780.875" gradientUnits="userSpaceOnUse"><stop/><stop offset="1" stop-color="#D2D2D2"/></linearGradient>
+  <linearGradient id="cvP1" x1="358.064" y1="210.686" x2="358.064" y2="552.914" gradientUnits="userSpaceOnUse"><stop offset="0.6" stop-color="#3D3D3D"/><stop offset="1" stop-color="white"/></linearGradient>
+  <linearGradient id="cvP2" x1="358.064" y1="222.13" x2="358.064" y2="494.075" gradientUnits="userSpaceOnUse"><stop offset="0.6" stop-color="#3D3D3D"/><stop offset="1" stop-color="#D2D2D2"/></linearGradient>
+  <path id="cvS1" d="M353.166 212.414C356.088 210.299 360.039 210.299 362.962 212.414L587.498 374.987C592.103 378.321 592.103 385.182 587.498 388.516L362.962 551.088C360.039 553.204 356.088 553.204 353.166 551.088L128.629 388.516C124.024 385.182 124.024 378.321 128.629 374.987L353.166 212.414Z"/>
+  <path id="cvS3" d="M353.166 224.232C356.088 222.116 360.039 222.116 362.961 224.232L538.461 351.299C543.066 354.633 543.066 361.494 538.461 364.828L362.961 491.896C360.039 494.012 356.088 494.012 353.166 491.896L177.667 364.828C173.062 361.494 173.062 354.633 177.667 351.299L353.166 224.232Z"/>
+  <mask id="cvM0" fill="white"><path d="M353.166 102.36C356.088 100.244 360.039 100.244 362.962 102.36L706.785 351.299C711.39 354.633 711.39 361.494 706.785 364.828L362.962 613.768C360.039 615.884 356.089 615.884 353.166 613.768L9.34293 364.828C4.73797 361.494 4.73797 354.633 9.34293 351.299L353.166 102.36Z"/></mask>
+  <mask id="cvM2" fill="white"><use href="#cvS1"/></mask>
+  <mask id="cvM4" fill="white"><use href="#cvS3"/></mask>
+</defs>
+<g opacity="0.52" filter="url(#cvBlur)">
+  <path d="M353.166 254.269C356.088 252.153 360.039 252.153 362.962 254.269L559.513 396.579C564.118 399.913 564.118 406.774 559.513 410.108L362.962 552.418C360.039 554.534 356.088 554.534 353.166 552.418L156.614 410.108C152.009 406.774 152.009 399.913 156.614 396.579L353.166 254.269Z" fill="black"/>
+  <g class="cvr rv" data-r="2"><g class="cv cv-o"><path d="M9.34293 364.828L353.166 613.768C356.088 615.884 360.039 615.884 362.962 613.768L706.785 364.828C711.39 361.494 711.39 354.633 706.785 351.299L362.962 102.36C360.039 100.244 356.088 100.244 353.166 102.36L9.34294 351.299C4.73797 354.633 4.73796 361.494 9.34293 364.828Z" stroke="#8A8A8A" stroke-width="2.7" mask="url(#cvM0)"/></g></g>
+  <g class="cvr rv" data-r="1"><g class="cv cv-m" opacity="0.7"><use href="#cvS1" fill="url(#cvP0)"/><path d="M128.629 388.516L353.166 551.088C356.088 553.204 360.039 553.204 362.962 551.088L587.498 388.516C592.103 385.182 592.103 378.321 587.498 374.987L362.962 212.414C360.039 210.299 356.088 210.299 353.166 212.414L128.629 374.987C124.024 378.321 124.024 385.182 128.629 388.516Z" stroke="url(#cvP1)" stroke-width="2.7" mask="url(#cvM2)"/></g></g>
+  <g class="cvr rv" data-r="0"><g class="cv cv-i" opacity="0.7"><use href="#cvS3" fill="#161616"/><path d="M177.667 364.828L353.166 491.896C356.088 494.012 360.039 494.012 362.961 491.896L538.461 364.828C543.066 361.494 543.066 354.633 538.461 351.299L362.961 224.232C360.039 222.116 356.088 222.116 353.166 224.232L177.667 351.299C173.062 354.633 173.062 361.494 177.667 364.828Z" stroke="url(#cvP2)" stroke-width="2.7" mask="url(#cvM4)"/></g></g>
+</g>`;
+// ─── below "Shop all deals": the "For You" widgets, Figma For-You 352:7748 (its Frame 2147242854, 390:23398) ──────
+// Blocks 40 apart, in normal flow (.d3-more, yf-page.css) instead of at absolute x / y (Figma's stacked "Top deals"
+// was dropped as redundant): the sale strip, wishlist deals by category, three refill-style carousels (price drops · stock up · lowest prices),
+// flash deals with a live countdown, and two 2 × 2 grids. Art: the Figma exports in f/w/. The carousels' hero card
+// is Figma's; its neighbours are this page's own refill staples, so a swipe shows different products
+const W = (f) => A(`w/${f}`);
+const MORE = {
+  // "deals, straight from your wishlist": what she carted or wishlisted and didn't buy, then what she only looked at
+  tabs: [
+    { label: ['Toys'], items: [
+      { src: N('w0'), name: 'BAYBEE Wooden Pancake Pretend Play Kitchen Set with 20 Pcs Play Food', price: 59, was: 102.2, tag: 'In your cart' },
+      { src: N('w1'), name: 'Jellycat Bartholomew Bear Bathrobe Outfit Plush, 22cm', price: 112, was: 157.87, rating: 4.5, tag: 'In your cart' },
+      { src: N('w2'), name: 'PEAKY KIDS 130 pcs Magnetic Tiles Building Set', price: 109.99, was: 199, rating: 4.3, tag: 'In your cart' } ] },
+    { label: ['Home'], items: [
+      { src: N('w3'), name: 'WaterScience Hand Shower Filter for Chlorine & Hard Water', price: 144, was: 224.95, rating: 4.6, tag: 'In your cart' },
+      { src: N('w4'), name: 'Siesta Zen Ultra Soft Oversized Comforter Queen 230x210cm', price: 125.84, was: 178.09, tag: 'In your cart' },
+      { src: N('w5'), name: 'Arabest Queen Size Down Comforter Insert, Microfiber White', price: 115, was: 188, rating: 4.3 } ] },
+    { label: ['Viewed'], items: [
+      { src: N('w6'), name: 'ALO Yoga 30" Inseam Suit Up Trouser, Wide Leg, Navy', price: 105, was: 259, rating: 4.2, tag: 'You viewed' },
+      { src: N('w7'), name: 'Ameya Yellow Embroidered Organza Kurta Set with Dupatta', price: 375, tag: 'You viewed' },
+      { src: N('w8'), name: 'Ameya Purple Embroidered Kurta Trousers with Dupatta Set', price: 275, tag: 'You viewed' } ] },
+    { label: ['Snacks'], items: [
+      { src: N('w9'), name: 'Quest Protein Tortilla Chips, Chili Lime, Box of 8', price: 105.99, was: 113.99, rating: 5.0, tag: 'In your cart' },
+      { src: N('w10'), name: 'Quest Protein Tortilla Chips, Spicy Sweet Chili, Box of 8', price: 113.99, rating: 5.0 },
+      { src: N('w11'), name: 'Quest Protein Tortilla Chips, Ranch, Box of 8', price: 113.99, rating: 5.0 } ] },
+  ],
+  // "things she saved for herself": her carted / wishlisted skincare, at today's prices
+  drops: [
+    { src: N('p0'), name: 'Beauty of Joseon Relief Sun Rice + Probiotics SPF 50+ Sunscreen, 50ml', price: 34.4, was: 100, rating: 4.2 },
+    { src: N('p1'), name: 'rhode Barrier Butter Intensive Moisture Balm, 100ml', price: 231.99, was: 280, rating: 4.9 },
+    { src: N('p2'), name: 'CeraVe Moisturizing Cream for Dry to Very Dry Skin, 454g', price: 72, was: 128, rating: 4.4 },
+    { src: N('p3'), name: 'Beauty of Joseon Relief Sun Aqua-Fresh Rice + B5 SPF 50+, 50ml', price: 29, was: 100, rating: 4.5 },
+    { src: N('p4'), name: 'CeraVe Moisturising Cream, 50ml', price: 19.95, was: 34, rating: 4.4 },
+  ],
+  // "the household stock-up", from her own brands, with when she last bought each (most come round again before the sale)
+  stock: [
+    { src: N('s0'), name: 'Fine Facial Tissue Boxes, 2 Ply, 5 x 200 Sheets, White', price: 21.26, was: 34.27, rating: 4.4, last: 'Last bought 8 Oct' },
+    { src: N('s1'), name: 'Fairy Plus Lemon Dishwashing Liquid, Pack of 3 x 600ml', price: 21.45, was: 33.6, rating: 4.5, last: 'Last bought 7 Oct' },
+    { src: N('s2'), name: 'Tide Fast Action Laundry Detergent Powder', price: 40, was: 76.27, rating: 4.7, last: 'Last bought 7 Oct' },
+    { src: N('s3'), name: 'Earth Green Choice Garbage Bags, Twin Pack, 50 Gallons, 40 Bags', price: 19, was: 47, rating: 5.0, last: 'Last bought 28 Aug' },
+    { src: N('s4'), name: 'Nescafe Classic Coffee Jar, 190g', price: 19.95, was: 36.19, rating: 4.5, last: 'Last bought 28 Aug' },
+  ],
+  // "toys she has already shortlisted", then more for the same stage: building and pretend play
+  lowest: [
+    { src: N('l0'), name: 'LEGO DUPLO Deluxe Brick Box 10914, 85 Pieces', price: 111, was: 199, rating: 4.8 },
+    { src: N('l1'), name: 'LEGO DUPLO Bluey Ice Cream Trip 10458, 22 Pieces', price: 81, was: 129, rating: 4.7 },
+    { src: N('l2'), name: 'Learning Resources New Sprouts Cure It! Doctor Kit, 6 Pieces', price: 126.11, was: 149, rating: 4.3 },
+    { src: N('l3'), name: 'Sanirell 10 in 1 Montessori Busy Book', price: 38.64, was: 69.99, rating: 5.0 },
+    { src: N('l4'), name: 'unikbebe 50 PCS Soft Silicone Stacking Blocks with Wheels', price: 56.99, was: 158, rating: 5.0 },
+  ].map((it) => ({ ...it, badge: `You save ${D}${Math.round(it.was - it.price)}` })),
+  // "making the home toddler-proof": the gates she viewed on 5 Oct, plus corner guards and cabinet locks
+  flash: [
+    { src: N('f0'), name: 'BAYBEE 75 cm Auto Close Safety Baby Gate, Extra Tall, White', price: 129, was: 249, rating: 4.0, locked: true },
+    { src: N('f1'), name: 'RADIANCES 6.5 ft Baby Proofing Edge & Corner Guards, White', price: 24.99, was: 99.99, rating: 3.7 },
+    { src: N('f2'), name: 'Gonice Child Safety Strap Locks for Cabinets & Drawers, 10 Pack', price: 27.92, was: 59, rating: 4.1 },
+  ],
+  // "the festive home season": candles, lights and refills (she already owns a tree and ornaments)
+  festive: [
+    { src: N('g0'), name: 'Bath & Body Works Dark Velvet 3-Wick Jar Candle, 411g', price: 75, was: 129, rating: 4.8, tag: 'Festive home' },
+    { src: N('g1'), name: 'Dunekart Snowflake Christmas Lights, 80 LED, 10M, Warm White', price: 22.9, was: 36.9, rating: 5.0, tag: 'Festive home' },
+    { src: N('g2'), name: 'Angju Flameless LED Candles with Remote & Timer, 4 Pcs', price: 57.99, was: 175.99, rating: 5.0, tag: 'Festive home' },
+    { src: N('g3'), name: 'LONGFINE Shangri-la Reed Diffuser Refill, 260ml', price: 42, was: 69, rating: 3.0, tag: 'Festive home' },
+  ],
+  // "her weekly basket": the repeats noon.com carries (her fresh eggs, milk, avocado and berries are on Minutes)
+  weekly: [
+    { src: N('k0'), name: 'Kewpie Roasted Sesame Dressing, 210ml', price: 10.36, was: 24.31, rating: 5.0, tag: 'Every 2 weeks' },
+    { src: N('k1'), name: 'India Mills Fresh n Cottage Malai Paneer Cubes, 825g', price: 14.68, was: 26.6, rating: 3.4, tag: 'Every week' },
+    { src: N('k2'), name: 'MTR Dosa Mix, 200g', price: 2.7, was: 5.67, rating: 2.0, tag: 'Every 3 weeks' },
+    { src: N('k3'), name: 'Gerber Organic NutriPuffs Raspberry & Banana, 35g', price: 16.2, was: 27.27, rating: 4.3, tag: 'Toddler snack' },
+  ],
+};
+const HEART_ON = '<svg class="on" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 7.05C4 5.4 5.3 4.2 6.8 4.2c.5 0 1 .2 1.2.5.2-.3.7-.5 1.2-.5 1.5 0 2.8 1.2 2.8 2.85 0 2-2.3 3.6-4 4.95-1.7-1.35-4-2.95-4-4.95z" fill="#f43f5e"/></svg>';
+const heartBtn = (src) => `<button class="w-heart" type="button" aria-label="Add to wishlist" aria-pressed="false"><img src="${W(src)}" alt="" draggable="false">${HEART_ON}</button>`;
+const addBtn = (cls, src) => `<button class="d3-add ${cls}" type="button" aria-label="Add to cart"><img class="pl" src="${W(src)}" alt="" draggable="false"><span class="ok">${CHECK}</span></button>`;
+const head = (a, b, l0, l1) => `<div class="w-head">
+  <span class="w-leaf l0 rv" data-scroll style="left:${l0[0]}px;top:${l0[1]}px"><img src="${W('leaf-l.svg')}" alt="" draggable="false"></span>
+  <span class="w-leaf l1 rv" data-scroll style="left:${l1[0]}px;top:${l1[1]}px"><img src="${W('leaf-r.svg')}" alt="" draggable="false"></span>
+  <h2 class="d3-title"><span class="ln rv" data-scroll>${a}</span><span class="ln rv" data-scroll>${b}</span></h2></div>`;
+const foot = (label) => `<div class="w-foot"><img class="w-arc" src="${W('arc.svg')}" alt="" draggable="false">${cta(label, 'more').replace('rv"', 'rv" data-scroll')}</div>`;
+const tickU = (pcs) => `<span class="u"><b>Yellow Friday sale</b><span class="pc">${pcs}</span><b>Crazy deals every day</b><span class="pc">${pcs}</span></span>`;
+const tick = (cls, files) => { const pcs = files.map((f) => `<img src="${W(f)}" alt="" draggable="false">`).join(''); return `<div class="w-tick ${cls}" aria-label="Yellow Friday sale, crazy deals every day"><div class="run">${tickU(pcs).repeat(4)}</div></div>`; };
+const lightTick = () => tick('lt', ['pc0.svg', 'pc1-l.svg', 'pc2-l.svg']);
+// wishlist deals: a category tab bar over a sideways row of small cards
+const skuCard = (it) => `<div class="w-card w-sku"><div class="media"><div class="ph"><img src="${it.src}" alt="" draggable="false"></div>
+    ${heartBtn('heart.svg')}${addBtn('w-add-sku', 'plus-blue.svg')}${it.tag ? `<span class="tag">${it.tag}</span>` : ''}${RT(it.rating)}</div>
+  <div class="bd"><p class="nm">${it.name}</p><div class="pr"><b>${D}${money(it.price)}</b>${it.was ? `<s>${money(it.was)}</s><em>${pct(it)}%</em>` : ''}</div>${META()}</div></div>`;
+const tabs = () => `<div class="w-tabs" role="tablist">${MORE.tabs.map((t, i) => `<button class="w-tab${i ? '' : ' is-on'}" type="button" role="tab" aria-selected="${!i}" data-t="${i}">
+  <span>${t.label.join('<br>')}</span><i class="bar"></i></button>`).join('')}</div>`;
+const skuRow = (list) => list.map(skuCard).join('');
+// flash deals: the countdown between the energy cubes, then a sideways row of locked / upcoming deals
+const CUBE = [['s', 0, 44, 1.46, 4.64, 45.79], ['m', 11, 28, 13.42, 18.72, 30.99], ['l', 33, 0, 37, 45.74, 4.94]];
+const cubes = (side) => `<div class="w-cubes ${side} rv" data-scroll aria-hidden="true">${CUBE.map(([k, x, y, fx, bx, by]) => `<i class="c ${k}">
+  <img class="o" src="${W(`cube-${k}.svg`)}" alt="" style="left:${x}px;top:${y}px" draggable="false"><i class="f" style="left:${fx}px;top:${y}px"></i><span class="b" style="left:${bx}px;top:${by}px"><img src="${W(`bolt-${k}.svg`)}" alt="" draggable="false"></span></i>`).join('')}</div>`;
+const flashCard = (it) => `<div class="w-card w-flash"><div class="media"><div class="ph"><img src="${it.src}" alt="" draggable="false">${it.locked ? `<img class="lock" src="${W('lock.svg')}" alt="Locked deal" draggable="false">` : ''}</div>${heartBtn('heart.svg')}${RT(it.rating)}</div>
+  <div class="bd"><p class="nm">${it.name}</p><div class="pr"><b>${D} ${money(it.price)}</b><s>${money(it.was)}</s><em>${pct(it)}%</em></div>${META()}</div>
+  <button class="w-remind" type="button" aria-pressed="false"><img src="${W('bell.svg')}" alt="" draggable="false"><span class="ok">${CHECK}</span><b>Remind me</b></button></div>`;
+const flash = () => `<section class="w-sec w-flashs"><div class="w-fhead"><h2 class="d3-title"><span class="ln rv" data-scroll>Flash deals</span></h2>
+  <div class="w-clock rv" data-scroll role="timer" aria-label="Ends in"><span><b data-u="h">03</b><em>HRS</em></span><span><b data-u="m">14</b><em>MIN</em></span><span><b data-u="s">19</b><em>SEC</em></span></div>
+  ${cubes('l')}${cubes('r')}</div>
+  <div class="w-row w-frow rv" data-scroll data-no-drag>${MORE.flash.map(flashCard).join('')}</div></section>`;
+// the 2 × 2 grids: white product cards with a gradient tag
+const gridCard = (it) => `<div class="w-card w-grid"><div class="media"><div class="ph"><img src="${it.src}" alt="" draggable="false"></div>
+    <span class="tag">${it.tag}</span>${heartBtn('heart.svg')}${addBtn('w-add-grid', 'plus.svg')}${RT(it.rating)}</div>
+  <div class="bd"><p class="nm">${it.name}</p><div class="pr"><b>${D}${money(it.price)}</b><s>${D}${money(it.was)}</s></div>${META()}</div></div>`;
+const grid = (a, b, l0, l1, list, label) => `<section class="w-sec w-grids">${head(a, b, l0, l1)}
+  <div class="w-g rv" data-scroll>${list.map(gridCard).join('')}</div>${foot(label)}</section>`;
+const carousel = (list, extra = '') => `<div class="d3-refill w-flow" data-no-drag data-scroll aria-roledescription="carousel"${extra}>${list.map(refillCard).join('')}</div>`;
+const MORE_HTML = `<div class="d3-abs d3-more">
+  ${lightTick()}
+  <section class="w-sec w-wish">${head('Your saves,', 'now on sale', [102, -1.74], [276, 47.58])}
+    <div class="w-cat rv" data-scroll>${tabs()}<div class="w-row w-srow" data-no-drag>${skuRow(MORE.tabs[0].items)}</div></div>${foot('See all saves')}</section>
+  ${lightTick()}
+  <section class="w-sec w-drops">${head('Price drops', 'on your favourites', [87.43, -1.74], [306.65, 47.58])}
+    <div class="w-lcd rv" data-scroll><b>DROP BY DHM <strong>${Math.round(MORE.drops[0].was - MORE.drops[0].price)}</strong></b><i class="scan"></i></div>
+    ${carousel(MORE.drops, ' data-lcd')}${foot('See price drops')}</section>
+  ${tick('dk', ['pc0.svg', 'pc1.svg', 'pc2.svg'])}
+  ${flash()}
+  <section class="w-sec w-stock">${head('Stock up for', 'Yellow Friday', [96, 0.03], [282, 49.36])}${carousel(MORE.stock)}${foot('Shop household')}</section>
+  ${grid('Get your home', 'festive-ready', [80, -4.74], [298, 42.58], MORE.festive, 'Shop festive')}
+  <section class="w-sec w-stock w-low">${head('Lowest prices', 'on playtime', [86, -0.97], [276, 49.36])}${carousel(MORE.lowest)}${foot('Shop toys')}</section>
+  ${grid('Your weekly', 'basket', [100, -2.97], [262, 44.36], MORE.weekly, 'See your basket')}
 </div>`;
+const scroller = document.createElement('div');
+scroller.className = 'yf-scroll d3-scroll';
+scroller.setAttribute('data-no-drag', '');
+scroller.innerHTML = `<div class="d3">
+  <svg class="d3-abs d3-bg rv" data-k="bg" viewBox="0 0 716.128 716.128" fill="none" aria-hidden="true" data-node-id="1473:49856">${CHEVRONS}</svg>
+  <span class="d3-abs d3-leaf l0 rv" data-k="leafL"><img src="${A('cc1fe.svg')}" alt="" draggable="false"></span>
+  <span class="d3-abs d3-leaf l1 rv" data-k="leafR"><img src="${A('c576a.svg')}" alt="" draggable="false"></span>
+  ${two(117.26, 'Hey Neha', 'Here are your coupons!', 't')}
+  <div class="d3-abs d3-coupons" data-no-drag aria-roledescription="carousel">${[...DATA.coupons, ...DATA.coupons].map(coupon).join('')}</div>
+  ${cta('Redeem now', 'redeem').replace('rv"', 'rv" data-k="cta"')}
+  <img class="d3-abs d3-shape rv" data-k="shape" src="${A('94761.svg')}" alt="" draggable="false">
+  ${CUBES('l')}${CUBES('r')}
+  ${two(640.11, 'Still deciding?', 'Your big buys, on sale', 'p')}
+  <div class="d3-abs d3-deck" data-no-drag aria-roledescription="carousel">${DATA.deck.map(deckCard).join('')}</div>
+  <div class="d3-abs d3-ticker rv" data-scroll aria-label="Flash deals, win discounts on brands"><div class="run">${tickerUnit.repeat(4)}</div></div>
+  ${two(1365.24, 'Time to restock', 'for your little one', 'q').replace(/rv" data-k="q(a|b)"/g, 'rv" data-scroll')}
+  <div class="d3-abs d3-refill" data-no-drag data-scroll aria-roledescription="carousel">${DATA.refill.map(refillCard).join('')}</div>
+  <img class="d3-abs d3-arc rv" data-scroll src="${A('e5712.svg')}" alt="" draggable="false">
+  ${cta('See all basics', 'all').replace('rv"', 'rv" data-scroll')}
+</div>`;   // (iteration 5: only the first three widgets — coupons, big buys, restock; MORE_HTML's widgets are left out)
 sheet.appendChild(scroller);
-sheet.classList.add('is-yf');
+sheet.classList.add('is-yf', 'is-d3');
 // the "Curating for you" beat: the bot holds at the screen's centre with this line under it, then hands over to the page
 const curate = document.createElement('div');
 curate.className = 'yf-curate';
@@ -316,75 +270,162 @@ const curFx = document.createElement('div');
 curFx.className = 'yf-cfx';
 curFx.innerHTML = [0, 1, 2].map((i) => `<i class="rip" style="--d:${(i * 1.1).toFixed(2)}s"></i>`).join('');
 sheet.insertBefore(curFx, curate);
-// confetti: one canvas over the page, bursts on demand
-const confettiCv = document.createElement('canvas');
-confettiCv.className = 'p-confetti';
-sheet.appendChild(confettiCv);
 const page = scroller.firstElementChild;
+// iteration 4: the bot rests big at the top centre (main.js VIEW.page), so everything but the top chevrons moves
+// down by DY to sit under it
+const DY = 84;
+// …and the deck's card is drawn smaller than Figma's (yf-page.css: 396 tall, not 498), so everything below the deck
+// (the strip, the refill picks, "Shop all deals", the widgets) moves up by the LIFT it saves
+const LIFT = 100;
+// (the refill card above "Shop all deals" is GROW taller for its express · rating row, so what's under it moves down)
+const GROW = 24;
+[...page.children].forEach((el) => {
+  if (el.classList.contains('d3-bg')) return;
+  const y = parseFloat(getComputedStyle(el).top);
+  el.style.top = `${y + DY - (y > 1290 ? LIFT : 0) + (y > 1850 ? GROW : 0)}px`;
+});
+// the page ends under the last widget: the third one's "See all basics" button, 48 px of room below it
+const moreEl = page.querySelector('.d3-more');   // (absent in iteration 5)
+const lastEl = page.querySelector('.d3-cta.all');
+const fit = () => { page.style.height = `${Math.ceil(lastEl.offsetTop + lastEl.offsetHeight + 48)}px`; };
+fit();
 const $ = (s) => page.querySelector(s), $$ = (s) => [...page.querySelectorAll(s)];
 
 // ─── the reveal ─────────────────────────────────────────────────────────────────────────────────────────────
-// the top beats, timed from the end of the curating beat (the bot leaving for its corner): ms delay, from-transform.
-// The deck deals its cards in (deck.deal); everything further down plays in as it scrolls into view.
+// timed from the end of the curating beat (the bot leaving for its corner): ms delay, from-transform. Top to bottom,
+// 40–80 ms apart; the hero coupon rises first and its neighbours fan out from under it; the deck's front card lands
+// and the cards behind it spread out after (deck.fan)
 const BEATS = {
-  hi: [0, 'translateY(12px)'], date: [70, 'translateY(12px)'], tape: [150, 'translateY(18px) scale(.98)'], streak: [210, 'translateY(18px) scale(.98)'],
-  deckT: [270, 'translateY(14px)'], acts: [520, 'translateY(14px)'], picks: [600, 'translateY(10px)'],
+  bg: [0, 'scale(1.06)'], ta: [40, 'translateY(14px)'], tb: [100, 'translateY(14px)'],
+  leafL: [240, 'translate(10px, 8px) rotate(-40deg) scale(.5)'], leafR: [300, 'translate(-10px, -6px) rotate(40deg) scale(.5)'],
+  cp1: [150, 'translateY(30px) scale(.96)'], cp0: [330, 'translateX(46px) scale(.94)'], cp2: [330, 'translateX(-46px) scale(.94)'],
+  cta: [400, 'translateY(14px) scale(.97)'], shape: [440, 'translateY(46px)'],
+  pa: [500, 'translateY(14px)'], pb: [560, 'translateY(14px)'], arrows: [600, 'scale(.6)'],
+  deck: [560, 'translateY(56px) scale(.96)'],
 };
 let io = null, live = false;
-function playIn(el, from, delay) {
-  el.getAnimations().forEach((a) => a.cancel());
+const cancelOwn = (el) => el.getAnimations().forEach((a) => { if (!(a instanceof CSSAnimation)) a.cancel(); });   // (script animations only: the CSS loops keep running)
+function playIn(el, from, delay, o = {}) {
+  cancelOwn(el);
   const d = reduce.matches ? 0 : delay;
-  el.animate([{ transform: reduce.matches ? 'none' : from }, { transform: 'none' }], { duration: REVEAL.ms, easing: REVEAL.ease, delay: d, fill: 'both' });
-  el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: REVEAL.fadeMs, easing: REVEAL.fade, delay: d, fill: 'both' });
+  el.animate([{ transform: reduce.matches ? 'none' : from }, { transform: 'none' }], { duration: o.ms || REVEAL.ms, easing: REVEAL.ease, delay: d, fill: 'both' });
+  el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: o.fadeMs || REVEAL.fadeMs, easing: REVEAL.fade, delay: d, fill: 'both' });
 }
-const BLURIN = 'blur(5px)';
-// lists and titles reveal piece by piece: the container flips on, its children glide up out of a soft blur one after
-// another (55 ms apart; only the first eight wait their turn). fill 'backwards' only: once played, each child is back
-// to its own CSS (a dimmed budget card stays dimmed).
-function stagger(box) {
-  box.classList.add('is-in');
-  const kids = [...box.children].filter((c) => !c.hidden && c.offsetParent !== null);
-  kids.forEach((c, i) => {
-    if (reduce.matches) return;
-    const d = Math.min(i, 8) * 55;
-    const soft = box.classList.contains('p-title');                         // (blur only on the light title text)
-    c.animate(soft ? [{ transform: 'translateY(18px)', filter: 'blur(5px)' }, { transform: 'none', filter: 'blur(0)' }] : [{ transform: 'translateY(22px) scale(.97)' }, { transform: 'none' }],
-      { duration: 900, easing: REVEAL.ease, delay: d, fill: 'backwards' });
-    c.animate([{ opacity: 0 }, { opacity: getComputedStyle(c).opacity }], { duration: 520, easing: REVEAL.fade, delay: d, fill: 'backwards' });
-  });
+// how each beat plays (its beat delay is used when the reveal runs on the clock; with the bot rising it's a beat's offset
+// within its group — title lines, coupon fan — and the group starts when the bot has risen clear of it)
+function playBeat(el, delay) {
+  const k = el.dataset.k, b = BEATS[k];
+  if (k === 'bg') {
+    // the top chevrons: each line comes in on its own after a short beat — the inner one behind the bot first, then
+    // outwards, 180 ms apart — easing down 10 px into place as it fades up (wrappers .cvr, so the loop on .cv keeps running)
+    cancelOwn(el); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' });
+    [...el.querySelectorAll('.cvr')].sort((a, c) => a.dataset.r - c.dataset.r).forEach((g, i) =>
+      playIn(g, 'translateY(-10px)', delay + (reduce.matches ? 0 : 260 + i * 180), { ms: 1300, fadeMs: 900 }));
+  }
+  else if (k === 'arrows') [...el.children].forEach((c, i) => playIn(c, b[1], delay + i * 70));   // small cube to big
+  else playIn(el, b[1], delay);
+  if (k === 'deck') deck.fan(delay + 480);   // (once the front card is mostly in, so the ones behind never show through it)
 }
-function reveal() {
+// the groups that rise together, with the offsets inside them (ms)
+const GROUP = { ta: ['title', 0], tb: ['title', 60], leafL: ['title', 160], leafR: ['title', 210], cp1: ['coupons', 0], cp0: ['coupons', 170], cp2: ['coupons', 170],
+  cta: ['cta', 0], shape: ['shape', 0], pa: ['picks', 0], pb: ['picks', 60], arrows: ['picks', 90], deck: ['deck', 0], bg: ['bg', 0] };
+function reveal({ withBot = false } = {}) {
   live = true;
-  $$('[data-k]').forEach((el) => { const b = BEATS[el.dataset.k]; if (b) playIn(el, b[1], b[0]); });
-  deck.deal(260); flipWord.start();
-  setTimeout(() => H('tick'), 300);
+  coupons.roles(); deck.roles();
+  const items = $$('[data-k]').filter((el) => BEATS[el.dataset.k]);
+  if (!withBot || reduce.matches) items.forEach((el) => playBeat(el, BEATS[el.dataset.k][0]));
+  else revealWithBot(items);
+  setTimeout(() => H('tick'), 320);
+  // a backstop: anything at the top that's on screen but still hidden 1.6 s in (its group's beat never fired) plays in now
+  setTimeout(() => {
+    if (!live) return;
+    const vb = scroller.getBoundingClientRect();
+    items.forEach((el) => {
+      if (getComputedStyle(el).opacity !== '0' || el.getAnimations().some((x) => !(x instanceof CSSAnimation))) return;
+      const r = el.getBoundingClientRect(); if (r.bottom > vb.top && r.top < vb.bottom) playIn(el, 'translateY(14px)', 0);
+    });
+  }, reduce.matches ? 0 : 1600);
   io && io.disconnect();
+  // each block below plays in as it scrolls into view — and resets once it has gone back below the screen (scrolling
+  // up), so scrolling down again plays it in again
+  const shown = new Set();
   io = new IntersectionObserver((ents) => {
     let k = 0;
-    ents.filter((e) => e.isIntersecting).forEach((e) => {
-      io.unobserve(e.target);
-      if (e.target.hasAttribute('data-stagger')) setTimeout(() => stagger(e.target), (k++) * 60);
-      else playIn(e.target, 'translateY(24px) scale(.98)', (k++) * 70);
+    ents.forEach((e) => {
+      const el = e.target;
+      if (e.isIntersecting) {
+        if (shown.has(el)) return; shown.add(el);
+        if (el.classList.contains('d3-refill')) { refills.get(el).reveal((k++) * 80); return; }
+        playIn(el, el.classList.contains('d3-cta') ? 'translateY(16px) scale(.97)' : 'translateY(24px)', (k++) * 80);
+      } else if (shown.has(el) && belowView(e)) {
+        shown.delete(el);
+        if (el.classList.contains('d3-refill')) refills.get(el).hide(); else cancelOwn(el);
+      }
     });
-  }, { root: scroller, threshold: 0.1, rootMargin: '0px 0px -8% 0px' });   // (a touch inside the edge, so the glide is seen)
-  $$('[data-scroll], [data-stagger]').forEach((el) => io.observe(el));
-  coach.start(1500);
-  bubbles.watch(); gold.start();
+  }, { root: scroller, threshold: 0.1, rootMargin: '0px 0px -6% 0px' });   // (a touch inside the edge, so the glide is seen)
+  $$('[data-scroll]').forEach((el) => io.observe(el));
+}
+// gone back out through the bottom of the screen (the user scrolled back up past it)
+const belowView = (e) => e.rootBounds && e.boundingClientRect.bottom > e.rootBounds.bottom;   // (left through the bottom edge, not the top — tall blocks stop counting as visible while their top is still on screen)
+function revealWithBot(items) {
+  const sr = sheet.getBoundingClientRect(), VH = scroller.clientHeight || 812;
+  const topOf = { title: $('.d3-title'), coupons: $('.d3-coupons'), cta: $('.d3-cta.redeem'), shape: $('.d3-shape'), picks: $$('.d3-title')[1], deck: $('.d3-deck .d3-dk.is-top') || $('.d3-deck .d3-dk') };
+  const anchorOf = { deck: $('.d3-deck') };
+  const groups = {};
+  items.forEach((el) => {
+    const [g, off] = GROUP[el.dataset.k] || ['bg', 0];
+    if (!groups[g]) {
+      const r = g === 'bg' ? null : topOf[g].getBoundingClientRect();
+      groups[g] = { name: g, y: r ? r.top - sr.top : -1e9, h: r ? r.height : 0, anchor: anchorOf[g] || topOf[g], els: [] };
+    }
+    groups[g].els.push([el, off]);
+  });
+  const play = (g) => g.els.forEach(([el, off]) => playBeat(el, off));
+  // what's (mostly) below the screen waits for the scroll: it plays in as it comes into view, like the rest of the page
+  const below = [], seq = [];
+  Object.values(groups).forEach((g) => {
+    if (g.name === 'bg') { play(g); return; }
+    const seen = Math.min(VH, g.y + g.h) - Math.max(0, g.y);
+    (seen < Math.min(60, g.h * 0.5) ? below : seq).push(g);   // (less than half of it, or 60 px, showing)
+  });
+  if (below.length) {
+    const shownLazy = new Set();
+    const lazy = new IntersectionObserver((ents) => ents.forEach((e) => {
+      const g = below.find((x) => x.anchor === e.target); if (!g) return;
+      if (e.isIntersecting && !shownLazy.has(g)) {
+        shownLazy.add(g);
+        if (g.name === 'deck') { deck.roles(); playBeat($('.d3-dk.is-top .in'), 0); } else play(g);   // (the deck: whichever card is in front now)
+      } else if (!e.isIntersecting && shownLazy.has(g) && belowView(e)) {
+        shownLazy.delete(g);                                                    // back below the screen: hidden again, ready to replay
+        if (g.name === 'deck') deck.hide(); else g.els.forEach(([el]) => cancelOwn(el));
+      }
+    }), { root: scroller, threshold: 0.1, rootMargin: '0px 0px -6% 0px' });
+    below.forEach((g) => lazy.observe(g.anchor));
+  }
+  // what's on screen plays in top to bottom, 70 ms apart — each block no sooner than the bot has risen clear of it
+  seq.sort((a, b) => a.y - b.y);
+  const t0 = performance.now(), HALF = 1.2, CLEAR = 10, GAP = 70;      // the bot's half height (units, with BOT_SCALE) + a margin (px)
+  let last = -1e9;
+  const tick = () => {
+    if (!live || !window.orbi.pageOpen) return;
+    const now = performance.now(), v = window.orbi.view, bottom = v.cy + v.unit * HALF + CLEAR;
+    if (seq.length && now - last >= GAP && (seq[0].y > bottom || now - t0 > 1100)) { play(seq.shift()); last = now; }
+    if (seq.length) requestAnimationFrame(tick);
+  };
+  tick();
 }
 function reset() {
-  live = false; io && io.disconnect();
-  page.querySelectorAll('.yf-rv').forEach((el) => el.getAnimations().forEach((a) => a.cancel()));
+  live = false; io && io.disconnect(); dock.reset();
+  page.querySelectorAll('.rv').forEach(cancelOwn);
   scroller.scrollTop = 0; onScroll();
-  deck.reset(); picks.reset(); bubbles.reset(); grid.reset(); boxes.reset(); budget.reset(); wheel.reset(); scratch.reset(); slide.reset(); flipWord.reset();
-  sheetUI.reset(); hold.reset(); $$('.p-gc .lk.is-on').forEach((b) => b.classList.remove('is-on', 'pop'));
-  $$('[data-stagger]').forEach((b) => { b.classList.remove('is-in'); [...b.children].forEach((c) => c.getAnimations().forEach((a) => a.cancel())); });
-  dial.reset(); wallet.reset(); coach.reset(); peek.reset();
-  streak.reset(); scan.reset(); days.reset(); bag.reset(); near.reset(); rate.reset();
+  coupons.jump(0); deck.reset(); refills.forEach((r) => r.jump(0));
+  page.querySelectorAll('.d3-cp.is-collected').forEach((c) => c.classList.remove('is-collected'));
+  more.reset();
+  page.querySelectorAll('.d3-add.is-on, .d3-wish.is-on, .w-heart.is-on, .w-remind.is-on').forEach((b) => { b.classList.remove('is-on'); b.setAttribute('aria-pressed', 'false'); });
   mini.reset();
 }
 
-// ─── the bot, from the page ─────────────────────────────────────────────────────────────────────────────────
-// hops, a happy beat, glances at what's touched, looks the way the page scrolls, catches what's sent to it
+// ─── the bot, from the page: hops, a happy beat, glances at what's touched, looks the way the page scrolls ─────
 const bot = {
   hop(v) { try { window.orbi && window.orbi.hop(v); } catch {} },
   cheer() {
@@ -395,1265 +436,82 @@ const bot = {
     const o = window.orbi; if (!o || curating) return;
     o.gazeAt(yaw, pitch); clearTimeout(bot.lt); bot.lt = setTimeout(() => o.gazeAt(null), ms);
   },
-  lookAt(el, ms = 1100) {
-    if (!window.orbi) return;
-    const sr = sheet.getBoundingClientRect(), r = el.getBoundingClientRect(), v = window.orbi.view;
-    bot.look(clamp((r.left + r.width / 2 - sr.left - v.cx) / 260, -0.55, 0.55), clamp((r.top + r.height / 2 - sr.top - v.cy) / 900, -0.15, 0.32), ms);
-  },
   t: 0, lt: 0,
 };
-// something flies up into the bot on an arc (shrinking, tipping), and the bot catches it with a hop
-function flyToBot(src, done) {
-  if (!src || reduce.matches || !window.orbi) { bot.hop(1.4); done && done(); return; }
+page.addEventListener('pointerup', (e) => {
+  const el = e.target.closest('.d3-cp, .d3-dk, .d3-rf, .d3-cta, .d3-cubes, .w-card, .w-tab'); if (!el || !window.orbi) return;
+  const sr = sheet.getBoundingClientRect(), r = el.getBoundingClientRect(), v = window.orbi.view;
+  const x = r.left + r.width / 2 - sr.left, y = r.top + r.height / 2 - sr.top;
+  bot.look(Math.max(-0.55, Math.min(0.55, (x - v.cx) / 260)), Math.max(-0.15, Math.min(0.32, (y - v.cy) / 900)), 1100);
+});
+// a product added to the cart flies up into the bot on an arc (shrinking, tipping), and the bot catches it with a hop
+function flyToBot(src) {
+  if (!src || reduce.matches || !window.orbi) { bot.hop(1.4); return; }
   const sr = sheet.getBoundingClientRect(), r = src.getBoundingClientRect(), v = window.orbi.view;
-  const fly = src.cloneNode(true); fly.classList.add('yf-fly');
+  const fly = src.cloneNode(true); fly.className = 'd3-fly';
   Object.assign(fly.style, { left: `${r.left - sr.left}px`, top: `${r.top - sr.top}px`, width: `${r.width}px`, height: `${r.height}px` });
   sheet.appendChild(fly);
   const x1 = v.cx - (r.left - sr.left) - r.width / 2, y1 = v.cy - (r.top - sr.top) - r.height / 2;
   const cx = x1 * 0.35, cy = Math.min(0, y1) - 120;                         // the arc's control point: up and over
   const ease = (u) => (u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2);
   const kf = Array.from({ length: 17 }, (_, i) => {
-    const u = ease(i / 16), q = 1 - u, x = 2 * q * u * cx + u * u * x1, y = 2 * q * u * cy + u * u * y1;
+    const u = ease(i / 16), q = 1 - u;
+    const x = 2 * q * u * cx + u * u * x1, y = 2 * q * u * cy + u * u * y1;
     return { transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${(1 - 0.86 * u).toFixed(3)}) rotate(${(-14 * u).toFixed(1)}deg)`, opacity: i > 14 ? 0 : 1, offset: i / 16 };
   });
-  fly.animate(kf, { duration: 760, easing: 'linear', fill: 'both' }).onfinish = () => { fly.remove(); bot.hop(1.6); H('pop'); bot.cheer(); done && done(); };
-}
-// a tap on anything you can pick: the bot glances at it
-page.addEventListener('pointerup', (e) => {
-  const el = e.target.closest('.p-gc, .p-box, .yf-pc, .yf-low, .p-act, .p-picks'); if (el) bot.lookAt(el);
-});
-page.addEventListener('pointerdown', (e) => { if (e.target.closest('.yf-press') && !e.target.closest('.yf-remind, .p-act')) H('tick'); });
-
-// confetti: little paper bits thrown up from a point, falling and fading (canvas, only while there's some)
-const confetti = (() => {
-  const ctx = confettiCv.getContext('2d'), COLS = ['#FEEE00', '#FF6FA5', '#8D7BFF', '#FFFFFF', '#36D399', '#FF9F43'];
-  let parts = [], raf = 0, last = 0;
-  const size = () => { const r = sheet.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); confettiCv.width = r.width * d; confettiCv.height = r.height * d; ctx.setTransform(d, 0, 0, d, 0, 0); };
-  function frame(now) {
-    const dt = Math.min(2, (now - last) / 16.7); last = now;
-    ctx.clearRect(0, 0, confettiCv.width, confettiCv.height);
-    parts = parts.filter((p) => (p.life -= dt) > 0);
-    for (const p of parts) {
-      p.vy += 0.32 * dt; p.vx *= 0.985; p.vy *= 0.985; p.x += p.vx * dt; p.y += p.vy * dt; p.a += p.va * dt;
-      ctx.save(); ctx.globalAlpha = Math.min(1, p.life / 30); ctx.translate(p.x, p.y); ctx.rotate(p.a);
-      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2 * Math.abs(Math.cos(p.a * 1.7)), p.w, p.h * Math.abs(Math.cos(p.a * 1.7)) + 1);
-      ctx.restore();
-    }
-    raf = parts.length ? requestAnimationFrame(frame) : 0;
-  }
-  return {
-    burst(x, y, n = 54) {
-      if (reduce.matches) return;
-      if (!raf) size();
-      for (let i = 0; i < n; i++) {
-        const ang = -Math.PI / 2 + (Math.random() - 0.5) * 1.9, sp = 5 + Math.random() * 7;
-        parts.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, a: Math.random() * 6, va: (Math.random() - 0.5) * 0.4, w: 5 + Math.random() * 4, h: 8 + Math.random() * 6, c: COLS[i % COLS.length], life: 70 + Math.random() * 40 });
-      }
-      if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
-    },
-    clear() { parts = []; cancelAnimationFrame(raf); raf = 0; ctx.clearRect(0, 0, confettiCv.width, confettiCv.height); },
-  };
-})();
-const sheetPoint = (el) => { const sr = sheet.getBoundingClientRect(), r = el.getBoundingClientRect(); return { x: r.left + r.width / 2 - sr.left, y: r.top + r.height / 2 - sr.top }; };
-
-// ─── the swipe deck ─────────────────────────────────────────────────────────────────────────────────────────
-// A stack of deal cards. Drag the top one: it follows the finger, tilts with it, and stamps WANT or PASS as it
-// goes; the card under it rises to take its place. Let go past the edge (or flick) and it's away — a WANT is sent up
-// into the bot and lands in "Your picks", a PASS flies off. The buttons do the same, undo brings the last one back,
-// and when the deck's empty it can deal again. The bot watches the card you're holding.
-const deck = (() => {
-  const stage = $('.p-deck'), cards = [...stage.querySelectorAll('.p-card')], done = stage.querySelector('.p-done');
-  const N = cards.length, OUT = 470;
-  let at = 0, hist = [], drag = null, busy = false;
-  const slot = (k) => (k <= 2 ? `translate3d(0, ${k * 16}px, 0) scale(${(1 - k * 0.055).toFixed(3)})` : 'translate3d(0, 32px, 0) scale(.89)');
-  const stamps = (c, x) => { c.style.setProperty('--want', clamp(x / 90, 0, 1).toFixed(3)); c.style.setProperty('--pass', clamp(-x / 90, 0, 1).toFixed(3)); };
-  function layout(animate = true, stagger = 0) {
-    cards.forEach((c, i) => {
-      const k = i - at;
-      if (k < 0) return;
-      c.style.transition = animate ? `transform .62s cubic-bezier(0.16, 1, 0.3, 1) ${stagger * k}ms, opacity .4s ease ${stagger * k}ms` : 'none';
-      c.style.transform = slot(k); c.style.opacity = k <= 2 ? 1 : 0; c.style.zIndex = String(20 - k); c.style.visibility = '';
-      c.classList.toggle('is-top', k === 0); stamps(c, 0);
-    });
-    done.classList.toggle('is-on', at >= N);
-  }
-  function away(dir, vy = 0, tilt = 1) {
-    const c = cards[at]; if (!c || busy) return;
-    busy = true;
-    const it = DECK[at], from = c.style.transform || slot(0), dx = parseFloat(c.dataset.dx || 0), dy = parseFloat(c.dataset.dy || 0);
-    stamps(c, dir * 90);
-    c.style.transition = 'none';
-    const a = c.animate([{ transform: from }, { transform: `translate3d(${dir * OUT}px, ${(dy * 0.25 + clamp(vy * 0.12, -120, 120) - 30).toFixed(1)}px, 0) rotate(${dir * 24 * tilt}deg)` }],
-      { duration: Math.abs(dx) > 60 ? 360 : 460, easing: 'cubic-bezier(0.3, 0.55, 0.35, 1)', fill: 'forwards' });
-    a.onfinish = () => { c.style.visibility = 'hidden'; };
-    if (dir > 0) { flyToBot(c.querySelector('.ph'), () => picks.add(it)); H('success'); }
-    else { H('tap'); bot.look(-0.45, 0.1, 500); }
-    hist.push({ i: at, dir }); at++; c.dataset.dx = c.dataset.dy = 0;
-    layout();
-    setTimeout(() => { busy = false; }, 160);
-  }
-  function undo() {
-    const h = hist.pop(); if (!h || busy) return;
-    const c = cards[h.i];
-    c.getAnimations().forEach((a) => a.cancel());
-    c.style.transition = 'none'; c.style.visibility = ''; c.style.opacity = 1; c.style.zIndex = '30';
-    c.style.transform = `translate3d(${h.dir * OUT}px, -30px, 0) rotate(${h.dir * 26}deg)`;
-    void c.offsetWidth;
-    at = h.i; layout();
-    if (h.dir > 0) picks.remove(DECK[h.i].img);
-    H('tick');
-  }
-  // dragging the top card
-  stage.addEventListener('pointerdown', (e) => {
-    const c = e.target.closest('.p-card.is-top'); if (!c || busy || e.button) return;
-    const r = c.getBoundingClientRect();
-    drag = { c, x: e.clientX, y: e.clientY, dx: 0, dy: 0, axis: null, id: e.pointerId, vx: 0, vy: 0, lx: e.clientX, ly: e.clientY, lt: performance.now(),
-      tilt: (e.clientY - r.top) / r.height > 0.62 ? -1 : 1 };              // (held low, the card tips the other way, like a real one)
-  });
-  addEventListener('pointermove', (e) => {
-    const d = drag; if (!d || e.pointerId !== d.id) return;
-    const dx = e.clientX - d.x, dy = e.clientY - d.y;
-    if (!d.axis && Math.hypot(dx, dy) > 6) {
-      d.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
-      if (d.axis === 'x') { try { stage.setPointerCapture(e.pointerId); } catch {} d.c.style.transition = 'none'; d.c.classList.add('is-held'); }
-      else { drag = null; return; }
-    }
-    if (d.axis !== 'x') return;
-    const now = performance.now(), dt = Math.max(1, now - d.lt);
-    d.vx = 0.8 * ((e.clientX - d.lx) / dt) + 0.2 * d.vx; d.vy = 0.8 * ((e.clientY - d.ly) / dt) + 0.2 * d.vy; d.lx = e.clientX; d.ly = e.clientY; d.lt = now;
-    d.dx = dx; d.dy = dy; d.c.dataset.dx = dx; d.c.dataset.dy = dy;
-    d.c.style.transform = `translate3d(${dx.toFixed(1)}px, ${(dy * 0.25).toFixed(1)}px, 0) rotate(${(dx * 0.06 * d.tilt).toFixed(2)}deg)`;
-    stamps(d.c, dx);
-    const next = cards[at + 1], p = clamp(Math.abs(dx) / 140, 0, 1);       // the card underneath rises to meet it
-    if (next) { next.style.transition = 'none'; next.style.transform = `translate3d(0, ${(16 * (1 - p)).toFixed(1)}px, 0) scale(${(1 - 0.055 * (1 - p)).toFixed(3)})`; }
-    const was = d.armed, armed = Math.abs(dx) > 110; if (armed !== was) { d.armed = armed; H('tick'); }
-    bot.look(clamp(dx / 300, -0.5, 0.5), 0.12, 700);
-  });
-  const end = (e) => {
-    const d = drag; if (!d || e.pointerId !== d.id) return;
-    drag = null; d.c.classList.remove('is-held');
-    if (d.axis !== 'x') return;
-    if (Math.abs(d.dx) > 110 || Math.abs(d.vx) > 0.6) away(Math.sign(Math.abs(d.dx) > 30 ? d.dx : d.vx), d.vy * 1000, d.tilt);
-    else { d.c.dataset.dx = d.c.dataset.dy = 0; layout(); }                // not far enough: it springs back to the stack
-  };
-  addEventListener('pointerup', end); addEventListener('pointercancel', end);
-  $('.p-act.pass').addEventListener('click', () => away(-1));
-  $('.p-act.want').addEventListener('click', () => away(1));
-  $('.p-act.undo').addEventListener('click', undo);
-  done.querySelector('.p-again').addEventListener('click', () => deal(0, true));
-  // dealing: the cards drop in from above, one after another, onto the stack
-  function deal(delay = 0, again = false) {
-    at = 0; hist = [];
-    cards.forEach((c, i) => {
-      c.getAnimations().forEach((a) => a.cancel());
-      c.style.transition = 'none'; c.style.visibility = ''; c.dataset.dx = c.dataset.dy = 0;
-      c.style.opacity = 0; c.style.transform = `translate3d(${((i % 2 ? 1 : -1) * 30).toFixed(0)}px, ${again ? -140 : 120}px, 0) rotate(${(i % 2 ? 7 : -7)}deg) scale(.94)`;
-    });
-    done.classList.remove('is-on');
-    void stage.offsetWidth;
-    // dealt back to front: the third card lands first and the top one last, each turning opaque in a blink, so a card
-    // never shows through the one in front of it (all fading together read as a ghost)
-    setTimeout(() => {
-      cards.forEach((c, i) => {
-        const k = i - at, d = reduce.matches ? 0 : Math.max(0, 2 - k) * 90;
-        c.style.zIndex = String(20 - k); c.classList.toggle('is-top', k === 0);
-        if (k > 2) { c.style.transition = 'none'; c.style.transform = slot(k); c.style.opacity = 0; return; }
-        c.style.transition = `transform .66s cubic-bezier(0.16, 1, 0.3, 1) ${d}ms, opacity .14s linear ${d}ms`;
-        c.style.transform = slot(k); c.style.opacity = 1;
-      });
-      H('tick');
-    }, reduce.matches ? 0 : delay);
-  }
-  return {
-    deal,
-    reset() { cards.forEach((c) => { c.getAnimations().forEach((a) => a.cancel()); c.style.transition = 'none'; c.style.opacity = 0; }); at = 0; hist = []; done.classList.remove('is-on'); },
-  };
-})();
-
-// your picks: the wanted deals' faces stack up in a pill, the count rolls over
-const picks = (() => {
-  const el = $('.p-picks'), ava = el.querySelector('.ava'), n = el.querySelector('.n');
-  let list = [];
-  function count() {
-    const old = n.querySelector('b:last-child'), nu = document.createElement('b'); nu.textContent = list.length; n.appendChild(nu);
-    old.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(-14px)', opacity: 0 }], { duration: 220, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'forwards' }).onfinish = () => old.remove();
-    nu.animate([{ transform: 'translateY(14px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: REVEAL.ease, fill: 'both' });
-    el.animate([{ transform: 'scale(1.06)' }, { transform: 'none' }], { duration: 420, easing: REVEAL.ease });
-    el.classList.toggle('has', list.length > 0);
-  }
-  return {
-    add(it) {
-      list.push(it.img);
-      const f = document.createElement('i'); f.dataset.k = it.img; f.style.setProperty('--bg', it.bg); f.innerHTML = `<img src="${IMG(it.img)}" alt="" draggable="false">`;
-      ava.prepend(f);
-      f.animate([{ transform: 'scale(.3)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 520, easing: 'cubic-bezier(0.3, 1.2, 0.5, 1)', fill: 'both' });
-      [...ava.children].slice(4).forEach((x) => x.remove());
-      count();
-    },
-    remove(k) {
-      const i = list.lastIndexOf(k); if (i < 0) return;
-      list.splice(i, 1);
-      const f = ava.querySelector(`[data-k="${k}"]`);
-      if (f) f.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.2)', opacity: 0 }], { duration: 240, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }).onfinish = () => f.remove();
-      count();
-    },
-    reset() { list = []; ava.innerHTML = ''; n.innerHTML = '<b>0</b>'; el.classList.remove('has'); },
-  };
-})();
-
-// ─── the bubbles ────────────────────────────────────────────────────────────────────────────────────────────
-// Category bubbles that pour in, float and jostle (a little physics: each drifts to the middle, they push each
-// other apart, bounce off the edges). Drag one around, fling it into the others; tap one to pick it — it swells,
-// turns yellow and the grid below re-shuffles to what you picked.
-const bubbles = (() => {
-  const stage = $('.p-bubbles'), W = 375, HS = 280, R = 60;
-  const B = [...stage.querySelectorAll('.p-bubble')].map((el, i) => ({ el, i, base: CATS[i].r, r: CATS[i].r, tr: CATS[i].r, x: 0, y: 0, vx: 0, vy: 0, sel: false }));
-  let raf = 0, last = 0, held = null, t0 = 0, seen = false, visible = false;
-  const place = () => B.forEach((b) => { b.el.style.transform = `translate3d(${(b.x - R).toFixed(2)}px, ${(b.y - R).toFixed(2)}px, 0) scale(${(b.r / R).toFixed(4)})`; });
-  function pour() {
-    B.forEach((b, i) => { b.x = 60 + ((i * 97) % 255); b.y = -70 - i * 46; b.vx = (Math.random() - 0.5) * 2; b.vy = 3 + Math.random() * 2; b.r = b.tr = b.base; b.sel = false; b.el.classList.remove('is-sel'); });
-    place(); t0 = performance.now();
-  }
-  function step(now) {
-    const dt = Math.min(2, (now - last) / 16.7); last = now;
-    const t = (now - t0) / 1000;
-    B.forEach((b) => {
-      if (b === held) return;
-      const k = b.sel ? 2.4 : 1;
-      b.vx += ((W / 2 - b.x) * 0.0011 * k + Math.sin(t * 0.8 + b.i * 1.7) * 0.012) * dt;
-      b.vy += ((HS / 2 - b.y) * 0.0016 * k + Math.cos(t * 0.7 + b.i * 2.3) * 0.012) * dt;
-      b.vx *= Math.pow(0.975, dt); b.vy *= Math.pow(0.975, dt);
-      b.x += b.vx * dt; b.y += b.vy * dt;
-    });
-    for (let it = 0; it < 3; it++) {                                    // push apart
-      for (let i = 0; i < B.length; i++) for (let j = i + 1; j < B.length; j++) {
-        const a = B[i], c = B[j], dx = c.x - a.x, dy = c.y - a.y, dist = Math.hypot(dx, dy) || 0.01, min = a.r + c.r + 4;
-        if (dist >= min) continue;
-        const o = (min - dist), nx = dx / dist, ny = dy / dist, wa = a === held ? 0 : c === held ? 1 : 0.5, wc = 1 - wa;
-        a.x -= nx * o * wa; a.y -= ny * o * wa; c.x += nx * o * wc; c.y += ny * o * wc;
-        const rv = (c.vx - a.vx) * nx + (c.vy - a.vy) * ny;
-        if (rv < 0) { const imp = -rv * 0.6; if (a !== held) { a.vx -= nx * imp * wa * 2; a.vy -= ny * imp * wa * 2; } if (c !== held) { c.vx += nx * imp * wc * 2; c.vy += ny * imp * wc * 2; } }
-      }
-    }
-    B.forEach((b) => {                                                  // the walls (the top only once they're in)
-      b.r += (b.tr - b.r) * Math.min(1, 0.2 * dt);
-      if (b.x < b.r) { b.x = b.r; b.vx = Math.abs(b.vx) * 0.55; } if (b.x > W - b.r) { b.x = W - b.r; b.vx = -Math.abs(b.vx) * 0.55; }
-      if (b.y > HS - b.r) { b.y = HS - b.r; b.vy = -Math.abs(b.vy) * 0.55; } if (b.y < b.r && t > 1.6) { b.y = b.r; b.vy = Math.abs(b.vy) * 0.55; }
-    });
-    place();
-    raf = visible && live ? requestAnimationFrame(step) : 0;
-  }
-  const run = () => { if (!raf && visible && live) { last = performance.now(); raf = requestAnimationFrame(step); } };
-  const vis = new IntersectionObserver(([e]) => {
-    visible = e.isIntersecting;
-    if (visible && !seen && live) { seen = true; pour(); }
-    run();
-  }, { root: scroller, threshold: 0.2 });
-  // touch: drag, fling, tap to pick
-  let g = null;
-  stage.addEventListener('pointerdown', (e) => {
-    const el = e.target.closest('.p-bubble'); if (!el) return;
-    const b = B[+el.dataset.i], r = stage.getBoundingClientRect();
-    g = { b, id: e.pointerId, ox: e.clientX - r.left - b.x, oy: e.clientY - r.top - b.y, sx: e.clientX, sy: e.clientY, moved: false, lx: e.clientX, ly: e.clientY, lt: performance.now(), vx: 0, vy: 0 };
-    held = b; b.el.classList.add('is-held'); try { el.setPointerCapture(e.pointerId); } catch {}
-    run();
-  });
-  stage.addEventListener('pointermove', (e) => {
-    if (!g || e.pointerId !== g.id) return;
-    if (Math.hypot(e.clientX - g.sx, e.clientY - g.sy) > 6) g.moved = true;
-    const r = stage.getBoundingClientRect(), now = performance.now(), dt = Math.max(1, now - g.lt) / 16.7;
-    g.vx = 0.7 * ((e.clientX - g.lx) / dt) + 0.3 * g.vx; g.vy = 0.7 * ((e.clientY - g.ly) / dt) + 0.3 * g.vy; g.lx = e.clientX; g.ly = e.clientY; g.lt = now;
-    g.b.x = clamp(e.clientX - r.left - g.ox, g.b.r, W - g.b.r); g.b.y = clamp(e.clientY - r.top - g.oy, g.b.r, HS - g.b.r);
-  });
-  const up = (e) => {
-    if (!g || e.pointerId !== g.id) return;
-    const d = g; g = null; held = null; d.b.el.classList.remove('is-held');
-    if (d.moved) { d.b.vx = clamp(d.vx, -22, 22); d.b.vy = clamp(d.vy, -22, 22); H('tick'); return; }
-    const b = d.b; b.sel = !b.sel; b.tr = b.sel ? b.base * 1.24 : b.base; b.vy -= 2.5;
-    b.el.classList.toggle('is-sel', b.sel); H(b.sel ? 'success' : 'tap');
-    if (b.sel) bot.hop(0.7);
-    bot.lookAt(b.el, 900);
-    grid.update(B.filter((x) => x.sel).map((x) => CATS[x.i]));
-  };
-  stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
-  return {
-    watch() { vis.disconnect(); vis.observe(stage); },
-    reset() { vis.disconnect(); cancelAnimationFrame(raf); raf = 0; seen = false; visible = false; held = null; g = null; B.forEach((b, i) => { b.x = 60 + ((i * 97) % 255); b.y = -120; b.sel = false; b.r = b.tr = b.base; b.el.classList.remove('is-sel'); }); place(); },
-  };
-})();
-
-// the grid: what you picked (or our top picks). Changing it plays a FLIP shuffle — cards that stay glide to their
-// new places, the ones that go fade back, the new ones rise in — and the grid's height eases to fit.
-const grid = (() => {
-  const el = $('.p-grid'), head = $('.p-gridhead');
-  const cards = new Map($$('.p-gc').map((c) => [c.dataset.k, c]));
-  let cur = [];
-  const want = (sel) => (sel.length ? [...new Set(sel.flatMap((c) => c.items))].slice(0, 6) : TOP);
-  function show(keys, animate) {
-    const next = keys, nextSet = new Set(next), before = el.offsetHeight;
-    const vis = cur.map((k) => cards.get(k));
-    const first = new Map(vis.map((c) => [c, c.getBoundingClientRect()]));
-    const leaving = vis.filter((c) => !nextSet.has(c.dataset.k));
-    const swap = () => {
-      leaving.forEach((c) => { c.hidden = true; c.getAnimations().forEach((a) => a.cancel()); });
-      next.forEach((k) => { const c = cards.get(k); el.appendChild(c); c.hidden = false; });
-      cur = next;
-      if (!animate) return;
-      next.forEach((k, idx) => {
-        const c = cards.get(k), f = first.get(c), l = c.getBoundingClientRect();
-        if (f) { const dx = f.left - l.left, dy = f.top - l.top; if (Math.abs(dx) + Math.abs(dy) > 0.5) c.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 640, easing: REVEAL.ease }); }
-        else c.animate([{ opacity: 0, transform: 'translateY(18px) scale(.92)' }, { opacity: 1, transform: 'none' }], { duration: 640, easing: REVEAL.ease, delay: 40 + idx * 40, fill: 'both' });
-      });
-      const after = el.offsetHeight;
-      if (Math.abs(after - before) > 1) el.animate([{ height: `${before}px` }, { height: `${after}px` }], { duration: 520, easing: REVEAL.ease });
-    };
-    if (animate && leaving.length) {
-      leaving.forEach((c) => c.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.9)' }], { duration: 170, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }));
-      el.style.height = `${before}px`;
-      setTimeout(() => { el.style.height = ''; swap(); }, 170);
-    } else swap();
-  }
-  function headline(sel) {
-    const b = head.querySelector('b'), s = head.querySelector('span');
-    const txt = sel.length ? `${sel.length === 1 ? sel[0].t : `${sel.length} picks`}` : 'Top picks', sub = sel.length ? `${want(sel).length} deals for you` : 'for you';
-    if (b.textContent === txt && s.textContent === sub) return;
-    head.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-6px)' }], { duration: 140, easing: 'cubic-bezier(0.4, 0, 1, 1)' }).onfinish = () => {
-      b.textContent = txt; s.textContent = sub;
-      head.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 420, easing: REVEAL.ease });
-    };
-  }
-  return {
-    update(sel) { headline(sel); show(want(sel), true); },
-    reset() { cards.forEach((c) => { c.hidden = true; }); cur = []; show(TOP, false); head.querySelector('b').textContent = 'Top picks'; head.querySelector('span').textContent = 'for you'; },
-  };
-})();
-
-// ─── the mystery boxes ──────────────────────────────────────────────────────────────────────────────────────
-// Three wrapped boxes bob and now and then wiggle. Tap one: it squashes, the lid pops off and spins away, its coupon
-// rises out ("Collected"), confetti flies and the bot cheers. Each opens once (until the page is opened again).
-const boxes = (() => {
-  const els = $$('.p-box');
-  els.forEach((b) => b.addEventListener('click', () => {
-    if (b.classList.contains('is-open')) { b.querySelector('.cpn').animate([{ transform: 'translateY(-62px) scale(1)' }, { transform: 'translateY(-68px) scale(1.06)' }, { transform: 'translateY(-62px) scale(1)' }], { duration: 360, easing: 'ease-out' }); H('tick'); return; }
-    b.classList.add('is-opening');
-    H('tap');
-    setTimeout(() => {
-      b.classList.add('is-open');
-      const p = sheetPoint(b); confetti.burst(p.x, p.y - 20);
-      H('success'); bot.hop(1.3); bot.cheer(); bot.lookAt(b, 1200);
-      const c = DATA.coupons[+b.dataset.i]; wallet.add({ t: c.l2, s: c.l1.replace(/ (on|up to)$/, ''), c: BOXES[+b.dataset.i].c1 });
-    }, reduce.matches ? 0 : 260);
-  }));
-  return { reset() { els.forEach((b) => b.classList.remove('is-open', 'is-opening')); confetti.clear(); } };
-})();
-
-// ─── a rolling number (after Runmo's day counter / Circle's balance ticker on 60fps.design) ─────────────────────
-// Each digit is a 0–9 column that slides to its value; while it's moving fast it picks up a little vertical blur.
-function odometer(el) {
-  let str = '';
-  const build = (s) => {
-    el.innerHTML = [...s].map((ch) => (/\d/.test(ch) ? `<span class="od"><span class="col">${'0123456789'.split('').map((d) => `<span class="odd">${d}</span>`).join('')}</span></span>` : `<span class="sep">${ch}</span>`)).join('');
-  };
-  return {
-    set(text, instant) {
-      if (text === str) return;
-      const old = str; str = text;
-      if (old.length !== text.length) build(text);
-      [...text].forEach((ch, i) => {
-        if (!/\d/.test(ch)) return;
-        const col = el.children[i].firstElementChild, y = `translateY(${-+ch * 10}%)`;
-        if (instant || old.length !== text.length) { col.style.transition = 'none'; col.style.transform = y; return; }
-        if (col.style.transform === y) return;
-        col.style.transition = 'transform .5s cubic-bezier(0.16, 1, 0.3, 1), filter .5s ease';
-        col.style.transform = y; col.style.filter = 'blur(1.2px)';
-        clearTimeout(col.t); col.t = setTimeout(() => { col.style.filter = ''; }, 160);
-      });
-    },
-  };
+  fly.animate(kf, { duration: 780, easing: 'linear', fill: 'both' }).onfinish = () => { fly.remove(); bot.hop(1.6); H('pop'); bot.cheer(); };
 }
 
-// ─── shop by budget ─────────────────────────────────────────────────────────────────────────────────────────
-// Scrub the knob: the budget rolls over above it (₼50 → ₼5,000 on a log scale, so the low end has room), deals over
-// it dim and step back, the count updates, and you feel a tick as you pass each marked budget. Tap the track to jump.
-const budget = (() => {
-  const el = $('.p-budget'), track = el.querySelector('.track'), knob = el.querySelector('.knob'), fill = el.querySelector('.fill');
-  const amt = odometer(el.querySelector('.val em')), cnt = odometer(el.querySelector('.count b')), cards = $$('.p-bc');
-  // (after CRED's ticket-pop slider on 60fps.design) coins pop up out of the knob as it moves, on a spring
-  const pops = []; let popRaf = 0, lastPop = 0, lastPopT = 0;
-  function pop(x, dir) {
-    if (reduce.matches || pops.length > 22) return;
-    const c = document.createElement('i'); c.className = 'coin'; c.innerHTML = '<b>' + D + '</b>'; el.appendChild(c);
-    pops.push({ c, x, y: track.offsetTop + 18, vx: -dir * (0.6 + Math.random() * 1.6) + (Math.random() - 0.5) * 1.2, vy: -(4.2 + Math.random() * 2.6), r: (Math.random() - 0.5) * 40, vr: (Math.random() - 0.5) * 9, s: 0, vs: 0, life: 0 });
-    if (!popRaf) { lastPopT = performance.now(); popRaf = requestAnimationFrame(popStep); }
-  }
-  function popStep(now) {
-    const dt = Math.min(2, (now - lastPopT) / 16.7); lastPopT = now;
-    for (let i = pops.length - 1; i >= 0; i--) {
-      const p = pops[i]; p.life += dt;
-      p.vs += ((1 - p.s) * 0.28 - p.vs * 0.42) * dt; p.s += p.vs * dt;                        // the pop: a quick spring to full size
-      p.vy += 0.26 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.r += p.vr * dt;
-      const o = p.life < 26 ? 1 : Math.max(0, 1 - (p.life - 26) / 14);
-      p.c.style.transform = `translate3d(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px, 0) rotate(${p.r.toFixed(1)}deg) scale(${Math.max(0, p.s).toFixed(3)})`;
-      p.c.style.opacity = o.toFixed(3);
-      if (o <= 0) { p.c.remove(); pops.splice(i, 1); }
-    }
-    popRaf = pops.length ? requestAnimationFrame(popStep) : 0;
-  }
-  const MIN = 50, MAX = 5000, toV = (t) => MIN * Math.pow(MAX / MIN, t), toT = (v) => Math.log(v / MIN) / Math.log(MAX / MIN);
-  const nice = (v) => (v < 200 ? Math.round(v / 10) * 10 : v < 1000 ? Math.round(v / 25) * 25 : Math.round(v / 100) * 100);
-  let t = toT(1000), held = null, lastStop = -1, shown = -1;
-  el.querySelectorAll('.stop').forEach((s) => { s.style.left = `${(toT(+s.dataset.v) * 100).toFixed(2)}%`; });
-  function set(nt, quiet) {
-    t = clamp(nt, 0, 1);
-    const v = nice(toV(t)), pct = `${(t * 100).toFixed(2)}%`;
-    knob.style.left = pct; fill.style.width = pct;
-    amt.set(v.toLocaleString('en-US'), quiet);
-    if (held && !quiet) {                                                // a coin for every few px of travel
-      const kx = knob.offsetLeft + track.offsetLeft;
-      if (Math.abs(kx - lastPop) > 9) { pop(kx, Math.sign(kx - lastPop)); lastPop = kx; }
-    }
-    let n = 0; cards.forEach((c) => { const ok = +c.dataset.p <= v; c.classList.toggle('is-out', !ok); n += ok; });
-    if (n !== shown) { shown = n; cnt.set(String(n), quiet); }
-    const stop = STOPS.filter((s) => v >= s).length;
-    if (stop !== lastStop) { if (!quiet && lastStop >= 0) H('tick'); lastStop = stop; }
-  }
-  const at = (x) => { const r = track.getBoundingClientRect(); return (x - r.left) / r.width; };
-  track.addEventListener('pointerdown', (e) => {
-    held = { id: e.pointerId, x: e.clientX, y: e.clientY, axis: e.target === knob ? 'x' : null };
-    if (held.axis) { try { track.setPointerCapture(e.pointerId); } catch {} el.classList.add('is-held'); }
-    lastPop = knob.offsetLeft + track.offsetLeft;
-  });
-  track.addEventListener('pointermove', (e) => {
-    if (!held || e.pointerId !== held.id) return;
-    if (!held.axis && Math.hypot(e.clientX - held.x, e.clientY - held.y) > 6) {
-      held.axis = Math.abs(e.clientX - held.x) > Math.abs(e.clientY - held.y) ? 'x' : 'y';
-      if (held.axis === 'x') { try { track.setPointerCapture(e.pointerId); } catch {} el.classList.add('is-held'); } else { held = null; return; }
-    }
-    if (held.axis === 'x') set(at(e.clientX));
-  });
-  const up = (e) => {
-    if (!held || e.pointerId !== held.id) return;
-    const h = held; held = null; el.classList.remove('is-held');
-    if (!h.axis) {                                                        // a tap on the track: glide there
-      const from = t, to = clamp(at(e.clientX), 0, 1), t0 = performance.now();
-      const step = (now) => { const u = Math.min(1, (now - t0) / 420), k = 1 - Math.pow(1 - u, 3); set(from + (to - from) * k); if (u < 1) requestAnimationFrame(step); };
-      requestAnimationFrame(step); H('tick');
-    }
-  };
-  track.addEventListener('pointerup', up); track.addEventListener('pointercancel', up);
-  return { reset() { lastStop = -1; shown = -1; pops.splice(0).forEach((p) => p.c.remove()); set(toT(1000), true); } };
-})();
+// ─── the CTAs: fixed labels (Figma's "Redeem Now" / "Shop all deals"), a press dip and a haptic ──────────────────
+$('.d3-cta.redeem').addEventListener('click', () => { coupons.collect(); });
+$('.d3-cta.all').addEventListener('click', () => { H('tap'); bot.hop(1.2); });
 
-// ─── spin & win ─────────────────────────────────────────────────────────────────────────────────────────────
-// Grab the wheel and turn it, then let go: it carries your flick and slows on friction, the pointer clicks over each
-// peg (a tick each time), and where it stops is your prize — it lights up below, with confetti and a happy bot. The
-// SPIN hub gives it a good flick for you. A gentle nudge just turns it; only a real spin plays for a prize.
-const wheel = (() => {
-  const el = $('.p-wheel'), stage = el.querySelector('.stage'), disc = el.querySelector('.disc'), ptr = el.querySelector('.ptr'), hub = el.querySelector('.hub');
-  const won = el.querySelector('.won'), wonB = won.querySelector('b'), wonS = won.querySelector('small');
-  let ang = 0, vel = 0, raf = 0, g = null, spun = 0, lastPeg = 0;
-  const draw = () => { disc.style.transform = `rotate(${ang.toFixed(2)}deg)`; };
-  const peg = () => Math.floor((ang + 30) / 60);
-  function flap() { H('tick'); ptr.classList.remove('flap'); void ptr.offsetWidth; ptr.classList.add('flap'); }
-  function run() {
-    let last = performance.now();
-    const step = (now) => {
-      const dt = Math.min(2, (now - last) / 16.7); last = now;
-      ang += vel * dt; spun += Math.abs(vel * dt);
-      if (spun > 300 && Math.abs(vel) < 1.6) {                            // the last stretch: ease into the nearest prize's middle
-        const tgt = Math.round(ang / 60) * 60; vel += ((tgt - ang) * 0.012 - vel * 0.22) * dt;
-      } else vel *= Math.pow(0.986, dt);                                  // (friction)
-      const pg = peg(); if (pg !== lastPeg) { lastPeg = pg; flap(); }
-      draw();
-      if (Math.abs(vel) < 0.02 && (spun <= 300 || Math.abs(ang - Math.round(ang / 60) * 60) < 0.3)) { raf = 0; vel = 0; if (spun > 300) land(); spun = 0; return; }
-      raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-  }
-  function land() {
-    const i = ((Math.round(-ang / 60) % 6) + 6) % 6, p = PRIZES[i];          // the segment under the pointer
-    won.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.94)', opacity: 0 }], { duration: 140, easing: 'cubic-bezier(0.4, 0, 1, 1)' }).onfinish = () => {
-      wonB.textContent = `You won ${p.t}`; wonS.textContent = p.s; won.classList.add('is-on');
-      won.animate([{ transform: 'scale(.9)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 560, easing: 'cubic-bezier(0.3, 1.25, 0.5, 1)' });
-    };
-    const pt = sheetPoint(stage); confetti.burst(pt.x, pt.y - 40, 46);
-    H('success'); bot.lookAt(stage, 1400); wallet.add({ t: p.t, s: p.s, c: p.c === '#1E1E1E' || p.c === '#2A2A2A' ? '#FEEE00' : p.c });
-    // (after Duolingo's reward pop on 60fps.design) the prize pops up big over the wheel with a burst of rays, holds a
-    // beat, then flies up into the bot
-    const badge = document.createElement('div');
-    badge.className = 'p-prize'; badge.style.setProperty('--c', p.c === '#1E1E1E' || p.c === '#2A2A2A' ? '#FEEE00' : p.c);   // (dark prizes pop in noon yellow)
-    const col = p.c === '#1E1E1E' || p.c === '#2A2A2A' ? '#FEEE00' : p.c;
-    badge.innerHTML = `<i class="rays">${'<i></i>'.repeat(12)}</i><span class="p-prize-disc" style="background:${col}"><b>${p.t}</b></span>`;
-    stage.appendChild(badge);
-    if (reduce.matches) { setTimeout(() => badge.remove(), 900); return; }
-    badge.querySelector('.p-prize-disc').animate([{ transform: 'scale(0)' }, { transform: 'scale(1.16)', offset: 0.55 }, { transform: 'scale(.96)', offset: 0.8 }, { transform: 'scale(1)' }], { duration: 620, easing: 'cubic-bezier(0.3, 0.7, 0.4, 1)', fill: 'both' });
-    badge.querySelector('.rays').animate([{ transform: 'scale(.4) rotate(0)', opacity: 0 }, { transform: 'scale(1) rotate(30deg)', opacity: 1, offset: 0.3 }, { transform: 'scale(1.25) rotate(70deg)', opacity: 0 }], { duration: 1100, easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)', fill: 'both' });
-    setTimeout(() => { const d = badge.querySelector('.p-prize-disc'); flyToBot(d, () => badge.remove()); d.style.visibility = 'hidden'; }, 1050);
-  }
-  const angAt = (e) => { const r = stage.getBoundingClientRect(); return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180 / Math.PI; };
-  stage.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.hub')) return;
-    cancelAnimationFrame(raf); raf = 0; vel = 0;
-    g = { id: e.pointerId, a: angAt(e), t: performance.now(), v: 0, x: e.clientX, y: e.clientY, on: false };
-  });
-  stage.addEventListener('pointermove', (e) => {
-    if (!g || e.pointerId !== g.id) return;
-    if (!g.on) { if (Math.hypot(e.clientX - g.x, e.clientY - g.y) < 6) return; g.on = true; try { stage.setPointerCapture(e.pointerId); } catch {} el.classList.add('is-held'); }
-    const a = angAt(e); let d = a - g.a; if (d > 180) d -= 360; if (d < -180) d += 360;
-    const now = performance.now(), dt = Math.max(1, now - g.t) / 16.7;
-    g.v = 0.7 * (d / dt) + 0.3 * g.v; g.a = a; g.t = now;
-    ang += d; spun += Math.abs(d); draw();
-    const pg = peg(); if (pg !== lastPeg) { lastPeg = pg; flap(); }
-  });
-  const up = (e) => {
-    if (!g || e.pointerId !== g.id) return;
-    const d = g; g = null; el.classList.remove('is-held');
-    if (!d.on) return;
-    vel = clamp(d.v, -38, 38); spun = Math.abs(vel) > 6 ? 400 : 0; run();
-  };
-  stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
-  hub.addEventListener('click', () => { if (raf) return; vel = 22 + Math.random() * 14; spun = 400; H('tap'); run(); });
-  return { reset() { cancelAnimationFrame(raf); raf = 0; vel = 0; ang = 0; spun = 0; lastPeg = 0; draw(); won.classList.remove('is-on'); wonB.textContent = 'Spin to win a prize'; wonS.textContent = 'Drag the wheel or tap SPIN'; } };
-})();
-
-// ─── scratch & reveal ───────────────────────────────────────────────────────────────────────────────────────
-// A foil card over a hidden deal. Rub it with a finger: the foil comes away under it (soft-edged strokes, a faint
-// tick now and then). Once about half is off, the rest lifts away by itself and the deal pops — confetti, a cheer.
-const scratch = (() => {
-  const el = $('.p-scratch'), cv = el.querySelector('.foil'), ctx = cv.getContext('2d'), under = el.querySelector('.under');
-  let W = 0, Hc = 0, dpr = 1, g = null, done = false, moves = 0, lastTick = 0;
-  function paint() {
-    const r = el.getBoundingClientRect(); W = r.width || 343; Hc = r.height || 168; dpr = Math.min(2, devicePixelRatio || 1);
-    cv.width = W * dpr; cv.height = Hc * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.globalCompositeOperation = 'source-over';
-    const gr = ctx.createLinearGradient(0, 0, W, Hc); gr.addColorStop(0, '#FFF59A'); gr.addColorStop(0.45, '#FEEE00'); gr.addColorStop(0.55, '#FFF8B8'); gr.addColorStop(1, '#F2C200');
-    ctx.fillStyle = gr; ctx.fillRect(0, 0, W, Hc);
-    ctx.fillStyle = 'rgba(18,18,18,.08)';
-    for (let y = -20; y < Hc + 20; y += 26) for (let x = (y / 26) % 2 ? 0 : 22; x < W; x += 44) { ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 4); ctx.fillRect(-4, -4, 8, 8); ctx.restore(); }
-    ctx.fillStyle = '#121212'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = '800 22px Noontree, sans-serif'; ctx.fillText('SCRATCH ME', W / 2, Hc / 2 - 8);
-    ctx.font = '600 13px Noontree, sans-serif'; ctx.fillStyle = 'rgba(18,18,18,.6)'; ctx.fillText('a deal is hiding under here', W / 2, Hc / 2 + 16);
-    ctx.globalCompositeOperation = 'destination-out';
-  }
-  function rub(x0, y0, x1, y1) {
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.lineWidth = 38; ctx.strokeStyle = 'rgba(0,0,0,1)';
-    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
-    ctx.lineWidth = 52; ctx.strokeStyle = 'rgba(0,0,0,.35)';                // (a soft edge round the stroke)
-    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
-  }
-  function cleared() {
-    const d = ctx.getImageData(0, 0, cv.width, cv.height).data; let clear = 0, n = 0;
-    for (let i = 3; i < d.length; i += 4 * 97) { n++; if (d[i] < 60) clear++; }
-    return clear / n;
-  }
-  function finish() {
-    done = true;
-    cv.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.04)' }], { duration: 480, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' });
-    under.animate([{ transform: 'scale(.96)' }, { transform: 'scale(1.03)' }, { transform: 'none' }], { duration: 620, easing: 'cubic-bezier(0.2, 0.8, 0.3, 1)' });
-    el.classList.add('is-done'); slide.unlock(); wallet.add({ t: SCRATCH.l1, s: `${SCRATCH.l2} · ${SCRATCH.code}`, c: '#FF8DB8' });
-    const pt = sheetPoint(el); confetti.burst(pt.x, pt.y, 50);
-    H('success'); bot.hop(1.4); bot.cheer(); bot.lookAt(el, 1200);
-  }
-  const pos = (e) => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-  cv.addEventListener('pointerdown', (e) => { if (done) return; const [x, y] = pos(e); g = { id: e.pointerId, x, y }; try { cv.setPointerCapture(e.pointerId); } catch {} rub(x, y, x + 0.1, y); });
-  cv.addEventListener('pointermove', (e) => {
-    if (!g || e.pointerId !== g.id || done) return;
-    const [x, y] = pos(e); rub(g.x, g.y, x, y); g.x = x; g.y = y;
-    const now = performance.now(); if (now - lastTick > 90) { lastTick = now; H('tick'); }
-    if (++moves % 12 === 0 && cleared() > 0.5) finish();
-  });
-  const up = (e) => { if (!g || e.pointerId !== g.id) return; g = null; if (!done && cleared() > 0.5) finish(); };
-  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
-  return {
-    reset() { done = false; moves = 0; g = null; el.classList.remove('is-done'); cv.getAnimations().forEach((a) => a.cancel()); requestAnimationFrame(paint); },
-  };
-})();
-
-// ─── slide to apply (after CRED's swipe-to-pay on 60fps.design) ─────────────────────────────────────────────
-// Locked until the card's scratched. Then drag the knob along: a glow fills the track behind it and the label fades
-// as you go. Let go past ~82 % and it runs to the end, the knob swells across the track and becomes "GLOW20 applied";
-// short of that it springs back. A tap nudges it, so it's clear it slides.
-const slide = (() => {
-  const el = $('.p-slide'), knob = el.querySelector('.knob'), glow = el.querySelector('.glow'), lbl = el.querySelector('.lbl');
-  let x = 0, max = 0, g = null, state = 'locked', raf = 0;
-  const KN = 52, PAD = 4;
-  const place = () => { knob.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`; glow.style.width = `${(x + KN + PAD * 2).toFixed(1)}px`; lbl.style.opacity = (1 - Math.min(1, x / (max * 0.6))).toFixed(3); };
-  const measure = () => { max = el.clientWidth - KN - PAD * 2; };
-  function springTo(to, done) {
-    cancelAnimationFrame(raf); let v = 0, last = performance.now();
-    const step = (now) => {
-      const dt = Math.min(0.032, (now - last) / 1000); last = now;
-      for (let h = dt; h > 1e-6; h -= 1 / 240) { const k = Math.min(h, 1 / 240); v += ((to - x) * 320 - v * 34) * k; x += v * k; }
-      place();
-      if (Math.abs(to - x) < 0.4 && Math.abs(v) < 6) { x = to; place(); raf = 0; done && done(); return; }
-      raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-  }
-  function success() {
-    state = 'done'; el.classList.add('is-done');
-    H('success'); bot.hop(1.3); bot.cheer(); bot.lookAt(el, 1200);
-    const pt = sheetPoint(el); confetti.burst(pt.x, pt.y - 10, 36);
-  }
-  knob.addEventListener('pointerdown', (e) => {
-    if (state !== 'ready') { if (state === 'locked') { el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(-3px)' }, { transform: 'none' }], { duration: 340, easing: 'ease-out' }); H('error'); } return; }
-    measure(); cancelAnimationFrame(raf); raf = 0;
-    g = { id: e.pointerId, x0: e.clientX - x, sx: e.clientX, moved: false, armed: false };
-    try { knob.setPointerCapture(e.pointerId); } catch {} el.classList.add('is-held');
-  });
-  knob.addEventListener('pointermove', (e) => {
-    if (!g || e.pointerId !== g.id) return;
-    if (Math.abs(e.clientX - g.sx) > 4) g.moved = true;
-    x = clamp(e.clientX - g.x0, 0, max); place();
-    const armed = x > max * 0.82; if (armed !== g.armed) { g.armed = armed; H('tick'); }
-  });
-  const up = (e) => {
-    if (!g || e.pointerId !== g.id) return;
-    const d = g; g = null; el.classList.remove('is-held');
-    if (!d.moved) { springTo(46, () => springTo(0)); H('tick'); return; }          // a tap: a nudge to show it slides
-    if (x > max * 0.82) springTo(max, success); else springTo(0);
-  };
-  knob.addEventListener('pointerup', up); knob.addEventListener('pointercancel', up);
-  return {
-    unlock() { state = 'ready'; el.classList.remove('is-locked'); el.animate([{ transform: 'scale(.97)' }, { transform: 'none' }], { duration: 520, easing: REVEAL.ease }); },
-    reset() { cancelAnimationFrame(raf); raf = 0; x = 0; state = 'locked'; el.classList.add('is-locked'); el.classList.remove('is-done', 'is-held'); place(); },
-  };
-})();
-
-// the deck title's last word flips through a few (after Brick's value-prop text flip on 60fps.design)
-const flipWord = (() => {
-  const box = $('.flipw'), WORDS = ['deals', 'steals', 'faves', 'gifts']; let i = 0, t = 0;
-  function next() {
-    if (!live || document.hidden || reduce.matches) return;
-    const old = box.firstElementChild, nu = document.createElement('span'); i = (i + 1) % WORDS.length; nu.textContent = WORDS[i];
-    box.appendChild(nu);
-    const w0 = old.offsetWidth, w1 = nu.offsetWidth;
-    box.animate([{ width: `${w0}px` }, { width: `${w1}px` }], { duration: 520, easing: REVEAL.ease });
-    old.animate([{ transform: 'none', opacity: 1, filter: 'blur(0)' }, { transform: 'translateY(-70%)', opacity: 0, filter: 'blur(3px)' }], { duration: 320, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'forwards' }).onfinish = () => old.remove();
-    nu.animate([{ transform: 'translateY(70%)', opacity: 0, filter: 'blur(3px)' }, { transform: 'none', opacity: 1, filter: 'blur(0)' }], { duration: 560, easing: REVEAL.ease, delay: 60, fill: 'both' });
-  }
-  return {
-    start() { clearInterval(t); t = setInterval(next, 2200); },
-    reset() { clearInterval(t); i = 0; box.innerHTML = '<span>deals</span>'; },
-  };
-})();
-
-// ─── like (after X's like animation / Duolingo's gem drop on 60fps.design) ──────────────────────────────────
-// The heart on a grid card: it springs up and fills, a ring flashes out and eight bits burst away; tap again to unlike.
-page.addEventListener('click', (e) => {
-  const b = e.target.closest('.p-gc .lk'); if (!b) return;
-  e.stopPropagation();
-  const on = b.classList.toggle('is-on');
-  b.classList.remove('pop'); void b.offsetWidth; if (on) b.classList.add('pop');
-  if (!on) b.querySelector('svg').animate([{ transform: 'scale(1)' }, { transform: 'scale(.8)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'ease-out' });
-  H(on ? 'pop' : 'tick'); if (on) bot.lookAt(b, 700);
-}, true);
-
-// ─── the product sheet (after Plasma's offer card → bottom sheet on 60fps.design) ───────────────────────────
-// Tap a grid card: the page dims and blurs, a sheet rises from the bottom and the card's photo flies from its place
-// in the grid into the sheet (a shared element). Drag the sheet down, tap the backdrop or ✕ to close it — the photo
-// flies back into its card. "Add to picks" sends it up to the bot.
-const sheetUI = (() => {
-  const el = document.createElement('div');
-  el.className = 'p-sheet'; el.setAttribute('aria-hidden', 'true'); el.setAttribute('data-no-drag', '');   // (its own drag, not the page's)
-  el.innerHTML = `<i class="scrim"></i><div class="panel"><i class="grab"></i><button class="x" type="button" aria-label="Close">${X_ICON}</button>
-    <div class="ph"><img alt="" draggable="false"></div>
-    <div class="body"><span class="sh-tag"></span><b class="sh-nm"></b><div class="sh-pr"><strong></strong><s></s></div>
-      <p class="sh-note">Free delivery · Get it in 1 hr · 30-day returns</p>
-      <div class="cta"><button class="add" type="button">${HEART}<span>Add to picks</span></button><button class="rem" type="button">${BELL}<span>Remind me</span></button></div></div></div>`;
-  sheet.appendChild(el);
-  const panel = el.querySelector('.panel'), ph = el.querySelector('.ph'), img = ph.querySelector('img'), scrim = el.querySelector('.scrim');
-  let cur = null, open = false, drag = null, flyEl = null;
-  const OPEN_EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
-  function flight(fromR, toR, ms, after) {                                    // the photo, from one box to another
-    flyEl && flyEl.remove();
-    const sr = sheet.getBoundingClientRect(); flyEl = document.createElement('div'); flyEl.className = 'p-sheet-fly';
-    flyEl.innerHTML = `<img src="${img.src}" alt="">`; flyEl.classList.toggle('cover', ph.classList.contains('cover'));
-    Object.assign(flyEl.style, { left: `${toR.left - sr.left}px`, top: `${toR.top - sr.top}px`, width: `${toR.width}px`, height: `${toR.height}px` });
-    sheet.appendChild(flyEl);
-    const dx = fromR.left - toR.left, dy = fromR.top - toR.top, sx = fromR.width / toR.width, sy = fromR.height / toR.height;
-    flyEl.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, borderRadius: '11px' }, { transform: 'none', borderRadius: '18px' }], { duration: ms, easing: OPEN_EASE, fill: 'both' })
-      .onfinish = () => { after && after(); flyEl && flyEl.remove(); flyEl = null; };
-  }
-  function show(card) {
-    const k = card.dataset.k, it = ITEM[k];
-    cur = card; open = true;
-    img.src = IMG(k); ph.classList.toggle('cover', !!it.cover);
-    el.querySelector('.sh-tag').textContent = it.was ? `-${off(it)}% today` : 'Lowest price';
-    el.querySelector('.sh-nm').textContent = it.name;
-    el.querySelector('.sh-pr strong').innerHTML = `<i>${D}</i>${money(it.price)}`;
-    el.querySelector('.sh-pr s').innerHTML = it.was ? `${D}${money(it.was)}` : '';
-    el.classList.add('is-on'); el.setAttribute('aria-hidden', 'false'); scroller.style.overflow = 'hidden';
-    panel.getAnimations().forEach((a) => a.cancel()); panel.style.transform = '';
-    const from = card.querySelector('.ph').getBoundingClientRect(), to = ph.getBoundingClientRect();   // (the photo's place in the sheet, at rest)
-    ph.style.visibility = 'hidden'; card.querySelector('.ph').style.visibility = 'hidden';
-    panel.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: 620, easing: OPEN_EASE });
-    scrim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 360, easing: 'ease-out', fill: 'both' });
-    flight(from, to, 620, () => { ph.style.visibility = ''; });
-    H('tap'); bot.lookAt(card, 900);
-  }
-  function hide(fast) {
-    if (!open) return; open = false;
-    const card = cur, back = card.querySelector('.ph');
-    const to = back.getBoundingClientRect(), from = ph.getBoundingClientRect();
-    const py = parseFloat((panel.style.transform.match(/translateY\(([-\d.]+)px/) || [0, 0])[1]);
-    ph.style.visibility = 'hidden';
-    panel.animate([{ transform: `translateY(${py}px)` }, { transform: 'translateY(100%)' }], { duration: fast ? 300 : 420, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' });
-    scrim.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 320, easing: 'ease-in', fill: 'forwards' });
-    // the photo flies back to its card
-    const sr = sheet.getBoundingClientRect(); flyEl && flyEl.remove(); flyEl = document.createElement('div'); flyEl.className = 'p-sheet-fly';
-    flyEl.innerHTML = `<img src="${img.src}" alt="">`; flyEl.classList.toggle('cover', ph.classList.contains('cover'));
-    Object.assign(flyEl.style, { left: `${from.left - sr.left}px`, top: `${from.top - sr.top}px`, width: `${from.width}px`, height: `${from.height}px` });
-    sheet.appendChild(flyEl);
-    flyEl.animate([{ transform: 'none', borderRadius: '18px' }, { transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / from.width}, ${to.height / from.height})`, borderRadius: '11px' }],
-      { duration: 480, easing: 'cubic-bezier(0.3, 0, 0.2, 1)', fill: 'forwards' }).onfinish = () => {
-      back.style.visibility = ''; flyEl && flyEl.remove(); flyEl = null;
-      el.classList.remove('is-on'); el.setAttribute('aria-hidden', 'true'); ph.style.visibility = '';
-      panel.getAnimations().forEach((a) => a.cancel()); scrim.getAnimations().forEach((a) => a.cancel()); panel.style.transform = '';
-    };
-    scroller.style.overflow = '';
-  }
-  // opening: a tap on a grid card (not its heart)
-  page.addEventListener('click', (e) => { const c = e.target.closest('.p-gc'); if (c && !e.target.closest('.lk') && !peek.swallow()) show(c); });
-  scrim.addEventListener('click', () => hide());
-  el.querySelector('.x').addEventListener('click', () => hide());
-  el.querySelector('.add').addEventListener('click', () => {
-    if (!cur) return; const k = cur.dataset.k;
-    flyToBot(ph, () => picks.add({ img: k, bg: '#f4f5f8' })); H('success'); setTimeout(() => hide(true), 120);
-  });
-  el.querySelector('.rem').addEventListener('click', (e) => { const b = e.currentTarget; b.classList.toggle('is-on'); b.querySelector('span').textContent = b.classList.contains('is-on') ? 'Reminder set' : 'Remind me'; H('success'); });
-  // drag it down to close
-  panel.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) return; drag = { id: e.pointerId, y: e.clientY, v: 0, ly: e.clientY, lt: performance.now() }; try { panel.setPointerCapture(e.pointerId); } catch {} });
-  panel.addEventListener('pointermove', (e) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    const now = performance.now(), dy = e.clientY - drag.y; drag.v = 0.8 * ((e.clientY - drag.ly) / Math.max(1, now - drag.lt) * 1000) + 0.2 * drag.v; drag.ly = e.clientY; drag.lt = now;
-    const y = dy > 0 ? dy : dy / (1 - dy / 60) * 0.3;                          // (pulling up: a little rubber band)
-    panel.style.transform = `translateY(${y.toFixed(1)}px)`; scrim.style.opacity = String(Math.max(0.2, 1 - Math.max(0, dy) / 500));
-  });
-  const up = (e) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    const d = drag; drag = null; const dy = e.clientY - d.y;
-    if (dy > 120 || d.v > 700) { hide(true); return; }
-    const py = parseFloat((panel.style.transform.match(/translateY\(([-\d.]+)px/) || [0, 0])[1]);
-    panel.style.transform = ''; scrim.style.opacity = '';
-    panel.animate([{ transform: `translateY(${py}px)` }, { transform: 'none' }], { duration: 480, easing: OPEN_EASE });
-  };
-  panel.addEventListener('pointerup', up); panel.addEventListener('pointercancel', up);
-  return { get open() { return open; }, close: () => hide(true), reset() { if (open) { open = false; el.classList.remove('is-on'); scroller.style.overflow = ''; $$('.p-gc .ph').forEach((p) => { p.style.visibility = ''; }); flyEl && flyEl.remove(); } } };
-})();
-
-// ─── the golden deal (after Binge's gyro glare, CRED's gold card and Apple Wallet's holographic pattern) ─────
-// A gold card that tilts toward your finger (or the phone's tilt, where the browser allows it): a glare follows the
-// light, a holographic sheen shifts colour with the angle. Left alone it sways a little so the light keeps moving.
-const gold = (() => {
-  const wrap = $('.p-gold'), card = wrap.querySelector('.card');
-  let tx = 0, ty = 0, cx = 0, cy = 0, vx = 0, vy = 0, raf = 0, touching = false, t0 = performance.now(), gyro = null, visible = false;
-  function step(now) {
-    const idle = !touching && !gyro;
-    const tgtX = idle ? Math.sin((now - t0) / 1600) * 0.35 : tx, tgtY = idle ? Math.cos((now - t0) / 2100) * 0.25 : ty;
-    vx += ((tgtX - cx) * 0.09 - vx * 0.32); vy += ((tgtY - cy) * 0.09 - vy * 0.32); cx += vx; cy += vy;   // a soft spring to the target tilt
-    card.style.transform = `rotateY(${(cx * 16).toFixed(2)}deg) rotateX(${(-cy * 14).toFixed(2)}deg)`;
-    card.style.setProperty('--gx', `${(50 + cx * 46).toFixed(1)}%`); card.style.setProperty('--gy', `${(50 + cy * 46).toFixed(1)}%`);
-    card.style.setProperty('--hue', `${(cx * 90 + cy * 60).toFixed(1)}deg`);
-    raf = visible && live ? requestAnimationFrame(step) : 0;
-  }
-  const run = () => { if (!raf && visible && live) raf = requestAnimationFrame(step); };
-  new IntersectionObserver(([e]) => { visible = e.isIntersecting; run(); }, { root: scroller }).observe(wrap);
-  const aim = (e) => { const r = card.getBoundingClientRect(); tx = clamp(((e.clientX - r.left) / r.width - 0.5) * 2, -1, 1); ty = clamp(((e.clientY - r.top) / r.height - 0.5) * 2, -1, 1); };
-  card.addEventListener('pointerdown', (e) => {
-    touching = true; aim(e); run(); H('tick');
-    if (!gyro && window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') DeviceOrientationEvent.requestPermission().then((s) => { if (s === 'granted') listenGyro(); }).catch(() => {});
-  });
-  card.addEventListener('pointermove', (e) => { if (touching || e.pointerType === 'mouse') { if (e.pointerType === 'mouse') touching = true; aim(e); run(); } });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => card.addEventListener(t, () => { touching = false; }));
-  function listenGyro() {
-    addEventListener('deviceorientation', (e) => { if (e.beta == null) return; gyro = true; tx = clamp((e.gamma || 0) / 25, -1, 1); ty = clamp(((e.beta || 0) - 45) / 25, -1, 1); run(); });
-  }
-  if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission !== 'function') listenGyro();   // (Android: no permission needed)
-  return { start: run };
-})();
-
-// ─── hold to grab (after Opal's hold-to-commit on 60fps.design) ─────────────────────────────────────────────
-// Press and hold: a luminous fill runs across the button (ticks at each quarter); let go early and it drains back.
-// Held to the end, it flashes, turns into "Grabbed!", and the golden deal flies up into the bot.
-const hold = (() => {
-  const btn = $('.p-hold'), fill = btn.querySelector('.fill');
-  const MS = 1100; let p = 0, raf = 0, holding = false, done = false, last = 0, q = 0;
-  const draw = () => { fill.style.transform = `scaleX(${p.toFixed(4)})`; btn.style.setProperty('--p', p.toFixed(3)); };
-  function step(now) {
-    const dt = now - last; last = now;
-    if (holding) p = Math.min(1, p + dt / MS); else p = Math.max(0, p - dt / 260);
-    const nq = Math.floor(p * 4); if (holding && nq > q && nq < 4) H('tick'); q = nq;
-    draw();
-    if (holding && p >= 1) { complete(); raf = 0; return; }
-    raf = (holding || p > 0) ? requestAnimationFrame(step) : 0;
-  }
-  const go = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); } };
-  function complete() {
-    done = true; holding = false; btn.classList.add('is-done'); btn.classList.remove('is-holding');
-    H('success'); bot.cheer();
-    flyToBot($('.p-gold .ph'), () => picks.add({ img: DATA.low.img, bg: '#FFE89A' }));
-    const pt = sheetPoint(btn); confetti.burst(pt.x, pt.y - 10, 34);
-  }
-  btn.addEventListener('pointerdown', (e) => { if (done || e.button) return; holding = true; q = Math.floor(p * 4); btn.classList.add('is-holding'); try { btn.setPointerCapture(e.pointerId); } catch {} H('tap'); go(); });
-  const let_go = () => { if (!holding) return; holding = false; btn.classList.remove('is-holding'); go(); };
-  btn.addEventListener('pointerup', let_go); btn.addEventListener('pointercancel', let_go);
-  btn.addEventListener('contextmenu', (e) => e.preventDefault());
-  return { reset() { cancelAnimationFrame(raf); raf = 0; p = 0; q = 0; holding = false; done = false; btn.classList.remove('is-done', 'is-holding'); draw(); } };
-})();
-
-// ─── a toast (for quick actions): a pill rises from the bottom, holds, sinks ─────────────────────────────────
-const toast = (() => {
-  const el = document.createElement('div'); el.className = 'p-toast'; el.setAttribute('aria-live', 'polite'); sheet.appendChild(el);
-  let t = 0;
-  return (msg) => {
-    el.innerHTML = `${CHECK}<span>${msg}</span>`; clearTimeout(t);
-    el.getAnimations().forEach((a) => a.cancel());
-    el.animate([{ transform: 'translate(-50%, 24px) scale(.94)', opacity: 0 }, { transform: 'translate(-50%, 0) scale(1)', opacity: 1 }], { duration: 520, easing: REVEAL.ease, fill: 'forwards' });
-    t = setTimeout(() => el.animate([{ transform: 'translate(-50%, 0)', opacity: 1 }, { transform: 'translate(-50%, 16px) scale(.96)', opacity: 0 }], { duration: 260, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }), 1700);
-  };
-})();
-
-// ─── coachmark (after Revolut's feature-buttons coachmark pulse on 60fps.design) ────────────────────────────
-// The first time the deck is up, a glowing ring walks over ✕, ♥ and ↺ while the line under the title says what each
-// does. It bows out as soon as you touch the deck or a button, and the line goes back to normal.
-const coach = (() => {
-  const ring = $('.p-coach'), sub = $('[data-k="deckT"] p'), acts = $('.p-acts');
-  const STEPS = [['.p-act.pass', 'Tap ✕ to pass on a deal'], ['.p-act.want', 'Tap ♥ and the bot keeps it for you'], ['.p-act.undo', 'Changed your mind? Undo it']];
-  const BASE = 'Right to want it, left to pass';
-  let t = 0, i = 0, on = false, done = false;
-  function say(txt) {
-    sub.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-6px)' }], { duration: 160, easing: 'cubic-bezier(0.4, 0, 1, 1)' }).onfinish = () => {
-      sub.textContent = txt; sub.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 420, easing: REVEAL.ease });
-    };
-  }
-  function step() {
-    if (!on) return;
-    if (i >= STEPS.length) { stop(); return; }
-    const [sel, txt] = STEPS[i++], b = $(sel), ar = acts.getBoundingClientRect(), r = b.getBoundingClientRect();
-    ring.style.width = ring.style.height = `${r.width + 14}px`;
-    ring.style.transform = `translate(${(r.left - ar.left - 7).toFixed(1)}px, ${(r.top - ar.top - 7).toFixed(1)}px)`;
-    ring.classList.add('is-on'); say(txt); H('tick');
-    t = setTimeout(step, 1900);
-  }
-  function stop() {
-    if (!on) return; on = false; done = true; clearTimeout(t); ring.classList.remove('is-on');
-    if (sub.textContent !== BASE) say(BASE);
-  }
-  ['pointerdown'].forEach((ev) => { $('.p-deck').addEventListener(ev, stop); acts.addEventListener(ev, stop); });
-  return {
-    start(delay) { if (done || reduce.matches) return; clearTimeout(t); t = setTimeout(() => { on = true; i = 0; ring.style.transition = 'none'; step(); requestAnimationFrame(() => { ring.style.transition = ''; }); }, delay); },
-    reset() { clearTimeout(t); on = false; done = false; i = 0; ring.classList.remove('is-on'); sub.textContent = BASE; },
-  };
-})();
-
-// ─── bundle & save dial (after Runmo's drag-to-adjust distance wheel on 60fps.design) ───────────────────────
-// Drag round the ring: the knob follows your finger, the arc fills, the count in the middle rolls (1–6), the saving
-// climbs and little faces of deals pop in for each item. A tick at each step; on release it settles on the nearest.
-const dial = (() => {
-  const el = $('.p-dial'), ring = el.querySelector('.ring'), arc = el.querySelector('.arc'), knob = el.querySelector('.knob');
-  const nOd = odometer(el.querySelector('.n')), pctEl = el.querySelector('.pct'), amtOd = odometer(el.querySelector('.amt em')), avas = el.querySelector('.avas');
-  const DISC = [0, 0, 5, 10, 15, 18, 20], AVG = 149, FACES = ['hero1', 'wish1', 'mega3', 'beauty1', 'hero0', 'home1'], MAXV = 6;
-  let v = 1, g = null, raf = 0, lastN = 1;
-  function draw() {
-    const t = (v - 1) / (MAXV - 1) * (5 / 6);                                // 1 → top, 6 → five sixths round
-    arc.style.strokeDasharray = `${(t * 100).toFixed(2)} 100`;
-    const a = t * 2 * Math.PI - Math.PI / 2, R = 98 / 240 * ring.clientWidth, c = ring.clientWidth / 2;
-    knob.style.transform = `translate(${(c + R * Math.cos(a)).toFixed(1)}px, ${(c + R * Math.sin(a)).toFixed(1)}px)`;
-    const n = Math.round(v);
-    if (n !== lastN) {
-      lastN = n; H('tick');
-      nOd.set(String(n)); el.querySelector('.mid small').textContent = n === 1 ? 'item' : 'items';
-      pctEl.textContent = `${DISC[n]}%`; amtOd.set(String(Math.round(n * AVG * DISC[n] / 100)));
-      pctEl.animate([{ transform: 'scale(1.15)' }, { transform: 'none' }], { duration: 420, easing: REVEAL.ease });
-      faces(n);
-    }
-  }
-  function faces(n) {
-    const have = avas.children.length;
-    for (let i = have; i < n; i++) {
-      const f = document.createElement('i'); f.innerHTML = `<img src="${IMG(FACES[i])}" alt="" draggable="false">`; avas.appendChild(f);
-      f.animate([{ transform: 'translateY(10px) scale(.4)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 520, easing: 'cubic-bezier(0.3, 1.25, 0.5, 1)' });
-    }
-    [...avas.children].slice(n).forEach((f) => { if (f.dataset.out) return; f.dataset.out = 1; f.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.4)', opacity: 0 }], { duration: 200, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }).onfinish = () => f.remove(); });
-  }
-  const angleV = (e) => {                                                     // finger → value, continuous across the top
-    const r = ring.getBoundingClientRect(); let a = Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) + Math.PI / 2;
-    if (a < 0) a += 2 * Math.PI;
-    let t = a / (2 * Math.PI) / (5 / 6);
-    if (t > 1.1) t = (g && g.v > 3.5) ? 1 : 0;                                   // (in the gap past 6: hold the nearer end)
-    return 1 + clamp(t, 0, 1) * (MAXV - 1);
-  };
-  ring.addEventListener('pointerdown', (e) => {
-    cancelAnimationFrame(raf); g = { id: e.pointerId, v };
-    try { ring.setPointerCapture(e.pointerId); } catch {} el.classList.add('is-held');
-    v = angleV(e); g.v = v; draw();
-  });
-  ring.addEventListener('pointermove', (e) => { if (!g || e.pointerId !== g.id) return; const nv = angleV(e); if (Math.abs(nv - g.v) < 3) { v = nv; g.v = nv; draw(); } });
-  const up = (e) => {
-    if (!g || e.pointerId !== g.id) return; g = null; el.classList.remove('is-held');
-    const to = Math.round(v), from = v, t0 = performance.now();
-    const step = (now) => { const u = Math.min(1, (now - t0) / 360), k = 1 - Math.pow(1 - u, 3); v = from + (to - from) * k; draw(); if (u < 1) raf = requestAnimationFrame(step); };
-    raf = requestAnimationFrame(step);
-    if (to >= 3) { bot.lookAt(el, 800); }
-  };
-  ring.addEventListener('pointerup', up); ring.addEventListener('pointercancel', up);
-  return { reset() { cancelAnimationFrame(raf); v = 1; lastN = 0; avas.innerHTML = ''; draw(); } };
-})();
-
-// ─── your rewards (after CRED's printing tickets + autopay bills stack on 60fps.design) ─────────────────────
-// Every reward you win prints out of the slot — a ticket feeding out in little jolts — and drops onto the stack. The
-// stack quietly cycles (the top ticket slips to the back) while you look; tap it and it fans out into a list, tap again
-// to gather it up. Rewards won while the wallet's off screen wait and print as you scroll to it.
-const wallet = (() => {
-  const el = $('.p-wallet'), stack = el.querySelector('.stack');
-  let list = [], open = false, queue = [], visible = false, cyc = 0, printing = false;
-  const ticket = (r) => `<div class="tk" style="--c:${r.c}"><div class="stub"><b>${r.t.length > 9 ? '★' : r.t.replace(/ off$/, '')}</b><small>${r.t.length > 9 ? '' : /off$/.test(r.t) ? 'OFF' : ''}</small></div>
-    <div class="info"><b>${r.t}</b><span>${r.s}</span><em>Valid till 11.11 · auto-applied</em></div></div>`;
-  function layout(animate = true) {
-    const kids = [...stack.children];
-    kids.forEach((c, k) => {
-      c.style.transition = animate ? 'transform .6s cubic-bezier(0.16, 1, 0.3, 1), opacity .35s ease' : 'none';
-      c.style.zIndex = String(50 - k);
-      if (open) { c.style.transform = `translate3d(0, ${k * 98}px, 0)`; c.style.opacity = 1; }
-      else { c.style.transform = k <= 2 ? `translate3d(0, ${k * 12}px, 0) scale(${(1 - k * 0.05).toFixed(3)})` : 'translate3d(0, 24px, 0) scale(.9)'; c.style.opacity = k <= 2 ? 1 : 0; }
-    });
-    const h = open ? Math.max(1, kids.length) * 98 - 10 : 112;
-    stack.animate([{ height: `${stack.offsetHeight}px` }, { height: `${h}px` }], { duration: 560, easing: REVEAL.ease }); stack.style.height = `${h}px`;
-    el.classList.toggle('is-open', open);
-  }
-  function print(r) {
-    printing = true;
-    stack.insertAdjacentHTML('afterbegin', ticket(r)); const c = stack.firstElementChild; list.unshift(r);
-    if (reduce.matches) { layout(false); printing = false; flush(); return; }
-    c.style.transition = 'none'; c.style.zIndex = '60'; c.style.transform = 'translate3d(0, -104px, 0)';
-    // feeding out of the slot in jolts, then dropping onto the stack
-    c.animate([{ transform: 'translate3d(0, -104px, 0)' }, { transform: 'translate3d(0, -78px, 0)', offset: 0.18 }, { transform: 'translate3d(0, -78px, 0)', offset: 0.28 },
-      { transform: 'translate3d(0, -50px, 0)', offset: 0.46 }, { transform: 'translate3d(0, -50px, 0)', offset: 0.56 }, { transform: 'translate3d(0, -20px, 0)', offset: 0.74 },
-      { transform: 'translate3d(0, -14px, 0) rotate(-1.5deg)', offset: 0.84 }, { transform: 'translate3d(0, 0, 0)' }], { duration: 1150, easing: 'cubic-bezier(0.3, 0.6, 0.35, 1)' })
-      .onfinish = () => { c.style.transform = 'none'; layout(); printing = false; setTimeout(flush, 250); };
-    [0, 320, 640].forEach((d) => setTimeout(() => H('tick'), d));
-    el.querySelector('.slot').animate([{ transform: 'none' }, { transform: 'translateY(1px)' }, { transform: 'none' }], { duration: 160, iterations: 4 });
-    setTimeout(() => layout(), 900);
-  }
-  function flush() { if (!printing && visible && queue.length) print(queue.shift()); }
-  new IntersectionObserver(([e]) => { visible = e.isIntersecting && live; flush(); }, { root: scroller, threshold: 0.35 }).observe(el);
-  // the idle cycle: the top ticket slips to the back
-  setInterval(() => {
-    if (!visible || open || printing || stack.children.length < 2 || document.hidden || reduce.matches) return;
-    const top = stack.firstElementChild;
-    top.animate([{ transform: top.style.transform, opacity: 1 }, { opacity: 0, offset: 0.55 }, { transform: 'translate3d(0, -30px, 0) scale(.94)', opacity: 0 }], { duration: 320, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' })
-      .onfinish = () => {
-        stack.appendChild(top); list.push(list.shift());
-        const k = stack.children.length - 1;                                    // (re-placed at the back while invisible…)
-        top.style.transition = 'none'; top.style.opacity = 0; top.style.transform = k <= 2 ? `translate3d(0, ${k * 12}px, 0) scale(${(1 - k * 0.05).toFixed(3)})` : 'translate3d(0, 24px, 0) scale(.9)';
-        top.getAnimations().forEach((a) => a.cancel()); void top.offsetWidth;
-        layout();                                                               // (…then everything settles, and it fades in there)
-      };
-  }, 2800);
-  stack.addEventListener('click', () => { if (printing) return; open = !open; layout(); H('tick'); });
-  return {
-    add(r) { queue.push(r); flush(); },
-    reset() { open = false; queue = []; printing = false; list = []; stack.innerHTML = ''; stack.insertAdjacentHTML('beforeend', ticket({ t: 'Free delivery', s: 'Welcome to Yellow Friday', c: '#FEEE00' })); list.push({}); layout(false); },
-  };
-})();
-
-// ─── long-press quick actions (after ChatGPT's long-press picker / Instagram's hold menu on 60fps.design) ───
-// Press and hold a grid card: it lifts out of a blurred page and a menu of quick actions opens under it. Without
-// lifting your finger, slide onto an action (each one you pass lights up, with a tick) and let go to do it — or let
-// go anywhere, then tap one. Tap outside to put the card back.
-const peek = (() => {
-  const el = document.createElement('div'); el.className = 'p-peek'; el.setAttribute('data-no-drag', '');
-  el.innerHTML = `<i class="scrim"></i><div class="lift"></div><div class="menu">
-    <button type="button" data-a="like">${HEART}<span>Like</span></button><button type="button" data-a="remind">${BELL}<span>Remind me</span></button>
-    <button type="button" data-a="add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Add to picks</span></button>
-    <button type="button" data-a="share"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M5 13v5a2 2 0 002 2h10a2 2 0 002-2v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Share</span></button></div>`;
-  sheet.appendChild(el);
-  const lift = el.querySelector('.lift'), menu = el.querySelector('.menu'), items = [...menu.children];
-  let timer = 0, press = null, open = false, card = null, hot = null, swallowUntil = 0;
-  function show(c) {
-    open = true; card = c; swallowUntil = performance.now() + 600;
-    const sr = sheet.getBoundingClientRect(), r = c.getBoundingClientRect();
-    lift.innerHTML = ''; const cl = c.cloneNode(true); cl.hidden = false; cl.classList.remove('yf-press'); lift.appendChild(cl);
-    Object.assign(lift.style, { left: `${r.left - sr.left}px`, top: `${r.top - sr.top}px`, width: `${r.width}px` });
-    const below = r.bottom - sr.top + 196 < sr.height;                            // the menu goes under the card, or over it near the bottom
-    menu.style.left = `${clamp(r.left - sr.left + r.width / 2 - 110, 12, sr.width - 232)}px`;
-    menu.style.top = below ? `${r.bottom - sr.top + 12}px` : `${r.top - sr.top - 196}px`;
-    menu.style.transformOrigin = below ? '50% 0' : '50% 100%';
-    el.classList.add('is-on'); c.style.visibility = 'hidden'; scroller.style.overflow = 'hidden';
-    lift.animate([{ transform: 'none' }, { transform: 'scale(1.06)' }], { duration: 420, easing: 'cubic-bezier(0.3, 1.3, 0.5, 1)', fill: 'forwards' });
-    menu.animate([{ transform: 'scale(.6)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: 'cubic-bezier(0.22, 1.2, 0.36, 1)' });
-    items.forEach((b, i) => b.animate([{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }], { duration: 300, delay: 60 + i * 40, easing: REVEAL.ease, fill: 'backwards' }));
-    el.querySelector('.scrim').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, fill: 'both' });
-    H('snap'); bot.lookAt(c, 1400);
-  }
-  function hide() {
-    if (!open) return; open = false;
-    const c = card;
-    lift.animate([{ transform: 'scale(1.06)' }, { transform: 'none' }], { duration: 300, easing: 'cubic-bezier(0.3, 0, 0.2, 1)', fill: 'forwards' });
-    menu.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.8)', opacity: 0 }], { duration: 200, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' });
-    el.querySelector('.scrim').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' }).onfinish = () => {
-      el.classList.remove('is-on'); c.style.visibility = ''; [lift, menu, el.querySelector('.scrim')].forEach((x) => x.getAnimations().forEach((a) => a.cancel())); setHot(null);
-    };
-    scroller.style.overflow = '';
-  }
-  function setHot(b) { if (b === hot) return; hot && hot.classList.remove('is-hot'); hot = b; if (b) { b.classList.add('is-hot'); H('tick'); } }
-  function act(a) {
-    const c = card;
-    if (a === 'like') { const lk = c.querySelector('.lk'); lk.click(); toast(lk.classList.contains('is-on') ? 'Liked' : 'Like removed'); }
-    if (a === 'remind') { toast('We\'ll remind you when it drops'); H('success'); }
-    if (a === 'add') { flyToBot(lift.querySelector('.ph'), () => picks.add({ img: c.dataset.k, bg: '#f4f5f8' })); H('success'); }
-    if (a === 'share') { try { navigator.clipboard && navigator.clipboard.writeText(`https://www.noon.com/uae-en/ — ${ITEM[c.dataset.k].name}`); } catch {} toast('Link copied'); }
-    hide();
-  }
-  page.addEventListener('pointerdown', (e) => {
-    const c = e.target.closest('.p-gc'); if (!c || e.target.closest('.lk') || e.button) return;
-    press = { x: e.clientX, y: e.clientY, id: e.pointerId };
-    clearTimeout(timer); timer = setTimeout(() => { if (press) show(c); }, 430);
-  });
-  addEventListener('pointermove', (e) => {
-    if (press && !open && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 8) { clearTimeout(timer); press = null; }
-    if (open && press && e.pointerId === press.id) { const b = document.elementFromPoint(e.clientX, e.clientY); setHot(b && b.closest('.p-peek .menu button')); }
-  });
-  addEventListener('pointerup', (e) => {
-    clearTimeout(timer);
-    if (open && press && e.pointerId === press.id && hot) { act(hot.dataset.a); }
-    press = null;
-  });
-  addEventListener('pointercancel', () => { clearTimeout(timer); press = null; });
-  scroller.addEventListener('touchmove', (e) => { if (open && e.cancelable) e.preventDefault(); }, { passive: false });
-  page.addEventListener('contextmenu', (e) => { if (e.target.closest('.p-gc')) e.preventDefault(); });
-  el.querySelector('.scrim').addEventListener('click', hide);
-  items.forEach((b) => b.addEventListener('click', () => { if (open) act(b.dataset.a); }));
-  return { swallow: () => open || performance.now() < swallowUntil, reset() { if (open) { open = false; el.classList.remove('is-on'); card && (card.style.visibility = ''); scroller.style.overflow = ''; } } };
-})();
-
-// ─── daily streak (after Duolingo's streak moments) ───────────────────────────────────────────────────────────
-// Check in: the button presses and becomes "Checked in", today's dot fills with a pop and a ring, the flame jumps
-// and throws sparks, the streak rolls from 2 to 3 and a 5% reward prints into your rewards. The flame flickers idly.
-const streak = (() => {
-  const el = $('.p-streak'), btn = el.querySelector('.go'), num = odometer(el.querySelector('.sn')), today = el.querySelector('.days .today'), fl = el.querySelector('.fl');
-  let done = false;
-  btn.addEventListener('click', () => {
-    if (done) { fl.animate([{ transform: 'none' }, { transform: 'scale(1.12) rotate(-6deg)' }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(0.3, 1.3, 0.5, 1)' }); H('tick'); return; }
-    done = true; el.classList.add('is-done'); btn.querySelector('span').textContent = 'Checked in';
-    today.classList.add('on', 'pop');
-    fl.classList.remove('jump'); void fl.offsetWidth; fl.classList.add('jump');
-    setTimeout(() => num.set('3'), 180);
-    el.querySelector('.sl').textContent = '5% off unlocked!';
-    H('success'); bot.hop(1.2); bot.cheer(); bot.lookAt(el, 1000);
-    wallet.add({ t: '5% off', s: 'Streak reward · day 3', c: '#FFB400' });
-  });
-  return { reset() { done = false; el.classList.remove('is-done'); btn.querySelector('span').textContent = 'Check in'; today.classList.remove('on', 'pop'); num.set('2', true); el.querySelector('.sl').textContent = 'Check in today for 5% off'; } };
-})();
-
-// ─── deals by day (after Revolut's select-plan tab scroll on 60fps.design) ──────────────────────────────────
-// Swipe the pages (they snap) or tap a tab: the yellow pill under the tabs follows the scroll continuously — it
-// slides and stretches between tabs as a page goes by — and each label brightens as its page comes in. A tick per page.
-const days = (() => {
-  const el = $('.p-days'), pager = el.querySelector('.pager'), pill = el.querySelector('.pill'), tabs = [...el.querySelectorAll('.seg button')];
-  let page_ = 0;
-  function sync() {
-    const w = pager.clientWidth || 1, f = clamp(pager.scrollLeft / w, 0, tabs.length - 1), i = Math.floor(f), t = f - i, a = tabs[i], b = tabs[Math.min(tabs.length - 1, i + 1)];
-    const x = a.offsetLeft + (b.offsetLeft - a.offsetLeft) * t, wd = a.offsetWidth + (b.offsetWidth - a.offsetWidth) * t;
-    const stretch = 1 + Math.sin(t * Math.PI) * 0.18;                         // (it stretches a little mid-way, like it's being pulled)
-    pill.style.transform = `translateX(${x.toFixed(1)}px) scaleX(${stretch.toFixed(3)})`; pill.style.width = `${wd.toFixed(1)}px`;
-    tabs.forEach((tb, k) => tb.style.setProperty('--on', Math.max(0, 1 - Math.abs(f - k)).toFixed(3)));
-    const np = Math.round(f); if (np !== page_) { page_ = np; H('tick'); }
-  }
-  pager.addEventListener('scroll', sync, { passive: true });
-  tabs.forEach((tb, k) => tb.addEventListener('click', () => { pager.scrollTo({ left: k * pager.clientWidth, behavior: reduce.matches ? 'auto' : 'smooth' }); }));
-  return { reset() { pager.scrollLeft = 0; page_ = 0; requestAnimationFrame(sync); } };
-})();
-
-// ─── add to bag (a button that morphs into a stepper) ───────────────────────────────────────────────────────
-// The + on a budget card swells into a − n + stepper; the count rolls, the bag chip at the top bumps. Down to 0 it
-// shrinks back into a +.
-const bag = (() => {
-  const chip = $('.bagchip'), chipN = odometer(chip.querySelector('b'));
-  let total = 0;
-  function bump() { chipN.set(String(total)); chip.classList.toggle('has', total > 0); chip.animate([{ transform: 'scale(1.18)' }, { transform: 'none' }], { duration: 460, easing: 'cubic-bezier(0.3, 1.3, 0.5, 1)' }); }
-  page.addEventListener('click', (e) => {
-    const b = e.target.closest('.p-bc .step button'); if (!b) return;
-    e.stopPropagation();
-    const st = b.parentElement; let n = +st.dataset.n; const em = st.querySelector('em');
-    const d = b.classList.contains('pl') ? 1 : -1; if (n + d < 0 || n + d > 9) { st.animate([{ transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'none' }], { duration: 200 }); H('error'); return; }
-    n += d; total += d; st.dataset.n = n; st.classList.toggle('open', n > 0);
-    em.textContent = n; em.animate([{ transform: `translateY(${d * 60}%)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 320, easing: REVEAL.ease });
-    H(d > 0 ? 'tick' : 'tap'); bump();
-    if (d > 0 && n === 1) bot.lookAt(st, 700);
-  });
-  return { reset() { total = 0; chipN.set('0', true); chip.classList.remove('has'); $$('.p-bc .step').forEach((st) => { st.dataset.n = 0; st.classList.remove('open'); st.querySelector('em').textContent = '0'; }); } };
-})();
-
-// ─── scan my style (after Picky's card scan sort on 60fps.design) ───────────────────────────────────────────
-// A stack of polaroids. Tap "Scan my style": a beam sweeps while the cards shuffle — the top one swivels out and
-// tucks in at the back, again and again — then they deal out into a fan of three and your vibe appears under them.
-const scan = (() => {
-  const el = $('.p-scan'), deckEl = el.querySelector('.deck'), btn = el.querySelector('.go'), res = el.querySelector('.res');
-  let cards = [...deckEl.querySelectorAll('.pol')], busy = false, t = 0;
-  const STACK = (k) => `translate3d(${k * 2}px, ${k * -3}px, 0) rotate(var(--r))`;
-  function stackUp(animate) { cards.forEach((c, k) => { c.style.transition = animate ? 'transform .5s cubic-bezier(0.16, 1, 0.3, 1)' : 'none'; c.style.zIndex = String(10 - k); c.style.transform = STACK(k); }); }
-  function shuffleOnce() {
-    const top = cards[0];
-    top.animate([{ transform: top.style.transform }, { transform: 'translate3d(120px, -20px, 0) rotate(18deg)', offset: 0.45 }, { transform: STACK(cards.length - 1) }], { duration: 300, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' });
-    setTimeout(() => { top.style.zIndex = '0'; }, 140);
-    cards.push(cards.shift()); setTimeout(() => stackUp(true), 150); H('tick');
-  }
-  function fan() {
-    const pos = [[-96, 16, -9], [0, 0, 0], [96, 16, 9]];
-    cards.forEach((c, k) => { c.style.transition = 'transform .7s cubic-bezier(0.22, 1.1, 0.36, 1), opacity .4s'; c.style.transform = k < 3 ? `translate3d(${pos[k][0]}px, ${pos[k][1]}px, 0) rotate(${pos[k][2]}deg) scale(.92)` : 'translate3d(0, 30px, 0) scale(.7)'; c.style.opacity = k < 3 ? 1 : 0; c.style.zIndex = String(k === 1 ? 12 : 11 - k); });
-  }
-  btn.addEventListener('click', () => {
-    if (busy) return; busy = true; el.classList.remove('is-done'); el.classList.add('is-scanning'); btn.querySelector('span').textContent = 'Scanning your vibe…';
-    cards.forEach((c) => { c.style.opacity = 1; }); stackUp(true);
-    let n = 0; H('tap');
-    t = setInterval(() => {
-      if (++n > 7) {
-        clearInterval(t); el.classList.remove('is-scanning'); el.classList.add('is-done'); fan();
-        btn.querySelector('span').textContent = 'Scan again'; busy = false; H('success'); bot.cheer(); bot.lookAt(el, 1000);
-        return;
-      }
-      shuffleOnce();
-    }, 290);
-  });
-  return { reset() { clearInterval(t); busy = false; cards = [...deckEl.querySelectorAll('.pol')]; el.classList.remove('is-done', 'is-scanning'); btn.querySelector('span').textContent = 'Scan my style'; cards.forEach((c) => { c.style.opacity = 1; }); stackUp(false); } };
-})();
-
-// ─── trending near you (after Circle's splash bubbles pop on 60fps.design) ──────────────────────────────────
-// A cluster of product bubbles breathing gently. Every so often one pops — shrinks away and comes back as another
-// product — and a little badge says how many sold nearby. Tap one: it bounces, and you get the count.
-const near = (() => {
-  const el = $('.p-near'), bubbles_ = [...el.querySelectorAll('.nb')], badge = el.querySelector('.badge');
-  let t = 0, next = bubbles_.length, visible = false;
-  const sold = () => 6 + Math.floor(Math.random() * 40);
-  function say(b, txt) {
-    badge.textContent = txt;
-    const r = b.offsetLeft + b.offsetWidth / 2, y = b.offsetTop;
-    badge.style.left = `${clamp(r, 60, el.clientWidth - 60)}px`; badge.style.top = `${y - 8}px`;
-    badge.getAnimations().forEach((a) => a.cancel());
-    badge.animate([{ opacity: 0, transform: 'translate(-50%, 6px) scale(.8)' }, { opacity: 1, transform: 'translate(-50%, 0) scale(1)', offset: 0.18 }, { opacity: 1, transform: 'translate(-50%, 0) scale(1)', offset: 0.8 }, { opacity: 0, transform: 'translate(-50%, -6px) scale(.96)' }],
-      { duration: 1800, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'both' });
-  }
-  function pop() {
-    if (!visible || !live || document.hidden || reduce.matches) return;
-    const b = bubbles_[Math.floor(Math.random() * bubbles_.length)], img = b.querySelector('img');
-    const inn = b.querySelector('.in');
-    inn.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.14)', offset: 0.25 }, { transform: 'scale(0)' }], { duration: 380, easing: 'cubic-bezier(0.4, 0, 0.6, 1)', fill: 'forwards' }).onfinish = () => {
-      img.src = IMG(NEAR[next++ % NEAR.length]);
-      inn.animate([{ transform: 'scale(0)' }, { transform: 'scale(1.08)', offset: 0.7 }, { transform: 'scale(1)' }], { duration: 520, easing: 'cubic-bezier(0.3, 0.8, 0.4, 1)', fill: 'forwards' });
-      say(b, `${sold()} sold nearby`);
-    };
-  }
-  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { root: scroller, threshold: 0.3 }).observe(el);
-  t = setInterval(pop, 1500);
-  el.addEventListener('click', (e) => {
-    const b = e.target.closest('.nb'); if (!b) return;
-    b.animate([{ transform: 'scale(1)' }, { transform: 'scale(.88)' }, { transform: 'scale(1.1)' }, { transform: 'scale(1)' }], { duration: 480, easing: 'cubic-bezier(0.3, 0.8, 0.4, 1)' });
-    say(b, `${sold()} people bought this today`); H('tick'); bot.lookAt(b, 800);
-  });
-  return { reset() { badge.getAnimations().forEach((a) => a.cancel()); } };
-})();
-
-// ─── rate your yellow friday ────────────────────────────────────────────────────────────────────────────────
-// Slide a finger across the stars (or tap one): each star you reach pops in yellow with a tick, the face above
-// changes its mind with you, the line says it in words. Let go on five and it celebrates.
-const rate = (() => {
-  const el = $('.p-rate'), stars = [...el.querySelectorAll('.stars i')], face = el.querySelector('.face span'), say = el.querySelector('.say'), row = el.querySelector('.stars');
-  const FACES = ['🙂', '😕', '😐', '🙂', '😀', '🤩'], WORDS = ['Tap or slide to rate', 'Not great', 'It\'s okay', 'Pretty good', 'Loving it', 'Best sale ever!'];
-  let v = 0, g = null;
-  function set(n) {
-    if (n === v) return;
-    const up = n > v; v = n;
-    stars.forEach((s, i) => {
-      const on = i < n, was = s.classList.contains('on'); s.classList.toggle('on', on);
-      if (on && !was) s.animate([{ transform: 'scale(.6) rotate(-20deg)' }, { transform: 'scale(1.25) rotate(8deg)', offset: 0.6 }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(0.3, 1, 0.5, 1)' });
-    });
-    face.animate([{ transform: 'scale(1)' }, { transform: `scale(.6) rotate(${up ? -14 : 14}deg)`, opacity: 0.2 }], { duration: 110, easing: 'cubic-bezier(0.4, 0, 1, 1)' }).onfinish = () => {
-      face.textContent = FACES[n]; face.animate([{ transform: 'scale(.6)', opacity: 0.2 }, { transform: 'scale(1.12)', offset: 0.6 }, { transform: 'none', opacity: 1 }], { duration: 360, easing: 'cubic-bezier(0.3, 1, 0.5, 1)' });
-    };
-    say.textContent = WORDS[n];
-    H('tick');
-  }
-  const at = (x) => { const r = row.getBoundingClientRect(); return clamp(Math.ceil((x - r.left) / (r.width / 5)), 1, 5); };
-  row.addEventListener('pointerdown', (e) => { g = { id: e.pointerId }; try { row.setPointerCapture(e.pointerId); } catch {} set(at(e.clientX)); });
-  row.addEventListener('pointermove', (e) => { if (g && e.pointerId === g.id) set(at(e.clientX)); });
-  const up = (e) => {
-    if (!g || e.pointerId !== g.id) return; g = null;
-    if (v === 5) { const pt = sheetPoint(row); confetti.burst(pt.x, pt.y, 40); H('success'); bot.hop(1.3); bot.cheer(); } else bot.lookAt(row, 700);
-  };
-  row.addEventListener('pointerup', up); row.addEventListener('pointercancel', up);
-  return { reset() { v = 0; stars.forEach((s) => s.classList.remove('on')); face.textContent = FACES[0]; say.textContent = WORDS[0]; } };
-})();
-
-// ─── off-screen calm: looping decorations pause while their section is out of view ─────────────────────────
-const calm = new IntersectionObserver((ents) => ents.forEach((e) => e.target.classList.toggle('is-off', !e.isIntersecting)), { root: scroller, rootMargin: '120px 0px' });
-$$('.p-tapes, .p-streak, .p-acts, .p-boxes, .p-near, .p-slide, .p-scan, .p-end, .p-title, .p-gold').forEach((el) => { el.classList.add('is-off'); calm.observe(el); });
-
-// ─── the rest of the page ───────────────────────────────────────────────────────────────────────────────────
-// Remind me: the bell rings, the product is sent up to the bot
-page.addEventListener('click', (e) => {
-  const b = e.target.closest('.yf-remind'); if (!b) return;
-  const on = b.classList.toggle('is-on');
-  b.querySelector('span').textContent = on ? 'Reminder set' : 'Remind me';
-  H(on ? 'success' : 'tap');
-  if (on && !reduce.matches) b.querySelector('svg').animate([{ transform: 'rotate(0)' }, { transform: 'rotate(18deg)' }, { transform: 'rotate(-14deg)' }, { transform: 'rotate(8deg)' }, { transform: 'rotate(0)' }], { duration: 520, easing: 'ease-out' });
-  if (on) flyToBot(b.closest('.yf-pc').querySelector('.ph'));
-});
-// the flash-deal countdown (03:14:19 when the page first opens)
-const end = Date.now() + ((3 * 60 + 14) * 60 + 19) * 1000;
-// a split-flap clock: on each change the top half of the old number folds down over the new one, and the new
-// number's bottom half falls into place (a hinge shadow passes as it turns)
-const tEls = { h: $('.flap[data-t="h"]'), m: $('.flap[data-t="m"]'), s: $('.flap[data-t="s"]') };
-function flipTo(el, t) {
-  const [top, bot_, ftop, fbot] = ['.top b', '.bot b', '.ftop b', '.fbot b'].map((q) => el.querySelector(q));
-  const old = top.textContent; if (old === t) return;
-  if (!live || reduce.matches) { top.textContent = bot_.textContent = ftop.textContent = fbot.textContent = t; return; }
-  ftop.textContent = old; bot_.textContent = old; top.textContent = t; fbot.textContent = t;
-  el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
-  clearTimeout(el._t); el._t = setTimeout(() => { bot_.textContent = t; el.classList.remove('go'); }, 620);
-}
-const endT = $('.endt');
-function tick() {
-  const s = Math.max(0, Math.floor((end - Date.now()) / 1000)), v = { h: Math.floor(s / 3600), m: Math.floor(s / 60) % 60, s: s % 60 };
-  for (const k of ['h', 'm', 's']) flipTo(tEls[k], String(v[k]).padStart(2, '0'));
-  endT.textContent = ['h', 'm', 's'].map((k) => String(v[k]).padStart(2, '0')).join(':');
-}
-$('.p-end .top').addEventListener('click', () => { scroller.scrollTo({ top: 0, behavior: reduce.matches ? 'auto' : 'smooth' }); H('tap'); });
-tick(); setInterval(tick, 1000);
-// scrolling: the greeting drifts, the tapes run faster with the scroll's speed, the bot looks the way you're going
-const heroEls = { hi: $('.p-hi'), date: $('.p-date'), tapes: $$('.tape .run') };
-let lastY = 0, lastT = 0, tapeBoost = 0, tapeRaf = 0;
-let tapeRate = 1;
-function tapeSpeed() {
-  tapeBoost *= 0.94;
-  tapeRate += (1 + tapeBoost - tapeRate) * 0.12;                           // the rate eases toward the target: no lurch
-  heroEls.tapes.forEach((r) => r.getAnimations().forEach((a) => { a.playbackRate = tapeRate; }));
-  tapeRaf = Math.abs(tapeRate - 1) > 0.01 || tapeBoost > 0.02 ? requestAnimationFrame(tapeSpeed) : 0;
-  if (!tapeRaf) { tapeRate = 1; heroEls.tapes.forEach((r) => r.getAnimations().forEach((a) => { a.playbackRate = 1; })); }
-}
+// ─── scroll: a light parallax, the bot reads along, the mini header ──────────────────────────────────────────
+const par = { bg: $('.d3-bg'), l0: $('.d3-leaf.l0'), l1: $('.d3-leaf.l1') };
+let lastY = 0;
 function onScroll() {
-  const top = scroller.scrollTop, y = Math.min(top, 700), now = performance.now();
-  heroEls.hi.style.translate = heroEls.date.style.translate = `0 ${(y * 0.3).toFixed(1)}px`;
+  const top = scroller.scrollTop, y = Math.min(top, 900);
+  par.bg.style.translate = `0 ${(y * 0.32).toFixed(1)}px`;
+  par.l0.style.translate = `0 ${(y * -0.18).toFixed(1)}px`; par.l1.style.translate = `0 ${(y * -0.1).toFixed(1)}px`;
   if (live && Math.abs(top - lastY) > 2 && top > 0) bot.look(0, top > lastY ? 0.22 : -0.1, 380);   // reading down / back up
-  const v = Math.abs(top - lastY) / Math.max(8, now - lastT);
-  tapeBoost = Math.min(3, Math.max(tapeBoost, v * 1.6)); if (!tapeRaf && tapeBoost > 0.02) tapeRaf = requestAnimationFrame(tapeSpeed);
-  lastY = top; lastT = now;
+  ticker.boost(top - lastY);
+  lastY = top;
   mini.update(top);
+  dock.update(top);
 }
 scroller.addEventListener('scroll', onScroll, { passive: true });
-// the mini header: once the greeting has scrolled away, a black feathered top settles in with the page's name
+// iteration 4: the bot rests big at the top centre while you're at the top of the page; once you start scrolling it
+// glides up into the top-right corner at its small size (iteration 1–3's spot), and comes back to the centre when
+// you scroll back to the top (hysteresis: out past 40 px, back under 12 px)
+const dock = (() => {
+  const CORNER = { cx: 336, cy: 72, unit: 17 };
+  let on = false;
+  return {
+    update(top) {
+      if (!live || curating || !window.orbi || !window.orbi.pageOpen) return;
+      const want = on ? top > 12 : top > 40;
+      if (want === on) return;
+      on = want; window.orbi.stage(on ? CORNER : null);
+    },
+    reset() { on = false; },
+  };
+})();
+// the mini header: once the title has scrolled away, a black feathered top settles in (just the feather, no text)
 const mini = (() => {
   const el = document.createElement('div');
   el.className = 'yf-mini'; el.setAttribute('aria-hidden', 'true');
-  el.innerHTML = '<div class="tt">Yellow Friday sale</div>';
   sheet.appendChild(el);
   let on = false;
   return {
     update(top) { const show = top > 150; if (show !== on) { on = show; el.classList.toggle('is-on', on); } },
     reset() { on = false; el.classList.remove('is-on'); },
   };
+})();
+
+// the quiet loops (leaves, arrows, chevrons): paused while their block is off screen
+(() => {
+  const calm = new IntersectionObserver((ents) => ents.forEach((e) => e.target.classList.toggle('is-off', !e.isIntersecting)), { root: scroller, rootMargin: '120px 0px' });
+  $$('.d3-leaf, .d3-cubes, .d3-bg').forEach((el) => { el.classList.add('is-off'); calm.observe(el); });
 })();
 
 // pull down at the top of the page to close it: the page lifts into the card it closes as and follows the finger
@@ -1663,7 +521,7 @@ const mini = (() => {
   const rubber = (dy) => (dy <= 0 ? 0 : (dy * 0.92) / (1 + dy / 1100));
   const begin = (x, y, target) => {
     if (!window.orbi || !window.orbi.pageOpen || curating || scroller.scrollTop > 0) return;
-    if (sheetUI.open || target.closest('button, .p-card, .p-bubbles, .track, .p-wheel .stage, .foil, .p-slide, .p-gold, .p-dial, .p-wallet, .p-days .pager, .p-rate .stars, .p-near')) return;   // (those have their own drags)
+    if (target.closest('button, .d3-cubes')) return;                      // (the carousels lock to sideways drags, so a pull still works on them)
     cancelAnimationFrame(raf); g = { x, y, on: false, py: 0, v: 0, lt: performance.now(), ly: y, armed: false };
   };
   const move = (x, y, ev) => {
@@ -1681,31 +539,379 @@ const mini = (() => {
     if (ev && ev.cancelable) ev.preventDefault();
     return true;
   };
-  const stop = () => {
+  const end = () => {
     if (!g) return; const d = g; g = null; if (!d.on) return;
     if (d.py > 110 || d.v > 650) { window.orbi.release(true, Math.max(0, d.v)); return; }
     let py = d.py, v = 0, last = performance.now();                       // spring back (critically damped)
-    const step = (now) => {
+    const tick = (now) => {
       const dt = Math.min(0.032, (now - last) / 1000); last = now;
       for (let h = dt; h > 1e-6; h -= 1 / 240) { const k = Math.min(h, 1 / 240); v += (-260 * py - 32 * v) * k; py += v * k; }
       if (py < 0.3 && Math.abs(v) < 5) { window.orbi.pull(0); return; }
-      window.orbi.pull(py); raf = requestAnimationFrame(step);
+      window.orbi.pull(py); raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(step);
+    raf = requestAnimationFrame(tick);
   };
   scroller.addEventListener('touchstart', (e) => { if (e.touches.length === 1) begin(e.touches[0].clientX, e.touches[0].clientY, e.target); }, { passive: true });
   scroller.addEventListener('touchmove', (e) => { if (e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY, e); }, { passive: false });
-  scroller.addEventListener('touchend', stop); scroller.addEventListener('touchcancel', stop);
+  scroller.addEventListener('touchend', end); scroller.addEventListener('touchcancel', end);
   scroller.addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse' && !e.button) begin(e.clientX, e.clientY, e.target); });
   addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') move(e.clientX, e.clientY, null); });
-  addEventListener('pointerup', (e) => { if (e.pointerType === 'mouse') stop(); });
+  addEventListener('pointerup', (e) => { if (e.pointerType === 'mouse') end(); });
 })();
-grid.reset(); deck.reset(); bubbles.reset(); budget.reset(); wheel.reset(); slide.reset(); dial.reset(); wallet.reset(); days.reset(); rate.reset(); document.fonts.ready.then(() => scratch.reset());
+// the CTAs' press: held down from touch-down to release (or the finger sliding off), with a tick on the way in
+page.addEventListener('pointerdown', (e) => {
+  const b = e.target.closest('.d3-cta'); if (!b || e.button) return;
+  b.classList.add('is-press'); H('tick');
+  const up = () => { b.classList.remove('is-press'); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); b.removeEventListener('pointerleave', up); };
+  addEventListener('pointerup', up); addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
+});
+
+// ─── carousels ──────────────────────────────────────────────────────────────────────────────────────────────
+// One engine for the coupons and the refill card (iteration 1's): a continuous position `pos` (in items) that a drag
+// moves 1 : 1, a flick carries its speed into a spring (stiffness 240, damping 30.4 — ζ .98, no visible overshoot)
+// which lands on a whole item, and every item is placed from its wrapped distance to `pos`, so the row just keeps
+// going round. Axis-locked: a mostly-vertical drag is left to the page's scroll. One selection tick per landing.
+const capture = (el, id) => { try { el.setPointerCapture(id); } catch {} };   // (a pointer that's already gone can't be captured)
+function loopCarousel({ stage, count, step, place, tapToFocus = false, onTap = null, onLand = null }) {
+  let n = count, pos = 0, vel = 0, target = 0, raf = 0, drag = null, landed = 0, idleUntil = 0;
+  const norm = (i) => ((i % n) + n) % n;
+  const wrapD = (i) => { let d = i - pos; d -= Math.round(d / n) * n; return d; };
+  const render = () => place(wrapD);
+  function run() {
+    let last = performance.now();
+    const tick = (now) => {
+      const dt = Math.min(0.032, (now - last) / 1000); last = now;
+      for (let h = dt; h > 1e-6; h -= 1 / 240) { const k = Math.min(h, 1 / 240); vel += (240 * (target - pos) - 30.4 * vel) * k; pos += vel * k; }
+      const at = norm(Math.round(target));
+      if (at !== landed && Math.abs(target - pos) < 0.5) { landed = at; H('tick'); onLand && onLand(at); }
+      if (Math.abs(target - pos) < 0.0015 && Math.abs(vel) < 0.01) { pos = target = Math.abs(target - Math.round(target)) < 1e-3 ? norm(Math.round(target)) : target; vel = 0; render(); raf = 0; return; }
+      render(); raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+  }
+  const go = (t) => { target = t; if (!raf) run(); };
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.button || e.target.closest('button')) return;
+    cancelAnimationFrame(raf); raf = 0;
+    drag = { x: e.clientX, y: e.clientY, p0: pos, t: performance.now(), lx: e.clientX, v: 0, axis: null, id: e.pointerId, item: e.target.closest('[data-i]') };
+  });
+  addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.axis && Math.hypot(dx, dy) > 6) { drag.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'; if (drag.axis === 'x') capture(stage, e.pointerId); }
+    if (drag.axis !== 'x') return;
+    const now = performance.now(), dt = Math.max(1, now - drag.t);
+    drag.v = 0.8 * ((e.clientX - drag.lx) / dt) + 0.2 * drag.v; drag.lx = e.clientX; drag.t = now;
+    pos = drag.p0 - dx / step; vel = 0; target = pos; render();
+  });
+  const end = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const d = drag; drag = null; idleUntil = performance.now() + 8000;
+    if (d.axis === 'x') { const v = -d.v * 1000 / step; vel = v; go(Math.round(pos + Math.max(-1.4, Math.min(1.4, v * 0.18)))); }
+    else if (!d.axis && tapToFocus && d.item) {
+      const dd = wrapD(+d.item.dataset.i);
+      if (Math.abs(dd) < 0.5 && onTap) { onTap(d.item); go(Math.round(pos)); } else go(Math.round(pos + dd));   // a tap on a side item brings it forward
+    }
+    else go(Math.round(pos));
+  };
+  addEventListener('pointerup', end); addEventListener('pointercancel', end);
+  return {
+    wrapD, go,
+    get target() { return target; }, get at() { return norm(Math.round(target)); }, get busy() { return !!drag || performance.now() < idleUntil; },
+    jump(i) { cancelAnimationFrame(raf); raf = 0; pos = target = landed = i; vel = 0; render(); },
+  };
+}
+// the reveal's beats go to whichever items are in those slots now; the rest are simply there
+function assignRoles(els, wrapD, map) {
+  els.forEach((el, i) => {
+    const k = map[Math.round(wrapD(i))];
+    el.dataset.k = k || '';
+    if (!k) { el.getAnimations().forEach((a) => a.cancel()); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); }
+  });
+}
+// the square-to-quad homography (Heckbert), as a CSS matrix3d for a w × h element with its origin at 0 0
+function m3d(q, w, h) {
+  const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = q;
+  const dx1 = x1 - x2, dx2 = x3 - x2, dy1 = y1 - y2, dy2 = y3 - y2, sx = x0 - x1 + x2 - x3, sy = y0 - y1 + y2 - y3;
+  const den = dx1 * dy2 - dx2 * dy1, g = (sx * dy2 - dx2 * sy) / den, hh = (dx1 * sy - sx * dy1) / den;
+  const a = x1 - x0 + g * x1, b = x3 - x0 + hh * x3, d = y1 - y0 + g * y1, e = y3 - y0 + hh * y3;
+  const f = (v) => +v.toFixed(6);
+  return `matrix3d(${f(a / w)},${f(d / w)},0,${f(g / w)},${f(b / h)},${f(e / h)},0,${f(hh / h)},0,0,1,0,${f(x0)},${f(y0)},0,1)`;
+}
+
+// the coupons: Figma's three on the inside of a ring — the hero coupon flat in the middle, the side ones turned in
+// towards you (their inner edge taller, at 50 %), and further ones going round out of sight. Each slot's 179.6 × 275.8
+// face is mapped onto its quad (traced from the Figma side coupons) by a projective transform; interpolating the quads
+// turns them smoothly as the ring moves. The three offers twice over, so one is always coming in from the edge.
+const coupons = (() => {
+  const stage = $('.d3-coupons'), slots = [...stage.querySelectorAll('.d3-cslot')], N = slots.length;
+  const CW = 179.638, CH = 275.797;
+  const Q = {   // TL, TR, BR, BL in stage coordinates (the stage sits at page 0, 209)
+    0: [[97.68, 0], [277.32, 0], [277.32, 275.8], [97.68, 275.8]],
+    1: [[317.32, 27.9], [399.32, 69.4], [399.32, 210], [317.32, 243.2]],
+    2: [[432, 92], [470, 112], [470, 186], [432, 204]],
+  };
+  const mirror = (q) => [[375 - q[1][0], q[1][1]], [375 - q[0][0], q[0][1]], [375 - q[3][0], q[3][1]], [375 - q[2][0], q[2][1]]];
+  const quadAt = (d) => {
+    const a = Math.min(2, Math.abs(d)), k = Math.floor(Math.min(a, 1.999)), t = a - k;
+    const q = Q[k].map((p, j) => [p[0] + (Q[k + 1][j][0] - p[0]) * t, p[1] + (Q[k + 1][j][1] - p[1]) * t]);
+    return d < 0 ? mirror(q) : q;
+  };
+  const collect = (slot) => {
+    slot = slot || slots.find((s) => Math.abs(loop.wrapD(+s.dataset.i)) < 0.5);
+    const o = slot.dataset.o, cp = slot.firstElementChild, on = !cp.classList.contains('is-collected');
+    slots.filter((s) => s.dataset.o === o).forEach((s) => s.firstElementChild.classList.toggle('is-collected', on));   // (its twin too)
+    if (on) { try { navigator.clipboard && navigator.clipboard.writeText(DATA.coupons[o].code).catch(() => {}); } catch {} }
+    H(on ? 'success' : 'tap');
+    if (on) bot.hop(1.2);
+  };
+  const loop = loopCarousel({ stage, count: N, step: 180, tapToFocus: true, onTap: collect,
+    place: (wrapD) => slots.forEach((el, i) => {
+      const d = wrapD(i), a = Math.abs(d);
+      el.style.transform = m3d(quadAt(d), CW, CH);
+      el.style.opacity = a >= 2 ? 0 : a <= 1 ? (1 - 0.5 * a).toFixed(3) : (0.5 * (2 - a)).toFixed(3);   // Figma: side coupons at 50 %
+      el.style.zIndex = String(10 - Math.round(a * 3));
+      el.style.visibility = a >= 2 ? 'hidden' : '';
+    }) });
+  stage.addEventListener('click', (e) => e.preventDefault());
+  return {
+    jump: loop.jump, collect: () => collect(null),
+    roles() { assignRoles(slots.map((s) => s.firstElementChild), loop.wrapD, { '-1': 'cp0', 0: 'cp1', 1: 'cp2' }); },
+  };
+})();
+
+// the deck of top picks: the front card flat, the two behind it smaller, tipped either way and softly out of focus
+// (Figma's stack). Drag the front card sideways and it follows the finger, tilting; let go past 96 px or with a flick
+// and it's thrown off that side and tucked in at the back, while the others step forward — every card on its own
+// spring (the MOVE spring: stiffness 280.6, damping 27.14), interruptible, carrying the hand's speed. The pixel arrows
+// either side throw it too.
+const deck = (() => {
+  const stage = $('.d3-deck'), cards = [...stage.querySelectorAll('.d3-dk')], N = cards.length;
+  // slot k: x, y, rotation (deg), scale, blur (px), opacity — about the card's top centre (Figma's frames 49913 / 49908 / 49903)
+  const SLOT = [
+    { x: 0, y: 0, r: 0, s: 1, b: 0, o: 1 },
+    { x: 3.5, y: -18.8, r: 2.67, s: 0.8758, b: 1.44, o: 1 },
+    { x: 3, y: -34.9, r: -2, s: 0.7424, b: 1.9, o: 1 },
+    { x: 3, y: -38, r: -2, s: 0.7, b: 2.2, o: 0 },
+  ];
+  const slot = (k) => SLOT[Math.min(k, 3)];
+  const KEYS = ['x', 'y', 'r', 's', 'b', 'o'], K = 280.6, C = 27.14;
+  let order = cards.map((_, i) => i), raf = 0, drag = null, fanned = 0;   // (how many cards behind the front one are out)
+  const st = cards.map(() => ({ ...SLOT[0], v: { x: 0, y: 0, r: 0, s: 0, b: 0, o: 0 }, t: { ...SLOT[0] }, fly: 0 }));
+  const paint = () => cards.forEach((c, i) => {
+    const s = st[i];
+    c.style.transform = `translate3d(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px, 0) rotate(${s.r.toFixed(3)}deg) scale(${s.s.toFixed(4)})`;
+    const b = Math.round(s.b * 10) / 10; c.style.filter = b > 0.05 ? `blur(${b}px)` : '';
+    c.style.opacity = s.o.toFixed(3);
+  });
+  const layer = () => order.forEach((ci, k) => { cards[ci].style.zIndex = String(st[ci].fly ? 40 : 30 - k); cards[ci].classList.toggle('is-top', k === 0); });
+  const aim = () => order.forEach((ci, k) => { if (!st[ci].fly) st[ci].t = { ...slot(k <= fanned ? k : 0) }; if (k > fanned) st[ci].t.o = 0; });
+  function run() {
+    if (raf) return;
+    let last = performance.now();
+    const tick = (now) => {
+      const dt = Math.min(0.032, (now - last) / 1000); last = now;
+      let moving = false;
+      st.forEach((s, i) => {
+        if (drag && drag.ci === i) return;
+        for (let h = dt; h > 1e-6; h -= 1 / 240) {
+          const k = Math.min(h, 1 / 240);
+          KEYS.forEach((p) => { const c = p === 'o' || p === 'b' ? 0.8 : 1; s.v[p] += (K * c * (s.t[p] - s[p]) - C * Math.sqrt(c) * s.v[p]) * k; s[p] += s.v[p] * k; });
+        }
+        if (s.fly && Math.abs(s.x) > 420) recycle(i);
+        const still = KEYS.every((p) => Math.abs(s.t[p] - s[p]) < (p === 's' || p === 'o' ? 0.0008 : 0.04) && Math.abs(s.v[p]) < 0.05);
+        if (still) KEYS.forEach((p) => { s[p] = s.t[p]; s.v[p] = 0; }); else moving = true;
+      });
+      paint();
+      raf = moving || drag ? requestAnimationFrame(tick) : 0;
+    };
+    raf = requestAnimationFrame(tick);
+  }
+  // the thrown card, once off screen, goes in at the very back (hidden) and comes round again from there
+  function recycle(i) {
+    const s = st[i]; s.fly = 0;
+    Object.assign(s, slot(3)); KEYS.forEach((p) => { s.v[p] = 0; }); s.t = { ...slot(order.indexOf(i)) };
+    layer();
+  }
+  function throwTop(dir, v = 0) {
+    const ci = order[0], s = st[ci];
+    s.fly = dir; s.t = { x: dir * 470, y: s.y + 20, r: dir * 16, s: s.s, b: 0, o: 1 };
+    s.v.x = Math.max(Math.abs(s.v.x), Math.abs(v) * 1000, 900) * dir;
+    order = [...order.slice(1), ci];
+    aim(); layer(); H('tick'); run();
+    (dir < 0 ? cubesL : cubesR).classList.remove('is-hit'); void stage.offsetWidth; (dir < 0 ? cubesL : cubesR).classList.add('is-hit');
+  }
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.button || e.target.closest('button')) return;
+    const c = e.target.closest('.d3-dk'); if (!c) return;
+    const ci = +c.dataset.i;
+    if (ci !== order[0]) { throwTop(-1); return; }                          // a tap on a card behind brings it forward
+    drag = { ci, x: e.clientX, y: e.clientY, x0: st[ci].x, lx: e.clientX, lt: performance.now(), v: 0, axis: null, id: e.pointerId };
+  });
+  addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.axis && Math.hypot(dx, dy) > 6) { drag.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'; if (drag.axis === 'x') { capture(stage, e.pointerId); run(); } }
+    if (drag.axis !== 'x') return;
+    const now = performance.now(), dt = Math.max(1, now - drag.lt);
+    drag.v = 0.8 * ((e.clientX - drag.lx) / dt) + 0.2 * drag.v; drag.lx = e.clientX; drag.lt = now;
+    const s = st[drag.ci]; s.x = drag.x0 + dx; s.y = Math.abs(dx) * 0.04; s.r = dx * 0.045; s.v.x = drag.v * 1000;
+    // the cards behind lean in as the front one goes: a step towards their next slot
+    const p = Math.min(1, Math.abs(dx) / 180);
+    order.slice(1).forEach((ci, k) => { const A = slot(k + 1), B = slot(k); st[ci].t = Object.fromEntries(KEYS.map((q) => [q, A[q] + (B[q] - A[q]) * p * 0.5])); });
+    const armed = Math.abs(dx) > 96; if (armed !== drag.armed) { drag.armed = armed; if (armed) H('tick'); }
+  });
+  const end = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const d = drag; drag = null;
+    if (d.axis !== 'x') { run(); return; }
+    const dx = st[d.ci].x;
+    if (Math.abs(dx) > 96 || Math.abs(d.v) > 0.55) throwTop(Math.sign(Math.abs(d.v) > 0.55 ? d.v : dx), d.v);
+    else { aim(); run(); }
+  };
+  addEventListener('pointerup', end); addEventListener('pointercancel', end);
+  // add to cart: the button turns into a tick and the product flies into the bot
+  page.addEventListener('click', (e) => {
+    const b = e.target.closest('.d3-add'); if (!b) return;
+    const on = b.classList.toggle('is-on'); b.setAttribute('aria-pressed', String(on));
+    H(on ? 'success' : 'tap');
+    if (on) flyToBot(b.closest('.d3-dk, .d3-rf, .w-card').querySelector('.ph'));
+  });
+  const cubesL = $('.d3-cubes.l'), cubesR = $('.d3-cubes.r');
+  cubesL.addEventListener('click', () => throwTop(-1)); cubesR.addEventListener('click', () => throwTop(1));
+  return {
+    reset() { order = cards.map((_, i) => i); fanned = 0; st.forEach((s) => { s.fly = 0; Object.assign(s, SLOT[0]); KEYS.forEach((p) => { s.v[p] = 0; }); }); aim(); order.forEach((ci, k) => { if (k) st[ci].o = 0; }); layer(); paint(); },
+    // scrolled back away below the screen: the cards behind tuck back under the front one (instantly, it's off screen)
+    // and the front one goes back to hidden, so the next scroll down plays the whole entrance again
+    hide() {
+      fanned = 0;
+      order.forEach((ci, k) => { const st0 = st[ci]; if (k && !st0.fly) { Object.assign(st0, { ...slot(0), o: 0 }); KEYS.forEach((p) => { st0.v[p] = 0; }); } });
+      aim(); paint();
+      cards.forEach((c) => cancelOwn(c.firstElementChild));
+    },
+    // the reveal: the front card lands first; then the cards behind it come out from under it one at a time
+    fan(delay) {
+      const d = reduce.matches ? 0 : delay, step = reduce.matches ? 0 : 140;
+      [1, 2, Infinity].forEach((n, i) => setTimeout(() => { if (!live) return; fanned = Math.max(fanned, n); aim(); run(); }, d + i * step));
+    },
+    roles() { cards.forEach((c, i) => { const el = c.firstElementChild; el.dataset.k = i === order[0] ? 'deck' : ''; if (i !== order[0]) { el.getAnimations().forEach((a) => a.cancel()); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); } }); },
+  };
+})();
+
+// the refill carousels — the one above "Shop all deals" and the three below it (Figma 1474:50538): a 236-wide main card with its neighbours either side at 80 %, 20 apart and
+// 35.5 lower. Each card morphs as it moves (--k: 0 in the middle → 1 at the side, driven by yf-page.css): its photo
+// box goes from 3 : 4 to the side cards' shorter one, the "Last purchased" line folds away and the + slides from
+// the photo's corner (dark ink) down to the card's corner (white ink). A tap on a side card brings it forward
+const makeRefill = (stage) => {
+  const slots = [...stage.querySelectorAll('.d3-rslot')];
+  // "Price drops": its LCD badge reads the drop of whichever card is in the middle
+  const lcd = stage.hasAttribute('data-lcd') && stage.previousElementSibling.querySelector('strong');
+  const onLand = lcd ? (at) => {
+    lcd.textContent = slots[((at % slots.length) + slots.length) % slots.length].dataset.drop;
+    const box = lcd.closest('.w-lcd'); box.classList.remove('is-swap'); void box.offsetWidth; box.classList.add('is-swap');   // (a burst of flicker on the new number)
+  } : null;
+  const PITCH = 232.4, SS = 0.8, DY = 35.5;
+  const loop = loopCarousel({ stage, count: slots.length, step: PITCH, tapToFocus: true, onLand, place: (wrapD) => slots.forEach((el, i) => {
+    const d = wrapD(i), a = Math.abs(d), k = Math.min(1, a), ink = Math.round(255 * k);
+    el.style.transform = `translate3d(${(d * PITCH).toFixed(2)}px, ${(DY * k).toFixed(2)}px, 0) scale(${(1 - (1 - SS) * k).toFixed(4)})`;
+    el.style.setProperty('--k', k.toFixed(4));
+    el.style.setProperty('--ox', `${(50 - 50 * k * Math.sign(d)).toFixed(2)}%`);   // (a side card's photo sits towards the middle, so a narrow product still shows in the peek)
+    el.style.setProperty('--ink', `rgb(${ink},${ink},${ink})`); el.style.setProperty('--paper', `rgb(${255 - ink},${255 - ink},${255 - ink})`);
+    el.style.opacity = a <= 1 ? '1' : Math.max(0, 2 - a).toFixed(3);
+    el.style.zIndex = String(10 - Math.round(a * 3));
+    el.style.visibility = a > 1.9 ? 'hidden' : '';
+    el.classList.toggle('is-mid', a < 0.5);
+  }) });
+  // the wishlist heart: fills red with a pop
+  stage.addEventListener('click', (e) => {
+    const b = e.target.closest('.d3-wish'); if (!b) return;
+    const on = b.classList.toggle('is-on'); b.setAttribute('aria-pressed', String(on));
+    H(on ? 'success' : 'tap');
+    if (on && !reduce.matches) b.animate([{ transform: 'scale(1)' }, { transform: 'scale(.82)', offset: 0.25 }, { transform: 'scale(1.18)', offset: 0.6 }, { transform: 'scale(1)' }], { duration: 460, easing: 'cubic-bezier(0.33, 1, 0.68, 1)' });
+    if (on) bot.hop(1.1);
+  });
+  return {
+    jump: loop.jump,
+    hide() { slots.forEach((sl) => cancelOwn(sl.firstElementChild)); },   // (back to hidden, to play in again)
+    reveal(delay) {
+      // the main card rises in, then its neighbours slide out from behind it
+      slots.forEach((s) => {
+        const d = Math.round(loop.wrapD(+s.dataset.i)), c = s.firstElementChild;
+        if (d === 0) playIn(c, 'translateY(28px) scale(.97)', delay);
+        else if (Math.abs(d) === 1) playIn(c, `translateX(${-d * 64}px) scale(.94)`, delay + 160);
+        else { c.getAnimations().forEach((x) => x.cancel()); c.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); }
+      });
+    },
+  };
+};
+const refills = new Map($$('.d3-refill').map((st) => [st, makeRefill(st)]));
+// the deck's wishlist heart: fills red with a pop, like the refill's
+$('.d3-deck').addEventListener('click', (e) => {
+  const b = e.target.closest('.d3-wish'); if (!b) return;
+  const on = b.classList.toggle('is-on'); b.setAttribute('aria-pressed', String(on));
+  H(on ? 'success' : 'tap');
+  if (on && !reduce.matches) b.animate([{ transform: 'scale(1)' }, { transform: 'scale(.82)', offset: 0.25 }, { transform: 'scale(1.18)', offset: 0.6 }, { transform: 'scale(1)' }], { duration: 460, easing: 'cubic-bezier(0.33, 1, 0.68, 1)' });
+  if (on) bot.hop(1.1);
+});
+
+// the widgets below "Shop all deals": hearts, category tabs, flash reminders, the countdown, the CTAs
+const more = !moreEl ? { reset() {} } : (() => {
+  const pop = (el) => { if (!reduce.matches) el.animate([{ transform: 'scale(1)' }, { transform: 'scale(.82)', offset: 0.25 }, { transform: 'scale(1.18)', offset: 0.6 }, { transform: 'scale(1)' }], { duration: 460, easing: 'cubic-bezier(0.33, 1, 0.68, 1)' }); };
+  const row = moreEl.querySelector('.w-srow'), tabBtns = [...moreEl.querySelectorAll('.w-tab')];
+  const pick = (t) => {
+    tabBtns.forEach((b, i) => { const on = i === t; b.classList.toggle('is-on', on); b.setAttribute('aria-selected', String(on)); });
+    // each tab is its own shortlist, sliding in
+    row.innerHTML = skuRow(MORE.tabs[t].items); row.scrollLeft = 0;
+    if (!reduce.matches) [...row.children].forEach((c, i) => playIn(c, 'translateX(24px)', i * 50, { ms: 700, fadeMs: 360 }));
+  };
+  moreEl.addEventListener('click', (e) => {
+    const tab = e.target.closest('.w-tab');
+    if (tab) { if (!tab.classList.contains('is-on')) { H('tick'); pick(+tab.dataset.t); } return; }
+    const heart = e.target.closest('.w-heart');
+    if (heart) { const on = heart.classList.toggle('is-on'); heart.setAttribute('aria-pressed', String(on)); H(on ? 'success' : 'tap'); if (on) { pop(heart); bot.hop(1.1); } return; }
+    const rem = e.target.closest('.w-remind');
+    if (rem) { const on = rem.classList.toggle('is-on'); rem.setAttribute('aria-pressed', String(on)); rem.querySelector('b').textContent = on ? 'Reminder set' : 'Remind me'; H(on ? 'success' : 'tap'); if (on) bot.hop(1.1); return; }
+    if (e.target.closest('.d3-cta.more')) { H('tap'); bot.hop(1.2); }
+  });
+  // the flash countdown: 03 : 14 : 19 when the page opens, ticking down while it's on screen
+  const START = 3 * 3600 + 14 * 60 + 19, u = Object.fromEntries([...moreEl.querySelectorAll('.w-clock b')].map((b) => [b.dataset.u, b]));
+  let left = START, timer = 0;
+  const show = () => { const p = (n) => String(n).padStart(2, '0'); u.h.textContent = p(Math.floor(left / 3600)); u.m.textContent = p(Math.floor(left / 60) % 60); u.s.textContent = p(left % 60); };
+  new IntersectionObserver(([e]) => {
+    clearInterval(timer); timer = 0;
+    if (e.isIntersecting) timer = setInterval(() => { left = left > 0 ? left - 1 : START; show(); }, 1000);
+  }, { root: scroller }).observe(moreEl.querySelector('.w-clock'));
+  return {
+    reset() {
+      left = START; show();
+      if (!tabBtns[0].classList.contains('is-on')) pick(0);
+      moreEl.querySelectorAll('.w-remind.is-on b').forEach((b) => { b.textContent = 'Remind me'; });
+      moreEl.querySelectorAll('.w-row').forEach((r) => { r.scrollLeft = 0; });
+    },
+  };
+})();
+
+// the flash-deal strip: a steady marquee that speeds up with the scroll (eased back to its own pace)
+const ticker = (() => {
+  const run = $('.d3-ticker .run'), unit = run.firstElementChild;
+  let x = 0, rate = 1, boostV = 0, raf = 0, last = 0, W = 0, on = false;
+  const frame = (now) => {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    boostV *= Math.pow(0.06, dt); rate += (1 + boostV - rate) * Math.min(1, dt * 7);
+    if (!W) W = unit.getBoundingClientRect().width;
+    x -= 34 * rate * dt; if (W && x <= -W) x += W;
+    run.style.transform = `translate3d(${x.toFixed(2)}px, 0, 0)`;
+    raf = on ? requestAnimationFrame(frame) : 0;
+  };
+  const vis = new IntersectionObserver(([e]) => { on = e.isIntersecting && !reduce.matches; if (on && !raf) { last = performance.now(); raf = requestAnimationFrame(frame); } }, { root: scroller, rootMargin: '80px 0px' });
+  vis.observe($('.d3-ticker'));
+  return { boost(dy) { boostV = Math.min(3, boostV + Math.abs(dy) * 0.02); } };
+})();
 
 // ─── the curating beat ──────────────────────────────────────────────────────────────────────────────────────
-// tap → the page zooms open (empty, dark) while the bot flies to the screen's centre and grows; "Curating for you"
+// tap → the page opens (empty, dark) while the bot flies to the screen's centre and grows; "Curating for you"
 // blurs up under it and shimmers while the bot looks around (its Working pose); then the line dissolves, the bot
-// springs up to its corner beside "Hi Neha!" and the page reveals behind it.
+// springs up to its corner and the page reveals behind it.
 const CURATE = { textIn: 360, hold: 1250, unit: 40 };
 let curating = false, curateT = 0;
 function curateSpot() {
@@ -1720,24 +926,26 @@ function curateStart() {
   curFx.style.setProperty('--cx', `${spot.cx}px`); curFx.style.setProperty('--cy', `${spot.cy}px`);
   curFx.getAnimations().forEach((a) => a.cancel());
   curFx.classList.add('is-on');
-  curFx.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: 'cubic-bezier(0.33, 1, 0.68, 1)', delay: reduce.matches ? 0 : 300, fill: 'both' });
+  curFx.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: FADE_IN, delay: reduce.matches ? 0 : 300, fill: 'both' });
   curate.getAnimations().forEach((a) => a.cancel());
   curate.animate([{ opacity: 0, transform: 'translateY(10px) scale(.96)', filter: 'blur(8px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }],
-    { duration: SMOOTH.ms, easing: SMOOTH.ease, delay: reduce.matches ? 0 : CURATE.textIn, fill: 'both' });
+    { duration: 1000, easing: REVEAL.ease, delay: reduce.matches ? 0 : CURATE.textIn, fill: 'both' });
 }
 function curateEnd() {
   if (!curating) return;
   curating = false; clearTimeout(curateT);
   curate.getAnimations().forEach((a) => a.cancel());
   curate.animate([{ opacity: 1, transform: 'none', filter: 'blur(0)' }, { opacity: 0, transform: 'translateY(-6px) scale(.98)', filter: 'blur(6px)' }],
-    { duration: 220, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'both' });
+    { duration: 220, easing: FADE_OUT, fill: 'both' });
   curFx.getAnimations().forEach((a) => a.cancel());
-  curFx.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'both' })
+  curFx.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.06)' }], { duration: 220, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'both' })   // (gone before the bot is clear of them)
     .onfinish = () => curFx.classList.remove('is-on');
   window.orbi.setState('idle');
   window.orbi.stage(null);                                     // the bot springs up to its corner…
   H('tick');
-  setTimeout(() => { if (window.orbi.pageOpen) reveal(); }, 200);  // …and once the words have cleared, the page arrives
+  // …and the page plays in behind it as it goes: whatever is already below the bot starts at once (top to bottom),
+  // the rest the moment the bot has risen clear of it — so nothing ever appears under the bot, and no frame is empty
+  if (window.orbi.pageOpen) reveal({ withBot: true });
 }
 function curateCancel() {
   curating = false; clearTimeout(curateT);
@@ -1746,13 +954,32 @@ function curateCancel() {
   window.orbi.stage(null);
 }
 
-// ─── lifecycle: orbi/main.js fires orbi:page ────────────────────────────────────────────────────────────────
+// ─── lifecycle: main.js fires orbi:page ─────────────────────────────────────────────────────────────────────
 addEventListener('orbi:page', (e) => {
   if (e.detail === 'opening') { reset(); curateStart(); }
   else if (e.detail === 'landed' && curating) { window.orbi.setState('working'); curateT = setTimeout(curateEnd, CURATE.hold); }
   else if (e.detail === 'closing') { if (curating) { curateCancel(); window.orbi.setState('idle'); } }
   else if (e.detail === 'closed') { curateCancel(); reset(); }
 });
+// photos fetched up front, so nothing pops in mid-reveal
+[...DATA.deck, ...DATA.refill].forEach((it) => { const im = new Image(); im.src = it.src || IMG(it.img); });
+coupons.jump(0); deck.reset(); refills.forEach((r) => r.jump(0));
 // the dark page wants light status-bar content (applied only while the page is up)
-(function ink() { if (window.orbi) window.orbi.statusInk(1); else requestAnimationFrame(ink); })();
-window.yfPage = { reveal, reset, scroller };
+(function ink() { if (window.orbi) window.orbi.statusInk(document.documentElement.classList.contains('is-light') ? 0 : 1); else requestAnimationFrame(ink); })();
+// the light theme: the switcher's sun / moon under 4 turns the bot's page light (yf-page.css .is-light), remembered
+// per viewer (a convenience only, so a blocked localStorage just starts dark)
+(() => {
+  const btn = document.getElementById('vtheme'); if (!btn) return;
+  const set = (on) => {
+    document.documentElement.classList.toggle('is-light', on);
+    btn.setAttribute('aria-pressed', String(on));
+    btn.dataset.tip = on ? 'Dark theme' : 'Light theme';
+    btn.setAttribute('aria-label', on ? 'Dark theme for the bot page' : 'Light theme for the bot page');
+    if (window.orbi) window.orbi.statusInk(on ? 0 : 1);   // (dark status-bar content over the light page)
+    try { localStorage.setItem('yf-theme', on ? 'light' : 'dark'); } catch {}
+  };
+  let saved = false; try { saved = localStorage.getItem('yf-theme') === 'light'; } catch {}
+  set(saved);
+  btn.addEventListener('click', () => { H('tap'); set(!document.documentElement.classList.contains('is-light')); });
+})();
+window.yfPage = { reveal, reset, scroller, deck, coupons };

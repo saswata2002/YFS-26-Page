@@ -1,0 +1,28 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="102.448" height="2.46404" viewBox="0 0 102.448 2.46404" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group">
+<g id="Frame" clip-path="url(#clip0_0_181)">
+<rect width="102.448" height="2.46404" fill="white"/>
+<g id="Group_2">
+<g id="Mask group">
+<g id="Group_3">
+<path id="Vector" d="M102.442 1.26313C102.442 1.94074 79.5022 2.48282 51.2151 2.46434C22.928 2.44586 -0.0060657 1.87913 9.43924e-05 1.20152C9.43924e-05 0.523913 22.9403 -0.0181734 51.2274 0.000306831C79.5146 0.0187871 102.449 0.585515 102.442 1.26313Z" fill="url(#paint0_radial_0_181)" style="mix-blend-mode:multiply"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<radialGradient id="paint0_radial_0_181" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(50.8492 0.599951) scale(51.2188 1.23112)">
+<stop stop-color="white"/>
+<stop offset="0.09" stop-color="#E1E1E1"/>
+<stop offset="0.35" stop-color="#929292"/>
+<stop offset="0.58" stop-color="#535353"/>
+<stop offset="0.77" stop-color="#262626"/>
+<stop offset="0.91" stop-color="#0A0A0A"/>
+<stop offset="1"/>
+</radialGradient>
+<clipPath id="clip0_0_181">
+<rect width="102.448" height="2.46404" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -1,0 +1,13 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="444.472" height="604.345" viewBox="0 0 444.472 604.345" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path id="Marketplaces / BG shape" d="M443.972 603.845H0.5V10.4743L86.8997 0.612906C97.4251 -0.588441 106.533 8.01894 111.169 17.5441C119.75 35.1706 139.469 47.9229 160.905 47.9229H283.567C305.002 47.9229 324.722 35.1706 333.302 17.5441C337.939 8.01896 347.047 -0.588441 357.572 0.612906L443.972 10.4743V603.845Z" fill="url(#paint0_linear_0_212)" stroke="url(#paint1_linear_0_212)"/>
+<defs>
+<linearGradient id="paint0_linear_0_212" x1="222.236" y1="76.5112" x2="222.236" y2="-64.7887" gradientUnits="userSpaceOnUse">
+<stop/>
+<stop offset="1" stop-color="#3D3D3D"/>
+</linearGradient>
+<linearGradient id="paint1_linear_0_212" x1="222.236" y1="-1.64136" x2="222.236" y2="603.845" gradientUnits="userSpaceOnUse">
+<stop stop-color="#3D3D3D"/>
+<stop offset="1"/>
+</linearGradient>
+</defs>
+</svg>
