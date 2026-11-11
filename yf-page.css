@@ -248,3 +248,8 @@
 @media (prefers-reduced-motion: reduce) {
   .d3-bg { animation: none !important; }
 }
+
+/* iOS WebKit: plain content that fades in inside the page's scroller keeps its own layer for good. Once its reveal lands,
+   WebKit doesn't redraw the scroller's tile under it, so after a scroll away and back it showed blank (the "Top picks"
+   title over the refills, 2026-11-11). Cards, the deck and the ticker already have layers of their own */
+.d3-title .ln, .fy-offer, .d3-cta, .d3-shape, .d3-arc { will-change: transform; }

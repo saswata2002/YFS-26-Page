@@ -173,12 +173,17 @@ const BEATS = {
   deck: [560, 'translateY(56px) scale(.96)'],
 };
 let io = null, live = false;
-const cancelOwn = (el) => el.getAnimations().forEach((a) => { if (!(a instanceof CSSAnimation)) a.cancel(); });   // (script animations only: the CSS loops keep running)
+// a revealed block's end state is written inline and its animations released once they land: iOS WebKit drops the pixels
+// of a layer held by a filled animation once it has scrolled out of the page's scroller, and never repaints it on the way
+// back (the block stays blank until something else touches it). `held` = there, no animation; cancelOwn = back to hidden
+const held = (el) => { el.style.opacity = '1'; };
+const cancelOwn = (el) => { el.getAnimations().forEach((a) => { if (!(a instanceof CSSAnimation)) a.cancel(); }); el.style.opacity = ''; };   // (script animations only: the CSS loops keep running)
 function playIn(el, from, delay, o = {}) {
   cancelOwn(el);
   const d = reduce.matches ? 0 : delay;
-  el.animate([{ transform: reduce.matches ? 'none' : from }, { transform: 'none' }], { duration: o.ms || REVEAL.ms, easing: REVEAL.ease, delay: d, fill: 'both' });
-  el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: o.fadeMs || REVEAL.fadeMs, easing: REVEAL.fade, delay: d, fill: 'both' });
+  const a = el.animate([{ transform: reduce.matches ? 'none' : from }, { transform: 'none' }], { duration: o.ms || REVEAL.ms, easing: REVEAL.ease, delay: d, fill: 'both' });
+  const b = el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: o.fadeMs || REVEAL.fadeMs, easing: REVEAL.fade, delay: d, fill: 'both' });
+  Promise.all([a.finished, b.finished]).then(() => { held(el); a.cancel(); b.cancel(); }, () => {});   // (landed: hold it inline, see held)
 }
 // how each beat plays (its beat delay is used when the reveal runs on the clock; with the bot rising it's a beat's offset
 // within its group — title lines, coupon fan — and the group starts when the bot has risen clear of it)
@@ -187,7 +192,7 @@ function playBeat(el, delay) {
   if (k === 'bg') {
     // the top chevrons: each line comes in on its own after a short beat — the inner one behind the bot first, then
     // outwards, 180 ms apart — easing down 10 px into place as it fades up (wrappers .cvr, so the loop on .cv keeps running)
-    cancelOwn(el); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' });
+    cancelOwn(el); held(el);
     [...el.querySelectorAll('.cvr')].sort((a, c) => a.dataset.r - c.dataset.r).forEach((g, i) =>
       playIn(g, 'translateY(-10px)', delay + (reduce.matches ? 0 : 260 + i * 180), { ms: 1300, fadeMs: 900 }));
   }
@@ -483,7 +488,7 @@ function assignRoles(els, wrapD, map) {
   els.forEach((el, i) => {
     const k = map[Math.round(wrapD(i))];
     el.dataset.k = k || '';
-    if (!k) { el.getAnimations().forEach((a) => a.cancel()); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); }
+    if (!k) { el.getAnimations().forEach((a) => a.cancel()); held(el); }
   });
 }
 // the square-to-quad homography (Heckbert), as a CSS matrix3d for a w × h element with its origin at 0 0
@@ -511,7 +516,8 @@ const coupons = (() => {
     if (reduce.matches) { t1.innerHTML = c.title; t2.textContent = c.sub; return; }
     offer.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-4px)' }], { duration: 140, easing: FADE_OUT, fill: 'forwards' }).onfinish = () => {
       t1.innerHTML = c.title; t2.textContent = c.sub;
-      offer.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: FADE_IN, fill: 'forwards' });
+      const inA = offer.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: FADE_IN, fill: 'forwards' });
+      inA.finished.then(() => { held(offer); offer.getAnimations().forEach((x) => x.cancel()); }, () => {});
     };
   };
   const collect = (slot) => {
@@ -662,7 +668,7 @@ const deck = (() => {
       const d = reduce.matches ? 0 : delay, step = reduce.matches ? 0 : 140;
       [1, 2, Infinity].forEach((n, i) => setTimeout(() => { if (!live) return; fanned = Math.max(fanned, n); aim(); run(); }, d + i * step));
     },
-    roles() { cards.forEach((c, i) => { const el = c.firstElementChild; el.dataset.k = i === order[0] ? 'deck' : ''; if (i !== order[0]) { el.getAnimations().forEach((a) => a.cancel()); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); } }); },
+    roles() { cards.forEach((c, i) => { const el = c.firstElementChild; el.dataset.k = i === order[0] ? 'deck' : ''; if (i !== order[0]) { el.getAnimations().forEach((a) => a.cancel()); held(el); } }); },
   };
 })();
 
@@ -710,7 +716,7 @@ const refill = (() => {
         const d = Math.round(loop.wrapD(+s.dataset.i)), c = s.firstElementChild;
         if (d === 0) playIn(c, 'translateY(28px) scale(.97)', delay);
         else if (Math.abs(d) === 1) playIn(c, `translateX(${-d * 64}px) scale(.94)`, delay + 160);
-        else { c.getAnimations().forEach((x) => x.cancel()); c.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); }
+        else { c.getAnimations().forEach((x) => x.cancel()); held(c); }
       });
     },
   };

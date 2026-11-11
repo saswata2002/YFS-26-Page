@@ -488,3 +488,8 @@
 .d3.fy .fy-rf .pr b i { font-style: normal; }
 .fy-rf .pr s { font: 400 11px/14px var(--noon); letter-spacing: -0.1px; color: #475067; }
 .fy-rf .pr em { font: 600 11px/14px var(--noon); letter-spacing: -0.1px; }
+
+/* iOS WebKit: plain content that fades in inside the page's scroller keeps its own layer for good. Once its reveal lands,
+   WebKit doesn't redraw the scroller's tile under it, so after a scroll away and back it showed blank (the "Top picks"
+   title over the refills, 2026-11-11). Cards, the deck and the ticker already have layers of their own */
+.d3-title .ln, .fy-offer, .d3-cta, .d3-shape, .d3-arc { will-change: transform; }

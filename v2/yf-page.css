@@ -528,3 +528,8 @@
 .is-light .d3-cp .t2 { color: rgba(16,22,40,.62); }
 /* the pixel arrows and flash cubes: a lighter mint */
 .is-light .d3-cubes i, .is-light .w-cubes { filter: brightness(2.1) saturate(.6); }
+
+/* iOS WebKit: plain content that fades in inside the page's scroller keeps its own layer for good. Once its reveal lands,
+   WebKit doesn't redraw the scroller's tile under it, so after a scroll away and back it showed blank (the "Top picks"
+   title over the refills, 2026-11-11). Cards, the deck and the ticker already have layers of their own */
+.d3-title .ln, .fy-offer, .d3-cta, .d3-shape, .d3-arc { will-change: transform; }
