@@ -494,57 +494,37 @@
    title over the refills, 2026-11-11). Cards, the deck and the ticker already have layers of their own */
 .d3-title .ln, .fy-offer, .d3-cta, .d3-shape, .d3-arc { will-change: transform; }
 
-/* ── iteration 4: the page re-themed to Figma Saswata 1514:56447 ("Checkout") ──────────────────────────────────────
-   The ground is #F9F9FB (colour/surface/secondary) under Figma's lime glow (#D6FA1D → clear by 48 %, 53 %) and its
-   hard-light swirl, baked into one image (f/ts/theme.webp — iOS paints hard-light over a scrolling page raw). The ✕ is
-   M-IconButton H40 (white, border/subtle #F2F3F7, the system cross). The deck's header is the TOP DEALS art; the deck
-   card is 273.4 wide (1514:56476); the deck and all under it sit 38.25 lower for the taller header. */
-.sheet.is-yf, .fy-scroll, .sheet.is-yf .yf-scroll, .d3.fy { background: #f9f9fb; }
-.sheet.is-yf .yf-mini { background: linear-gradient(180deg, #f9f9fb 0%, rgba(249,249,251,.94) 52%, rgba(249,249,251,.6) 74%, rgba(249,249,251,0) 100%); }
-.fy .fy-theme { left: 0; top: 0; width: 375px; height: 520px; }
-.sheet.is-yf .page-close { background: #fff; box-shadow: inset 0 0 0 1px #f2f3f7; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.sheet.is-yf .page-close svg { width: 20px; height: 20px; fill: #1d2539; stroke: none; }
-
-/* the deck's header: image 307 (307.94 × 124.11) at x 26.92, the hearts at their Figma boxes round it */
-.fy .fy-td { height: 124.11px; padding: 0; }
-.fy .fy-td > span { position: absolute; display: flex; align-items: center; justify-content: center; }
-.fy .fy-td .art { left: 26.92px; top: 0; width: 307.938px; height: 124.111px; }
-.fy .fy-td .art img { width: 100%; height: 100%; }
-.fy .fy-td .h0 { left: 134.86px; top: -4.27px; width: 28.09px; height: 27.3px; }
-.fy .fy-td .h0 img { flex: none; width: 21.47px; height: 19.55px; transform: rotate(-27.63deg); }
-.fy .fy-td .h1 { left: 295.98px; top: 9.37px; width: 45.552px; height: 44.431px; }
-.fy .fy-td .h1 img { flex: none; width: 34.464px; height: 31.385px; transform: rotate(-149.93deg) scaleY(-1); }
-.fy .fy-td .hz { will-change: transform; }
-.fy .d3-deck { top: 700.25px; }
-.fy .d3-ticker { top: 1318.25px; }
-.fy .d3-refill { top: 1500.25px; }
-
-/* the deck card: 273.43 wide, 11.12 in, r 18.54, a 165° white → #F2F3F7 wash, 0.98 #E3E5EB, a soft lift; the photo box
-   251.2 × 307.7 #F7F7FA with Figma's 4 % wash, the rating chip and the + inside it, the heart on a 20 % white disc; the
-   name 18.5 / 26 bold and centred, the price 22.2 bold with the struck price and the %, the express tag 4.6 under them.
-   The two behind (yf-page.js SLOT): 239.5 and 203 wide, white → #EEF0F4, 0.83 #DCDFE6, no lift */
-.fy .d3-dk { left: 50.785px; width: 273.43px; }
-.d3.fy .d3-dk .in, .fy .d3-dk:not(.is-top) .in { width: 273.43px; gap: 11.123px; padding: 11.123px; border: 0.977px solid #e3e5eb; border-radius: 18.538px;
-  background: linear-gradient(165.06deg, #fff 0.66%, #f2f3f7 93.19%); box-shadow: 0 7.415px 22.245px rgba(15,20,41,.08); }
-.fy .d3-dk:not(.is-top) .in { border-color: #dcdfe6; background: linear-gradient(180deg, #fff 0%, #eef0f4 100%); box-shadow: none; }
-.d3.fy .d3-dk .main { width: 251.184px; height: 307.723px; border: 0.927px solid rgba(0,0,0,.06); border-radius: 11.123px; background: #f7f7fa; }
-.fy .d3-dk .main .tint { display: block; }
-.fy .d3-dk .main .ph { left: 15.17px; top: 43.43px; width: 219px; height: 219px; }
-.fy .d3-dk .main .ph.cover { left: -0.94px; top: -18.6px; width: 251.829px; height: 343.327px; }
-.fy .d3-dk .rt { left: 6.48px; top: 278.26px; bottom: auto; height: 16.684px; gap: 1.854px; padding: 1.854px 3.708px; border-radius: 3.708px; background: #f9f9fb;
-  font: 600 11.123px/12.976px var(--noon); letter-spacing: -0.1112px; color: #101628; }
-.fy .d3-dk .rt img { width: 11.123px; height: 10.659px; padding: 0.751px 0.677px 0.515px; margin: 0; }
-.fy .d3-dk .rt i { font-weight: 700; font-style: normal; color: #666d85; }
-.d3.fy .d3-dk .fy-add { right: 7.41px; bottom: 7.2px; width: 29.66px; height: 29.66px; border-radius: 5.56px; }
-.d3.fy .d3-dk .fy-add .pl { width: 29.66px; height: 29.66px; }
-.d3.fy .d3-dk .fy-add .ok svg { width: 17px; height: 17px; }
-.d3.fy .d3-dk .fy-wish { right: 19.41px; top: 20.61px; width: 29.66px; height: 29.66px; border-radius: 9999px; background: rgba(255,255,255,.2); }
-.d3.fy .d3-dk .fy-wish img { left: 4.943px; top: 4.943px; width: 19.773px; height: 19.773px; }
-.d3.fy .d3-dk .fy-wish svg { left: 0; top: 0; width: 29.66px; height: 29.66px; }
-.d3.fy .d3-dk .info { height: 119.567px; align-items: center; justify-content: center; gap: 11.123px; padding: 0 1.854px 1.854px; }
-.d3.fy .d3-dk .info .nm { height: 51.905px; text-align: center; font: 700 18.538px/25.953px var(--noon); letter-spacing: -0.2317px; color: #0e0e0e; }
-.d3.fy .d3-dk .info .pr { justify-content: center; align-items: center; gap: 2.781px; height: 30.01px; }
-.d3.fy .d3-dk .info .pr b { font: 700 22.245px/29.66px var(--noon); letter-spacing: -0.2317px; color: #0e0e0e; }
-.d3.fy .d3-dk .info .pr s { font: 700 14.83px/20.391px var(--noon); letter-spacing: -0.139px; color: #7e859b; }
-.d3.fy .d3-dk .info .pr em { font: 600 12.976px/18.538px var(--noon); letter-spacing: -0.0927px; color: #26b57c; }
-.d3.fy .d3-dk .info .ex { width: 121.072px; height: 20.391px; margin: -6.489px 0 0; border-radius: 10.196px 0 0 10.196px; }
+/* ── iteration 4: Figma For-You 652:30134 ("For you") ──────────────────────────────────────────────────────────────────────
+   the deck card's price row gets its 33 % (652:30476); the refill card is 652:30582 "Card · Tissue": a 226 white card, the
+   photo box 205 × 246 #F9F9FB with the heart, the + and the rating chip inside it, "Last bought" over a 14/19 name, the price
+   row and the express tag 95 × 16. The side cards (652:30635 / 30687) are that card at 80 %: their photo box grows to
+   224 (280 at full size), "Last bought" and the rating chip fold away (--k 0 → 1) */
+.d3.fy .d3-dk .info .pr em { font: 600 13px/20px var(--noon); font-style: normal; letter-spacing: -0.1px; color: #26b57c; }
+.fy .d3-refill { top: 1444.5px; height: 389px; }
+.fy .d3-rslot { left: 74px; width: 226px; height: 389px; }
+.d3.fy .d3-rf.fy-rf { width: 226px; gap: 10px; padding: 10px 10px 14px; border: 1px solid #eef0f4; border-radius: 17px; background: #fff;
+  box-shadow: 0 7px 21px rgba(15,20,41,.06); overflow: hidden; }
+.d3.fy .fy-rf .main { position: relative; flex: none; width: 205px; height: calc(246px + 34px * var(--k, 0)); border: 0; border-radius: 12px; background: #f9f9fb; overflow: hidden; }
+.d3.fy .fy-rf .main .ph { position: absolute; left: 19px; top: calc(50% - 84px); width: 168px; height: 168px; }
+.d3.fy .fy-rf .main .ph img { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: contain; object-position: 50% 50%; }
+.d3.fy .fy-rf .rt { left: 6.5px; bottom: 8.5px; opacity: calc(1 - var(--k, 0) * 1.6); }
+.d3.fy .fy-rf .main .fy-add { top: auto; left: auto; right: 7px; bottom: 7px; width: 27px; height: 27px; border: 0 !important; border-radius: 6.5px; background: none !important; }
+.d3.fy .fy-rf .main .fy-add.is-on { background: #343d54 !important; }
+.d3.fy .fy-rf .fy-add .pl { position: absolute; inset: 0; width: 100%; height: 100%; }
+.d3.fy .fy-rf .fy-add .ok svg { width: 16px; height: 16px; }
+.d3.fy .fy-rf .fy-rwish { left: auto; top: 7px; right: 7px; width: 27px; height: 27px; padding: 0; border-radius: 0; background: none; }
+.d3.fy .fy-rf .fy-rwish img { left: 0; top: 0; width: 27px; height: 27px; }
+.d3.fy .fy-rf .fy-rwish svg { left: -1.93px; top: -1.93px; width: 30.86px; height: 30.86px; }
+.d3.fy .fy-rf .tx { width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 7px; padding: 0 3px; }
+.d3.fy .fy-rf .hd { display: flex; flex-direction: column; align-items: flex-start; }
+.d3.fy .fy-rf .lb { display: block; height: calc(14px * (1 - var(--k, 0))); margin: 0 0 calc(3px * (1 - var(--k, 0))); overflow: hidden;
+  opacity: calc(1 - var(--k, 0) * 1.6); font: 400 10px/14px var(--noon); letter-spacing: -0.1px; color: #989fb3; white-space: nowrap; }
+.d3.fy .fy-rf .nm { width: 100%; height: 38px; margin: 0; font: 500 14px/19px var(--noon); letter-spacing: -0.214px; color: #1d2539;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.d3.fy .fy-rf .pb { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
+.d3.fy .fy-rf .pr { display: flex; align-items: center; gap: 4px; height: 22px; white-space: nowrap; }
+.d3.fy .fy-rf .pr b { font: 700 16px/22px var(--noon); letter-spacing: -0.15px; color: #1d2539; }
+.d3.fy .fy-rf .pr b i { font-style: normal; }
+.d3.fy .fy-rf .pr s { font: 400 11px/14px var(--noon); letter-spacing: -0.1px; color: #475067; }
+.d3.fy .fy-rf .pr em { font: 600 11px/14px var(--noon); font-style: normal; letter-spacing: -0.1px; color: #26b57c; }
+.d3.fy .fy-rf .ex { display: block; width: 95px; height: 16px; margin: 0; opacity: 1; }

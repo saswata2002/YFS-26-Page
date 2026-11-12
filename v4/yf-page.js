@@ -30,7 +30,7 @@ const DATA = {
     { title: `25% extra off up to ${D}100`, sub: 'when you pay with tabby', tag: 'All users', code: 'TABBYCASH25', ends: '12/11/2026', card: 'tabby', look: 'mint' },
   ],
   deck: [      // "Top picks, picked for you": Figma's AirPods (616:27886), the Ninja Crispi, then the 11.11 sale
-    { src: A('fy/00ff6.png'), crop: true, name: 'Apple Airpods Pro 2 Wireless Earbuds', price: 899, was: 1399, rating: 4.3, count: 128, express: true },
+    { src: A('fy/00ff6.png'), crop: true, name: 'Apple Airpods Pro 2 Wireless Earbuds', price: 899, was: 1399, off: 33, rating: 4.3, count: 128, express: true },
     { src: A('fy/df9f1.png'), cover: true, name: 'Ninja Crispi 4 in 1 Air Fryer Cooking System 4.2L & 3.1 L Glass', price: 899, was: 1399, off: 33, rating: 4.3, count: 128, express: true },
     { img: 'deck0', name: 'evvoli Air Fryer 8 Preset Programs, Digital Display 5.5L 1850W', price: 102, was: 499, express: true },
     { img: 'deck1', name: 'Samsung Galaxy S26 Ultra Dual SIM Cobalt Violet 12GB RAM 256GB 5G', price: 3349, was: 5099, express: true },
@@ -39,14 +39,14 @@ const DATA = {
     { img: 'deck4', name: 'FUJIFILM Instax Mini EVO Hybrid Instant Camera, Gentle Rose', price: 779, was: 999, express: false },
   ],
   refill: [    // the second "Top picks": Figma's three in the middle and either side (Fine tissue, Fine kitchen towel → | ← Nescafe), then the staples
-    { src: A('fy/5e392.png'), name: 'Fine Facial Tissue 200 Sheets 2 Ply Pack of 10 White', price: 39.28, was: 59, off: 33, last: 'Last bought 28 Oct' },
-    { src: A('fy/d1e4f.png'), name: 'Fine Kitchen Towel 60 Sheets 3 Ply Pack of 12 Rolls White 26.5x21cm', price: 30.7, was: 39.19, off: 22, last: 'Last bought 19 Oct' },
+    { src: A('fy/5e392.png'), name: 'Fine Facial Tissue 200 Sheets 2 Ply Pack of 10 White', price: 39.28, was: 59, off: 33, rating: 4.3, count: 128, last: 'Last bought 28 Oct' },
+    { src: A('fy/d1e4f.png'), name: 'Fine Kitchen Towel 60 Sheets 3 Ply Pack of 12 Rolls White 26.5x21cm', price: 30.7, was: 39.19, off: 22, rating: 4.3, count: 128, last: 'Last bought 19 Oct' },
     { img: 'refill0', name: 'Fine Facial Tissue 130 Sheets 2 Ply Pack of 5', price: 13.45, was: 17.36, last: 'Last bought 28 Oct' },
     { img: 'refill1', name: 'Persil Power Gel Liquid Laundry Detergent Deep Clean 4.8L', price: 41.7, was: 82.6, last: 'Last bought 12 Oct' },
     { img: 'refill2', name: 'Fine Comfort Toilet Paper 2 Ply, 12 Rolls x 180 Sheets', price: 12.4, was: 19.26, last: 'Last bought 2 Nov' },
     { img: 'refill3', name: 'Fairy Lavender Dishwashing Liquid, 3X Grease Cutting Power', price: 12.9, was: 18.34, last: 'Last bought 20 Oct' },
     { img: 'refill4', name: 'Masafi Pure Low Sodium Natural Water 1.5L, Pack of 12', price: 9.5, was: 16.8, last: 'Last bought 4 Nov' },
-    { src: A('fy/c7a58.png'), name: 'Nescafe Classic Coffee Jar 190grams Single', price: 30.7, was: 39.19, off: 22, last: 'Last bought 24 Oct' },
+    { src: A('fy/c7a58.png'), name: 'Nescafe Classic Coffee Jar 190grams Single', price: 30.7, was: 39.19, off: 22, rating: 4.3, count: 128, last: 'Last bought 24 Oct' },
   ],
 };
 const IMG = (k) => A(`p/${k}.webp`);
@@ -70,41 +70,59 @@ const coupon = (c, i) => `<div class="d3-cslot" data-i="${i}" data-o="${i % DATA
   <div class="back"><i class="ck">${CHECK}</i><b>Code copied</b><span class="cd">${c.code}</span><em>Applied at checkout</em></div>
 </div></div>`;
 const priceRow = (it) => `<div class="pr"><b><i>${D}</i>${money(it.price)}</b><s>${plain(it.was)}</s><em>${pct(it)}%</em></div>`;
-const RATE = (it) => (it.rating ? `<span class="rt"><img src="${A('ts/5a6b5.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)}</b> <i>(${it.count})</i></span>` : '');
+const RATE = (it) => (it.rating ? `<span class="rt"><img src="${A('fy/10bd8.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)}</b> <i>(${it.count})</i></span>` : '');
 const deckCard = (it, i) => `<div class="d3-dk" data-i="${i}"><div class="in rv">
   <div class="main"><div class="ph${it.cover ? ' cover' : ''}${it.crop ? ' crop' : ''}"><img src="${SRC(it)}" alt="" draggable="false"></div><i class="tint"></i>${RATE(it)}
-    <button class="d3-add fy-add" type="button" aria-label="Add to cart"><img class="pl" src="${A('ts/07dd1.svg')}" alt="" draggable="false"><span class="ok">${CHECK}</span></button></div>
-  <button class="d3-wish fy-wish" type="button" aria-label="Add to wishlist" aria-pressed="false"><img src="${A('ts/b0f55.svg')}" alt="" draggable="false">${HEART}</button>
-  <div class="info"><p class="nm">${it.name}</p><div class="pr"><b><i>${D}</i> ${plain(it.price)}</b><s>${plain(it.was)}</s><em>${pct(it)}%</em></div>${it.express ? `<img class="ex" src="${A('ts/c70f0.svg')}" alt="express · Today" draggable="false">` : '<span class="ex"></span>'}</div>
+    <button class="d3-add fy-add" type="button" aria-label="Add to cart"><img class="pl" src="${A('fy/cab5f.svg')}" alt="" draggable="false"><span class="ok">${CHECK}</span></button></div>
+  <button class="d3-wish fy-wish" type="button" aria-label="Add to wishlist" aria-pressed="false"><img src="${A('fy/069f9.svg')}" alt="" draggable="false">${HEART}</button>
+  <div class="info"><p class="nm">${it.name}</p><div class="pr"><b><i>${D}</i> ${plain(it.price)}</b><s>${plain(it.was)}</s><em>${pct(it)}%</em></div>${it.express ? `<img class="ex" src="${A('fy/8be6e.svg')}" alt="express · Today" draggable="false">` : '<span class="ex"></span>'}</div>
 </div></div>`;
 // the price highlight (Figma's "Price Highlight"): the price on noon's pink tag between its two zigzag ends
 const HL = (it, l, r) => `<span class="hl"><img src="${A(l)}" alt="" draggable="false"><b><i>${D}</i>${plain(it.price)}</b><img src="${A(r)}" alt="" draggable="false"></span>`;
 // the refill card (Figma 616:24306): one white card over a faint lilac / sky glow — the product 168 square, two lines of
 // name, the price row with the express tag, "Last bought", a full-width "Add to cart" pill, and the heart on its corner
+// the refill card (Figma For-You 652:30582 "Card · Tissue"): the photo box with the heart, the + and the rating chip inside
+// it, then "Last bought", the name, the price row and the express tag; the side cards are the same card at 80 % (652:30635)
 const refillCard = (it, i) => `<div class="d3-rslot" data-i="${i}"><div class="d3-rf fy-rf rv">
-  <i class="glow"><img class="gl" src="${A('fy/78127.svg')}" alt="" draggable="false"><img class="gs" src="${A('fy/e00b1.svg')}" alt="" draggable="false"></i>
-  <div class="ph"><img src="${SRC(it)}" alt="" draggable="false"></div>
-  <div class="tx"><span class="lb">${it.last}</span><p class="nm">${it.name}</p><div class="row"><div class="pr"><b><i>${D}</i>${plain(it.price)}</b><s>${plain(it.was)}</s><em>${pct(it)}%</em></div><img class="ex" src="${A('fy/0d1ec.svg')}" alt="express · Today" draggable="false"></div></div>
-  <button class="d3-add fy-rcta" type="button" aria-label="Add to cart"><img class="pl" src="${A('fy/b7ea7.svg')}" alt="" draggable="false"><span class="t">Add to cart</span><span class="ok">${CHECK}<span>Added to cart</span></span></button>
-  <button class="d3-wish fy-rwish" type="button" aria-label="Add to wishlist" aria-pressed="false"><img src="${A('fy/5317a.svg')}" alt="" draggable="false">${HEART}</button>
+  <div class="main"><div class="ph"><img src="${SRC(it)}" alt="" draggable="false"></div>${RATE(it)}
+    <button class="d3-add fy-add" type="button" aria-label="Add to cart"><img class="pl" src="${A('fy/e774d.svg')}" alt="" draggable="false"><span class="ok">${CHECK}</span></button>
+    <button class="d3-wish fy-rwish" type="button" aria-label="Add to wishlist" aria-pressed="false"><img src="${A('fy/536fe.svg')}" alt="" draggable="false">${HEART}</button></div>
+  <div class="tx"><div class="hd"><span class="lb">${it.last}</span><p class="nm">${it.name}</p></div>
+    <div class="pb"><div class="pr"><b><i>${D}</i>${plain(it.price)}</b><s>${plain(it.was)}</s><em>${pct(it)}%</em></div><img class="ex" src="${A('fy/566e2.svg')}" alt="express · Today" draggable="false"></div></div>
 </div></div>`;
 const PCT = ['08887', '8b80f', 'a1be9'].map((f) => `<img src="${A(f + '.svg')}" alt="" draggable="false">`).join('');
 const HEART_SM = '<svg class="hs" viewBox="41 1.7 10.5 9.5" aria-hidden="true"><path d="M47.0508 2.71063H45.5508L45.0508 1.71063H42.5508L41.0508 3.21063V6.71063L45.5508 11.2106H47.0508L51.5508 6.71063V3.21063L50.0508 1.71063H47.5508L47.0508 2.71063Z" fill="#6348DA"/></svg>';
 const tickerUnit = `<span class="u"><b>Flash deal offers</b><span class="pc">${PCT}</span><b>Win discounts on ${HEART_SM} brands</b></span>`;
 const cta = (label, cls) => `<button class="d3-abs d3-cta ${cls} rv" type="button"><span class="lb">${label}</span></button>`;
-// the deck's header (Figma Saswata 1514:56447): the "TOP DEALS, PICKED JUST FOR YOU" art (image 307) between its two pixel
-// hearts (image 248 [Vectorized]) — the left one under the art, the right one over it; an h2 still, so the titles' order holds
-const topDeals = (y) => `<h2 class="d3-abs d3-title fy-td" style="top:${y}px" aria-label="Top deals, picked just for you">
-  <span class="hz h0 rv" data-k="pb"><img src="${A('ts/ad94a.svg')}" alt="" draggable="false"></span>
-  <span class="ln art rv" data-k="pa"><img src="${A('ts/topdeals.webp')}" alt="" draggable="false"></span>
-  <span class="hz h1 rv" data-k="pb"><img src="${A('ts/d1c66.svg')}" alt="" draggable="false"></span></h2>`;
 const two = (y, a, b, k) => `<h2 class="d3-abs d3-title" style="top:${y}px"><span class="ln rv" data-k="${k}a">${a}</span><span class="ln rv" data-k="${k}b">${b}</span></h2>`;
 
+// the top chevrons, Figma "Group 1410130025" (1473:49856) layer by layer — the same paths, paints, 52 % and 2 px blur as
+// its export (f/ce7ef.svg) — except the lines: Figma's 1 px INSIDE strokes are drawn as strokes clipped by their masks, and
+// the export dropped the width (a 0.5 px line the blur all but erased); 2.7 matches Figma's rendered line brightness
+// (measured against its frame render — the browser's blur spreads a thin line more) — split so each chevron can carry the quiet loop in yf-page.css (.cv-i / .cv-m / .cv-o)
+const CHEVRONS = `<defs>
+  <filter id="cvBlur" x="1.88921" y="96.7729" width="712.349" height="522.582" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="2"/></filter>
+  <linearGradient id="cvP0" x1="358.064" y1="472.569" x2="358.064" y2="780.875" gradientUnits="userSpaceOnUse"><stop stop-color="white"/><stop offset="1" stop-color="#292929"/></linearGradient>
+  <linearGradient id="cvP1" x1="358.064" y1="210.686" x2="358.064" y2="552.914" gradientUnits="userSpaceOnUse"><stop offset="0.6" stop-color="#EAEAEA"/><stop offset="1" stop-color="#0E0E0E"/></linearGradient>
+  <linearGradient id="cvP2" x1="358.064" y1="222.13" x2="358.064" y2="494.075" gradientUnits="userSpaceOnUse"><stop offset="0.6" stop-color="#EAEAEA"/><stop offset="1" stop-color="#292929"/></linearGradient>
+  <path id="cvS1" d="M353.166 212.414C356.088 210.299 360.039 210.299 362.962 212.414L587.498 374.987C592.103 378.321 592.103 385.182 587.498 388.516L362.962 551.088C360.039 553.204 356.088 553.204 353.166 551.088L128.629 388.516C124.024 385.182 124.024 378.321 128.629 374.987L353.166 212.414Z"/>
+  <path id="cvS3" d="M353.166 224.232C356.088 222.116 360.039 222.116 362.961 224.232L538.461 351.299C543.066 354.633 543.066 361.494 538.461 364.828L362.961 491.896C360.039 494.012 356.088 494.012 353.166 491.896L177.667 364.828C173.062 361.494 173.062 354.633 177.667 351.299L353.166 224.232Z"/>
+  <mask id="cvM0" fill="white"><path d="M353.166 102.36C356.088 100.244 360.039 100.244 362.962 102.36L706.785 351.299C711.39 354.633 711.39 361.494 706.785 364.828L362.962 613.768C360.039 615.884 356.089 615.884 353.166 613.768L9.34293 364.828C4.73797 361.494 4.73797 354.633 9.34293 351.299L353.166 102.36Z"/></mask>
+  <mask id="cvM2" fill="white"><use href="#cvS1"/></mask>
+  <mask id="cvM4" fill="white"><use href="#cvS3"/></mask>
+</defs>
+<g opacity="0.28" filter="url(#cvBlur)">
+  <path d="M353.166 254.269C356.088 252.153 360.039 252.153 362.962 254.269L559.513 396.579C564.118 399.913 564.118 406.774 559.513 410.108L362.962 552.418C360.039 554.534 356.088 554.534 353.166 552.418L156.614 410.108C152.009 406.774 152.009 399.913 156.614 396.579L353.166 254.269Z" fill="white"/>
+  <g class="cvr rv" data-r="2"><g class="cv cv-o"><path d="M9.34293 364.828L353.166 613.768C356.088 615.884 360.039 615.884 362.962 613.768L706.785 364.828C711.39 361.494 711.39 354.633 706.785 351.299L362.962 102.36C360.039 100.244 356.088 100.244 353.166 102.36L9.34294 351.299C4.73797 354.633 4.73796 361.494 9.34293 364.828Z" stroke="#757575" stroke-width="2.7" mask="url(#cvM0)"/></g></g>
+  <g class="cvr rv" data-r="1"><g class="cv cv-m" opacity="0.7"><use href="#cvS1" fill="url(#cvP0)"/><path d="M128.629 388.516L353.166 551.088C356.088 553.204 360.039 553.204 362.962 551.088L587.498 388.516C592.103 385.182 592.103 378.321 587.498 374.987L362.962 212.414C360.039 210.299 356.088 210.299 353.166 212.414L128.629 374.987C124.024 378.321 124.024 385.182 128.629 388.516Z" stroke="url(#cvP1)" stroke-width="2.7" mask="url(#cvM2)"/></g></g>
+  <g class="cvr rv" data-r="0"><g class="cv cv-i" opacity="0.7"><use href="#cvS3" fill="#F7F7F7"/><path d="M177.667 364.828L353.166 491.896C356.088 494.012 360.039 494.012 362.961 491.896L538.461 364.828C543.066 361.494 543.066 354.633 538.461 351.299L362.961 224.232C360.039 222.116 356.088 222.116 353.166 224.232L177.667 351.299C173.062 354.633 173.062 361.494 177.667 364.828Z" stroke="url(#cvP2)" stroke-width="2.7" mask="url(#cvM4)"/></g></g>
+</g>`;
 const scroller = document.createElement('div');
 scroller.className = 'yf-scroll d3-scroll';
 scroller.setAttribute('data-no-drag', '');
 scroller.innerHTML = `<div class="d3 fy">
-  <img class="d3-abs d3-bg fy-theme" src="${A('ts/theme.webp')}" alt="" draggable="false" data-node-id="1514:56448">
+  <svg class="d3-abs d3-bg rv" data-k="bg" viewBox="0 0 716.128 716.128" fill="none" aria-hidden="true" data-node-id="623:15596">${CHEVRONS}</svg>
+  <i class="d3-abs d3-spark" style="left:61.18px;top:79.35px;width:3.515px;height:3.515px;--s:2.786px;--c:#fbe301;--d:0.0s"></i><i class="d3-abs d3-spark" style="left:78.1px;top:127.73px;width:2.401px;height:2.401px;--s:1.902px;--c:#fff7a7;--d:0.9s"></i><i class="d3-abs d3-spark" style="left:307.76px;top:52.69px;width:4.42px;height:4.42px;--s:3.503px;--c:#fff7a7;--d:1.8s"></i><i class="d3-abs d3-spark" style="left:138.43px;top:100.83px;width:1.262px;height:1.262px;--s:1px;--c:#fff7a7;--d:2.7s"></i><i class="d3-abs d3-spark" style="left:327.89px;top:75.21px;width:1.262px;height:1.262px;--s:1px;--c:#fff7a7;--d:3.6s"></i>
   ${two(117.26, 'Deals we', 'think you\'ll love', 't')}
   <img class="d3-abs fy-cglow rv" data-k="cp1" src="${A('fy/f440e.svg')}" alt="" draggable="false">
   <div class="d3-abs d3-coupons" data-no-drag aria-roledescription="carousel">${[...DATA.coupons, ...DATA.coupons].map(coupon).join('')}</div>
@@ -117,10 +135,10 @@ scroller.innerHTML = `<div class="d3 fy">
     <i class="sp s0"><img src="${A('fy/c7030.svg')}" alt=""></i><i class="sp s1"><img src="${A('fy/e8219.svg')}" alt=""></i><i class="sp s2"><img src="${A('fy/be23a.svg')}" alt=""></i><i class="sp s3"><img src="${A('fy/53b64.svg')}" alt=""></i><i class="sp s4"><img src="${A('fy/4e33b.svg')}" alt=""></i>
   </button>
   ${CUBES('l')}${CUBES('r')}
-  ${topDeals(602.45)}
+  ${two(612.45, 'Top picks,', 'picked for you', 'p')}
   <div class="d3-abs d3-deck" data-no-drag aria-roledescription="carousel">${DATA.deck.map(deckCard).join('')}</div>
   <div class="d3-abs d3-ticker rv" data-scroll aria-label="Flash deal offers, win discounts on brands"><div class="run">${tickerUnit.repeat(4)}</div></div>
-  ${two(1385.25, 'Top picks,', 'picked for you', 'q').replace(/rv" data-k="q(a|b)"/g, 'rv" data-scroll')}
+  ${two(1347, 'Top picks,', 'picked for you', 'q').replace(/rv" data-k="q(a|b)"/g, 'rv" data-scroll')}
   <div class="d3-abs d3-refill" data-no-drag data-scroll aria-roledescription="carousel">${DATA.refill.map(refillCard).join('')}</div>
 </div>`;
 sheet.appendChild(scroller);
@@ -141,7 +159,7 @@ const page = scroller.firstElementChild;
 // down by DY to sit under it
 const DY = 84;
 [...page.children].forEach((el) => { if (!el.classList.contains('d3-bg') && !el.classList.contains('d3-spark')) el.style.top = `${parseFloat(getComputedStyle(el).top) + DY}px`; });
-page.style.height = `${2184.25 + DY}px`;   // (Figma's frame: 375 × 2146, + 38.25 for the taller deck header)
+page.style.height = `${2146 + DY}px`;   // (Figma's frame: 375 × 2146)
 const $ = (s) => page.querySelector(s), $$ = (s) => [...page.querySelectorAll(s)];
 
 // ─── the reveal ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -548,11 +566,15 @@ const deck = (() => {
   // slot k: x, y, rotation (deg), scale, blur (px), opacity — about the card's top centre (Figma's frames 49913 / 49908 / 49903)
   const SLOT = [
     { x: 0, y: 0, r: 0, s: 1, b: 0, o: 1 },
-    { x: 3.3, y: -17.41, r: 2.67, s: 0.8758, b: 1.52, o: 1 },   // (1514:56471: 239.5 wide behind the 273.4 front card, 1.33 px blur at its size)
-    { x: 2.71, y: -32.34, r: -2, s: 0.7424, b: 2.37, o: 0.8 },  // (1514:56466: 203 wide, 1.76 px blur, 80 %)
-    { x: 2.7, y: -36, r: -2, s: 0.7, b: 2.6, o: 0 },
+    { x: 3.5, y: -18.8, r: 2.67, s: 0.9787, b: 1.44, o: 1 },   // (616:27875: the cards behind keep their 295-wide size behind the 264 front card)
+    { x: 3, y: -34.9, r: -2, s: 0.8296, b: 1.9, o: 1 },
+    { x: 3, y: -38, r: -2, s: 0.782, b: 2.2, o: 0 },
   ];
-  const slot = (k) => SLOT[Math.min(k, 3)];
+  // (as the share build's Option 1, v10: the pile leans the way the last card was flicked — the second card to one side,
+  // the third to the other, x px / tilt ° per slot; a flick the other way mirrors it)
+  let lean = 1;
+  const FAN = [[0, 0], [6, 3.2], [-5, -2.6], [-5, -2.6]];
+  const slot = (k) => { const i = Math.min(k, 3), q = SLOT[i]; return { ...q, x: lean * FAN[i][0], r: lean * FAN[i][1] }; };
   const KEYS = ['x', 'y', 'r', 's', 'b', 'o'], K = 280.6, C = 27.14;
   let order = cards.map((_, i) => i), raf = 0, drag = null, fanned = 0;   // (how many cards behind the front one are out)
   const st = cards.map(() => ({ ...SLOT[0], v: { x: 0, y: 0, r: 0, s: 0, b: 0, o: 0 }, t: { ...SLOT[0] }, fly: 0 }));
@@ -576,7 +598,7 @@ const deck = (() => {
           const k = Math.min(h, 1 / 240);
           KEYS.forEach((p) => { const c = p === 'o' || p === 'b' ? 0.8 : 1; s.v[p] += (K * c * (s.t[p] - s[p]) - C * Math.sqrt(c) * s.v[p]) * k; s[p] += s.v[p] * k; });
         }
-        if (s.fly && Math.abs(s.x) > 420) recycle(i);
+        if (s.fly && Math.abs(s.x) > 185) recycle(i);   // (at the edge of its swing it tucks in behind)
         const still = KEYS.every((p) => Math.abs(s.t[p] - s[p]) < (p === 's' || p === 'o' ? 0.0008 : 0.04) && Math.abs(s.v[p]) < 0.05);
         if (still) KEYS.forEach((p) => { s[p] = s.t[p]; s.v[p] = 0; }); else moving = true;
       });
@@ -585,15 +607,17 @@ const deck = (() => {
     };
     raf = requestAnimationFrame(tick);
   }
-  // the thrown card, once off screen, goes in at the very back (hidden) and comes round again from there
+  // the thrown card swings out to the side, then — behind everything now — slides back into the last slot of the pile,
+  // so you watch it go to the end of the stack
   function recycle(i) {
     const s = st[i]; s.fly = 0;
-    Object.assign(s, slot(3)); KEYS.forEach((p) => { s.v[p] = 0; }); s.t = { ...slot(order.indexOf(i)) };
+    s.v.x *= 0.25; s.t = { ...slot(order.indexOf(i)) };
     layer();
   }
   function throwTop(dir, v = 0) {
     const ci = order[0], s = st[ci];
-    s.fly = dir; s.t = { x: dir * 470, y: s.y + 20, r: dir * 16, s: s.s, b: 0, o: 1 };
+    lean = dir;   // (the pile swings to lean after it)
+    s.fly = dir; s.t = { x: dir * 240, y: s.y + 10, r: dir * 14, s: 0.96, b: 0, o: 1 };
     s.v.x = Math.max(Math.abs(s.v.x), Math.abs(v) * 1000, 900) * dir;
     order = [...order.slice(1), ci];
     aim(); layer(); H('tick'); run();
@@ -638,7 +662,7 @@ const deck = (() => {
   const cubesL = $('.d3-cubes.l'), cubesR = $('.d3-cubes.r');
   cubesL.addEventListener('click', () => throwTop(-1)); cubesR.addEventListener('click', () => throwTop(1));
   return {
-    reset() { order = cards.map((_, i) => i); fanned = 0; st.forEach((s) => { s.fly = 0; Object.assign(s, SLOT[0]); KEYS.forEach((p) => { s.v[p] = 0; }); }); aim(); order.forEach((ci, k) => { if (k) st[ci].o = 0; }); layer(); paint(); },
+    reset() { lean = 1; order = cards.map((_, i) => i); fanned = 0; st.forEach((s) => { s.fly = 0; Object.assign(s, SLOT[0]); KEYS.forEach((p) => { s.v[p] = 0; }); }); aim(); order.forEach((ci, k) => { if (k) st[ci].o = 0; }); layer(); paint(); },
     // scrolled back away below the screen: the cards behind tuck back under the front one (instantly, it's off screen)
     // and the front one goes back to hidden, so the next scroll down plays the whole entrance again
     hide() {
