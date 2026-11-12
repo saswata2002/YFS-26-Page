@@ -1,0 +1,304 @@
+/* ══ Iteration 5 — the bot's full page, 1:1 with Figma Saswata 1520:59225 ("Option 2 · Light", 375 × 2136) ═════════
+   Every box sits at its Figma x / y (the frame is 375 wide, like this page). The sticker headings are Google Sans Flex
+   Black (Google Fonts) at Figma's axes (GRAD 0, ROND 39, slnt −10, wdth 87 / 65); the cards are noon's Product card in Noontree,
+   the nudge line and the bank cards in Figtree, "You're all caught up" in Newsreader. Art: Figma's exports in ../f/f7/
+   (789:10090) and ../f/f8/ (1520:59225), noon's product photos in ../f/p/ and ../f/fy/.
+   yf-page.js builds the page and runs the reveal + interactions. */
+.yf-scroll { position: absolute; inset: 0; z-index: 1; /* (its own stacking context: the cards' z-indexes stay inside it, under the top) */ overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain; touch-action: pan-y; scrollbar-width: none; background: #f6f6fa; }
+.yf-scroll::-webkit-scrollbar { display: none; }
+/* the ground (1520:59229): #F6F6FA with a lilac glow falling from the top edge */
+.d3 { position: relative; width: 375px; height: 2136px; overflow: hidden; color: #1d2539; font-family: var(--noon);
+  background: radial-gradient(525px 649.98px at 187.5px 0, #eeeaff 0%, rgba(238,234,255,0) 72%), #f6f6fa; }
+/* the light behind the bot (d3-bg) and the panel under the coupons (d3-shape) */
+.f5-bg { left: 0; top: 0; width: 375px; height: 302.766px; pointer-events: none; }
+.f5-shape { left: 0; top: 615px; width: 375px; height: 541.578px; pointer-events: none; }
+.d3 * { box-sizing: border-box; }
+.d3-abs { position: absolute; }
+.d3 img { display: block; -webkit-user-drag: none; user-select: none; }
+.d3 p { margin: 0; }
+.d3 button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
+
+/* the close button (789:10091): a 40 px frosted disc, Figma's 22 px ✕ */
+.sheet.is-yf { background: #f6f6fa; }
+.sheet.is-yf .page-close { z-index: 5; background: rgba(16,22,40,.06); box-shadow: none; -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); opacity: var(--exit-ui, 1); }
+.sheet.is-yf .page-close svg { stroke: #101628; stroke-width: 1.83333; }
+
+/* the top feather (789:10436): the ground fading down over the page, under the status bar and the ✕ */
+.yf-mini { position: absolute; left: 0; right: 0; top: 0; height: 132px; z-index: 4; pointer-events: none;
+  background: linear-gradient(180deg, #f5f6fa 0%, rgba(245,246,250,.94) 52%, rgba(245,246,250,.6) 74%, rgba(245,246,250,0) 100%); }
+
+/* the reveal: items wait hidden until yf-page.js plays them in */
+.rv { opacity: 0; }
+/* iOS WebKit (Safari, and every Vercel Sim app's WKWebView): once a reveal's animation is released, an element that
+   isn't its own compositing layer can keep the blank image it had at opacity 0 — the sticker ribbons, "Redeem now" and
+   the panel under the coupons stayed invisible while reporting opacity 1. Every reveal target keeps its own layer for
+   good, so WebKit never has to repaint it back into the page */
+.d3 .rv { will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .rv { opacity: 1; } }
+
+/* "Curating for you": centred under the bot (top set by yf-page.js), a soft light sweeping through the letters */
+.yf-curate { position: absolute; left: 0; right: 0; z-index: 3; text-align: center; pointer-events: none; opacity: 0; will-change: transform, opacity, filter; }
+.yf-curate b { display: inline-block; font: 600 22px/28px Figtree, var(--noon); letter-spacing: -0.5px; color: transparent;
+  background: linear-gradient(100deg, rgba(14,14,14,.42) 35%, #0e0e0e 50%, rgba(14,14,14,.42) 65%) 0 0 / 260% 100%;
+  -webkit-background-clip: text; background-clip: text; animation: yfShimmer 1.8s linear infinite; }
+@keyframes yfShimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .yf-curate b { animation: none; color: #0e0e0e; } }
+.yf-curate::before { content: ''; position: absolute; left: 50%; top: 50%; width: 300px; height: 84px; transform: translate(-50%, -50%); z-index: -1;
+  background: radial-gradient(closest-side, #f6f6fa 55%, rgba(246,246,250,0)); }
+/* the curating backdrop (yf-page.js centres it on the bot): ripples rising from behind it */
+.yf-cfx { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0; transform-origin: var(--cx) var(--cy); }
+.yf-cfx .rip { position: absolute; left: var(--cx); top: var(--cy); width: 100px; height: 100px; margin: -50px 0 0 -50px; border-radius: 50%;
+  border: 1px solid rgba(14,14,14,.16); background: radial-gradient(circle, rgba(14,14,14,0) 62%, rgba(14,14,14,.03) 100%); opacity: 0; }
+.yf-cfx.is-on .rip { animation: yfRipple 3.3s var(--d) cubic-bezier(0.25, 0.5, 0.4, 1) infinite both; }
+@keyframes yfRipple { 0% { transform: scale(1); opacity: 0; } 12% { transform: scale(1.3); opacity: 0; } 38% { opacity: .9; } 100% { transform: scale(4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .yf-cfx.is-on .rip { animation: none; } }
+
+/* a product on its way into the bot: the card's photo box (Figma's 3 % blue wash on white), the photo multiplied onto it */
+.d3-fly { position: absolute; z-index: 6; margin: 0; pointer-events: none; will-change: transform, opacity; transform-origin: 50% 50%;
+  filter: drop-shadow(0 6px 12px rgba(15,20,41,.16)); }
+.d3-fly .dc { position: absolute; inset: 0; background: #f7f9fb; transform-origin: 50% 50%; will-change: transform, clip-path; }
+.d3-fly .dc img { position: absolute; max-width: none; max-height: none; mix-blend-mode: multiply; }
+
+/* ── the sticker headings (789:10328 "heading · top deals", 789:10322 "heading · let's restock") ── */
+.f5-hd { height: 92px; pointer-events: none; z-index: 11; }   /* (over the cards, as in Figma: "AT LOW PRICES" overlaps the carousel's middle card) */
+.f5-hd.hn { left: 63px; top: 187px; width: 250px; }
+.f5-hd.td { left: 67px; top: 721.2px; width: 242px; }
+.f5-hd.rs { left: 41px; top: 1277px; width: 294px; }
+.f5-hd.hn .rb { left: -4.13px; top: 13.5px; width: 257.175px; height: 86.048px; }    /* (Vector 20871: 242 × 70 at 4, 20 + its outset) */
+.f5-hd.hn .w.a { left: 63.94px; top: 31.04px; }
+.f5-hd.hn .w.g { left: 164.96px; top: 24.832px; }
+.f5-hd.hn .w.g b > span { background-image: linear-gradient(84.42deg, #ffd857 1.577%, #fe5b2a 124.79%); }
+.f5-hd.hn .w.c { left: 122.3px; top: 66.67px; }
+.f5-hd .rb { position: absolute; max-width: none; }
+.f5-hd.td .rb { left: -4.19px; top: 13.7px; width: 249.339px; height: 85.839px; }     /* (Vector 20871: 234 × 70 at 4, 20 + its outset) */
+.f5-hd.rs .rb { left: 51.352px; top: 15.926px; width: 190.535px; height: 83.506px; }  /* (174 × 70 at 60, 20 + its outset) */
+.f5-hd .w { position: absolute; transform: translate(-50%, -50%) rotate(-3deg); white-space: nowrap; }
+.f5-hd .w.c { transform: translate(-50%, -50%) rotate(-2.5deg); }
+.f5-hd .w b { display: block; text-align: center; font-family: 'Google Sans Flex', var(--noon); font-weight: 924; font-stretch: 87%; font-style: normal;
+  font-optical-sizing: auto; font-variation-settings: "GRAD" 0, "ROND" 39, "slnt" -10; will-change: transform, opacity; }
+/* the two big words: Figma's 2.85 / 3 px black stroke OUTSIDE the glyphs (a copy of the word behind it, stroked twice as
+   wide, so the fill keeps its full weight) and the hard black shadow under word + stroke together */
+.f5-hd .w.a b, .f5-hd .w.g b { position: relative; }
+.f5-hd .w.a b::before, .f5-hd .w.g b::before { content: attr(data-t); position: absolute; inset: 0; color: #000; -webkit-text-fill-color: #000;
+  -webkit-text-stroke: 5.7px #000; }
+.f5-hd .w.g b::before { -webkit-text-stroke-width: 6px; }
+.f5-hd .w b > span { position: relative; display: block; }
+.f5-hd .w.a b { font-size: 36px; line-height: 38px; letter-spacing: -0.2446px; filter: drop-shadow(-0.95px 3.801px 0 #000); }
+.f5-hd .w.a b > span { color: #fff; }
+/* the gradient word: its glyphs clipped to Figma's yellow → orange */
+.f5-hd .w.g b { font-size: 40px; line-height: 40px; letter-spacing: -1px; filter: drop-shadow(-1px 4px 0 #000); }
+.f5-hd .w.g b > span { color: transparent; -webkit-text-fill-color: transparent; -webkit-background-clip: text; background-clip: text; }
+.f5-hd .w.c b { font-size: 20px; line-height: 18px; font-weight: 827; font-stretch: 65%; letter-spacing: -0.1093px; color: #000;
+  position: relative; top: 1px; }   /* (the 18 px line on a 20 px font: Figma sets the glyphs 1 px lower than the web's half-leading) */
+.f5-hd.td .w.a { left: 52.95px; top: 31.146px; }
+.f5-hd.td .w.g { left: 158.95px; top: 24.469px; }
+.f5-hd.td .w.g b > span { background-image: linear-gradient(83.773deg, #ffd857 1.577%, #fe5b2a 124.79%); }
+.f5-hd.td .w.c { left: 118.3px; top: 66.845px; }
+.f5-hd.rs .w.a { left: 52.43px; top: 30.49px; }
+.f5-hd.rs .w.g { left: 197.42px; top: 23.076px; }
+.f5-hd.rs .w.g b > span { background-image: linear-gradient(81.343deg, #ffd857 1.577%, #fe5b2a 124.79%); }
+.f5-hd.rs .w.c { left: 144.33px; top: 68.157px; }
+
+/* the pixel hearts and the sparkles (h-heart / h-sparkle) */
+.f5-dec { display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 12; }   /* (over the carousels' cards, as in Figma) */
+.f5-dec .t { display: block; flex: none; }
+.f5-dec.under { z-index: 1; }   /* (the tall heart pair: under the carousel's cards, as in Figma 1523:61097) */
+.f5-dec img { width: 100%; height: 100%; max-width: none; }   /* (each one's box and tilt are written on it: yf-page.js dec) */
+
+/* ── noon's Product card (801:1043), 222 wide: the deck's front card (789:12983) and the carousel's middle (789:10245) ── */
+.pc { position: relative; width: 222px; display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 8px 8px 12px;
+  border: 1px solid #efe7d2; border-radius: 17px; background: #fff; overflow: hidden;
+  box-shadow: 0 9px 22px rgba(122,82,0,.08), 0 1px 3px rgba(92,68,0,.05); }
+/* the photo box: Figma multiplies the photo onto a 3 % blue wash. A blend layer per card is costly to composite while
+   the cards move (and WebKit paints blends across moving layers wrongly), so the same result is drawn without one: the
+   photo on white, the 3 % wash laid over it (white → #F7F8FB either way, the photo's colours within 1 / 255) */
+.pc .main { position: relative; flex: none; height: 172px; border-radius: 12px; background: #fff; overflow: hidden; }
+.pc .main::after { content: ''; position: absolute; inset: 0; z-index: 1; background: rgba(0,40,136,.03); pointer-events: none; }
+.pc .main > button { z-index: 2; }
+.pc .ph { position: absolute; left: 50%; top: 50%; width: 144px; height: 144px; transform: translate(-50%, -50%); }
+.pc .ph img { width: 100%; height: 100%; object-fit: contain; }
+.pc .ph.crop { overflow: hidden; }
+.pc .ph.crop img { position: absolute; left: -12.44%; top: -14.98%; width: 126.32%; height: 126.32%; max-width: none; }
+.pc .ph.cover { left: 0; top: 0; width: 100%; height: 100%; transform: none; }
+.pc .ph.cover img { object-fit: cover; }
+/* add to cart: a white 32 px tile, Figma's + ; on: noon ink with a white tick (the product flies into the bot) */
+.pc-add { position: absolute; right: 8px; bottom: 8px; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;
+  border: 1px solid #f2f3f7; border-radius: 9px; background: #fff; cursor: pointer;
+  transition: background-color .2s cubic-bezier(0.33, 1, 0.68, 1), border-color .2s cubic-bezier(0.33, 1, 0.68, 1), transform .3s cubic-bezier(0.22, 1, 0.36, 1); }
+.pc-add:active { transform: scale(.9); transition-duration: .2s, .2s, .12s; }
+.pc-add .pl { width: 20.545px; height: 20.545px; transition: opacity .16s cubic-bezier(0.65, 0, 0.35, 1), transform .32s cubic-bezier(0.22, 1, 0.36, 1); }
+.pc-add .ok { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; opacity: 0; transform: scale(.5) rotate(-20deg);
+  transition: opacity .2s cubic-bezier(0.33, 1, 0.68, 1), transform .4s cubic-bezier(0.34, 1.4, 0.64, 1); }
+.pc-add .ok svg { width: 18px; height: 18px; }
+.pc-add.is-on { background: #1d2539; border-color: #1d2539; }
+.pc-add.is-on .pl { opacity: 0; transform: rotate(90deg) scale(.5); }
+.pc-add.is-on .ok { opacity: 1; transform: none; }
+/* the wishlist heart: a white 32 px disc, Figma's outline heart, filled red when on */
+.pc-wish { position: absolute; right: 8px; top: 8px; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;
+  border: 1px solid #f2f3f7; border-radius: 999px; background: #fff; cursor: pointer; }
+.pc-wish svg { width: 18px; height: 18px; display: block; overflow: visible; }
+.pc-wish path { fill: #fff; stroke: #343d54; stroke-width: 1; transition: fill .22s cubic-bezier(0.33, 1, 0.68, 1), stroke .22s cubic-bezier(0.33, 1, 0.68, 1); }
+.pc-wish.is-on path { fill: #f43f5e; stroke: #f43f5e; }
+/* the details: name (two lines), rating + nudge, price, express */
+.pc .dt { display: flex; flex-direction: column; gap: 7px; padding: 0 3px; }
+.pc .nm { height: 38px; font: 500 14px/19px var(--noon); color: #1d2539; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.pc .mt { height: 20px; display: flex; align-items: center; gap: 7px; }
+.pc .rt { flex: none; display: flex; align-items: center; gap: 3px; padding: 4px 7px 2px 5px; /* (Figma's 3 / 3, its star + "4.3" set 1 px lower) */ border-radius: 7px; background: #f9f9fb;
+  font: 500 11px/14px var(--noon); color: #101628; font-feature-settings: "case" 1; white-space: nowrap; }
+.pc .rt img { width: 10px; height: 10px; flex: none; }
+.pc .ng { position: relative; flex: none; display: block; width: 132px; height: 14px; overflow: hidden; }
+.d3-rslot .pc .ng { margin-left: 1px; }   /* (Figma's "4.7" / "4.3 (128)" set a touch wider than the web's, so its nudge starts that much later) */
+.pc .ng .run { position: absolute; left: 0; top: 0; width: 100%; height: 100%; will-change: transform; transition: transform .52s cubic-bezier(0.65, 0, 0.35, 1); }
+.pc .ng .run > span { position: absolute; left: 0; width: 119.848px; display: flex; align-items: center; gap: 1.712px; }
+.pc .ng img { width: 11.985px; height: 11.985px; flex: none; }
+.pc .ng b { flex: 1 0 0; min-width: 0; font: 400 10.273px/13.697px Figtree, var(--noon); letter-spacing: -0.1027px; color: #475067; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc .pg { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
+.pc .pr { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.pc .pr b { font: 700 17px/24px var(--noon); color: #1d2539; }
+.pc .pr i { font-style: normal; }
+.pc .pr s { font: 400 12px/17px var(--noon); color: #7e859b; }
+.pc .pr em { font: 600 11px/17px var(--noon); font-style: normal; color: #26b57c; }
+.pc .ex { width: 100px; height: 17px; flex: none; }
+/* the ghost wash (the deck's cards behind, Figma 789:10249 / 789:10254): white to #EEF0F4 inside a #DCDFE6 line */
+.pc::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; border: 1px solid #dcdfe6;
+  background: linear-gradient(180deg, #fff 0%, #eef0f4 100%); opacity: calc(var(--g, 0) * .86); }
+
+/* ── the deck (1523:61351, 295 wide at 40, 828.2): the front card 5 left of the frame's middle, 39 down ── */
+.d3-deck { left: 0; top: 828.2px; width: 375px; height: 380px; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
+.d3-dk { position: absolute; left: 71.5px; top: 39px; width: 222px; transform-origin: 50% 0; will-change: transform, opacity; cursor: grab; --g: 0; }
+.d3-dk.is-top:active { cursor: grabbing; }
+.d3-dk:not(.is-top) button { pointer-events: none; }
+
+/* ── the basics carousel (1523:61104 at 76, 1401): 222 × 326 in the middle, centred at x 187 ── */
+.d3-refill { left: 0; top: 1401px; width: 375px; height: 326px; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
+.d3-rslot { position: absolute; left: 76px; top: 0; width: 222px; height: 326px; display: flex; align-items: center; transform-origin: 50% 50%;
+  will-change: transform, opacity; cursor: grab; --k: 0; }
+.d3-rslot:not(.is-mid) button { pointer-events: none; }   /* (a tap on a side card brings it forward) */
+/* the morph (--k 0 → 1 as a card goes from the middle to the side, where the slot is scaled to 181 / 222): sizes are
+   written so that, scaled, they land on Figma's Small card (789:10246) — buttons still 32, type 13 / 15, insets 7 */
+.d3-rslot .pc { padding: calc(8px + 1.81px * var(--k)) calc(8px + 1.81px * var(--k)) calc(12px + 1.49px * var(--k)); }
+.d3-rslot .pc .ph { width: calc(144px - 6.62px * var(--k)); height: calc(144px - 6.62px * var(--k)); }
+.d3-rslot .pc-add, .d3-rslot .pc-wish { width: calc(32px + 7.25px * var(--k)); height: calc(32px + 7.25px * var(--k)); }
+.d3-rslot .pc-add { right: calc(8px + 0.59px * var(--k)); bottom: calc(8px + 0.59px * var(--k)); border-radius: calc(9px + 2.04px * var(--k)); }
+.d3-rslot .pc-wish { right: calc(8px + 0.59px * var(--k)); top: calc(8px + 0.59px * var(--k)); }
+.d3-rslot .pc-wish svg { width: calc(18px + 4.08px * var(--k)); height: calc(18px + 4.08px * var(--k)); }
+.d3-rslot .pc .dt { gap: calc(7px - 0.87px * var(--k)); padding: 0 calc(3px + 0.68px * var(--k)); }
+.d3-rslot .pc .nm { position: relative; top: 1px; /* (Figma's B14 name sits 1 px lower) */ height: calc(40px + 4.16px * var(--kt)); font-size: calc(14px + 1.94px * var(--kt)); line-height: calc(20px + 2.08px * var(--kt)); letter-spacing: calc(-0.1px * (1 - var(--kt))); }
+.d3-rslot .pc .mt { height: calc(20px + 4.53px * var(--k)); }
+.d3-rslot .pc .rt { gap: calc(3px + 0.68px * var(--k)); padding: calc(4px - 0.32px * var(--k)) calc(7px + 0.36px * var(--k)) calc(2px + 1.68px * var(--k)) calc(5px + 1.13px * var(--k));
+  border-radius: calc(7px - 0.87px * var(--k)); font-size: calc(11px + 2.49px * var(--kt)); line-height: calc(14px + 3.17px * var(--kt)); }
+.d3-rslot .pc .rt img { width: calc(10px + 2.27px * var(--k)); height: calc(10px + 2.27px * var(--k)); }
+.d3-rslot .pc .ng { opacity: calc(1 - var(--k) * 1.8); }
+.d3-rslot .pc .pg { gap: calc(7px - 0.87px * var(--k)); }
+.d3-rslot .pc .pr { gap: calc(5px - 0.09px * var(--k)); }
+.d3-rslot .pc .pr b { font-size: calc(17px + 1.4px * var(--kt)); line-height: calc(24px + 2.98px * var(--kt)); }
+.d3-rslot .pc .pr s { font-size: calc(12px + 1.49px * var(--kt)); line-height: calc(17px + 0.17px * var(--kt)); }
+.d3-rslot .pc .pr em { font-size: calc(11px + 2.49px * var(--kt)); line-height: calc(17px + 0.17px * var(--kt)); }
+.d3-rslot .pc .ex { width: calc(100px + 1.8px * var(--k)); height: calc(17px + 0.17px * var(--k)); }
+
+/* ── the gift coupons (1520:59245 "face", 180 × 276 at 98, 305; yf-page.js places each slot by its perspective quad) ── */
+.d3-coupons { left: 0; top: 305px; width: 375px; height: 290px; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
+.d3-cslot { position: absolute; left: 98px; top: 0; width: 180px; height: 276px; transform-origin: 0 0; will-change: transform, opacity; cursor: grab;
+  -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.gc { position: relative; width: 180px; height: 276px; perspective: 900px; }
+/* the front (Figma's coupon) and the back (collected), each turned on its own clock — the earlier iterations' flip, now
+   with a subtle elastic landing: a spring (ω 11, ζ .72 — yf-page.js writes it as --gc-flip) that carries the turn about
+   4 % (≈ 7°) past flat and settles back, 0.9 s; the soft ease-out where linear() isn't supported */
+.gc .face, .gc .back { -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  transition: transform .9s var(--gc-flip, cubic-bezier(0.22, 1, 0.36, 1)); }
+.gc .face { position: absolute; inset: 0; overflow: hidden; }
+.gc .face > * { position: absolute; }
+.gc .body { left: -29px; top: -30px; width: 239.627px; height: 322.097px; max-width: none; }
+/* the holo panel: the offer's own gradient, Figma's light rays, the bank card */
+.gc .holo { left: 6px; top: 6px; width: 168px; height: 148px; overflow: hidden; border-radius: 7.954px; }
+.gc .holo > * { position: absolute; }
+.gc .grad { left: -6px; top: 0; width: 180px; height: 186px; background: linear-gradient(180deg, var(--h0) 14.998%, var(--h1) 100%); }
+.gc .rays { left: -72px; top: -86px; width: 311.518px; height: 222.377px; max-width: none; }
+.gc .bank { left: 18px; top: 31px; width: 132px; height: 83px; overflow: hidden; border-radius: 6px;
+  box-shadow: 0 63px 63px rgba(0,0,0,.09), 0 14.9px 34.8px rgba(0,0,0,.1), inset 0 0 0 .6px rgba(255,255,255,.14); }
+/* the card's ground on its own layer: Figma's side coupons (its d3-cslot renders) show the holo panel through it — the
+   ground fades as the coupon turns away, while the chip, the logo and the type stay as they are */
+.gc .bank::before { content: ''; position: absolute; inset: 0; opacity: calc(1 - .42 * var(--k, 0));
+  background: radial-gradient(158.4px 78.85px at 116.16px 0, rgba(110,70,170,.55) 0%, rgba(110,70,170,0) 62%), linear-gradient(147.84deg, #1d1a26 14.645%, #09080c 85.355%); }
+.gc .bank.tabby::before { background: linear-gradient(147.84deg, #1d1a26 14.645%, #09080c 85.355%); }   /* (no Emirates Islamic purple on tabby's card) */
+.gc .bank > * { position: absolute; }
+.gc .chip { left: 10px; top: 35px; width: 17px; height: 13px; border-radius: 3px; background: linear-gradient(142.59deg, #f1dc9d 14.645%, #c49a45 53.536%, #e6c776 85.355%); }
+.gc .lg { left: 9px; top: 9px; width: 58px; height: 10.5px; object-fit: cover; }
+.gc .visa { left: 94px; top: 57px; font: 800 13px/13px Figtree, var(--noon); letter-spacing: -0.4px; color: #fff; }
+.gc .tier { left: 100px; top: 71.5px; font: 500 5px/5px Figtree, var(--noon); font-style: normal; letter-spacing: .3px; color: rgba(255,255,255,.7); white-space: nowrap; }
+.gc .tb { left: 10px; top: 10px; width: 46px; height: auto; }
+.gc .split { left: 10px; bottom: 9px; font: 600 7px/9px var(--noon); color: rgba(255,255,255,.78); white-space: nowrap; }
+/* the tear line, the offer, the scalloped strip (Figma's strip art as the mask, the offer's colour in it), the expiry */
+.gc .dash { left: -22px; top: 130px; width: 225.767px; height: 62px; max-width: none; }
+.gc .t1, .gc .t2 { left: 1px; width: 179.5px; text-align: center; white-space: nowrap; font-size: 15px; line-height: 21.134px; letter-spacing: -0.1057px; }
+.gc .t1 { top: 179px; font-weight: 700; color: #101628; }   /* (Figma's box at −1 renders its glyphs 1 px lower than the web's half-leading puts them) */
+.gc .t2 { top: 202px; font-weight: 400; color: rgba(16,22,40,.62); }
+.gc .strip { left: -29px; top: 216px; width: 239.002px; height: 90px; background: var(--st);
+  -webkit-mask: url('../f/f8/02da2.png') 0 0 / 100% 100% no-repeat; mask: url('../f/f8/02da2.png') 0 0 / 100% 100% no-repeat; }
+.gc .exp { left: 20px; top: 253px; width: 141.3px; height: 13px; opacity: .8; }
+.gc .exp span { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; justify-content: center; white-space: nowrap;
+  font: 500 11px/13px var(--noon); letter-spacing: .909px; color: #1a1206; opacity: .8; }
+/* the back: the ticket in the offer's strip colour; the dark disc's tick draws itself on once it has come round */
+.gc .back { position: absolute; left: 1px; top: 1px; width: 178px; height: 274px; border-radius: 10px; background: var(--st); color: #1a1206;
+  transform: rotateY(-180deg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 14px;
+  box-shadow: inset 0 0 0 1px rgba(26,18,6,.06); }
+.gc.is-collected .face { transform: rotateY(180deg); }
+.gc.is-collected .back { transform: none; }
+.gc .back .ck { width: 44px; height: 44px; border-radius: 50%; background: #1a1206; color: var(--st); display: flex; align-items: center; justify-content: center; }
+.gc .back .ck svg { width: 24px; height: 24px; }
+.gc .back .ck path { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.gc.is-collected .back .ck path { animation: gcTick .5s .36s cubic-bezier(0.33, 1, 0.68, 1) forwards; }
+@keyframes gcTick { to { stroke-dashoffset: 0; } }
+/* the dark disc pops in with a small elastic bounce as the back comes round (112 % → 96 % → 102 % → 100 %) */
+.gc.is-collected .back .ck { animation: gcPop .62s .2s cubic-bezier(0.33, 1, 0.68, 1) both; }
+@keyframes gcPop { 0% { scale: .4; } 45% { scale: 1.12; } 68% { scale: .96; } 86% { scale: 1.02; } 100% { scale: 1; } }
+.gc .back b { margin-top: 12px; font: 700 18px/24px var(--noon); }
+.gc .back .cd { margin-top: 6px; padding: 4px 12px; border-radius: 8px; border: 1.5px dashed rgba(26,18,6,.45); font: 700 15px/20px var(--noon); letter-spacing: 1.2px; }
+.gc .back em { margin-top: 10px; font: 500 11.5px/14px var(--noon); font-style: normal; opacity: .75; }
+@media (prefers-reduced-motion: reduce) { .gc .face, .gc .back { transition: none; } .gc.is-collected .back .ck path { animation: none; stroke-dashoffset: 0; } .gc.is-collected .back .ck { animation: none; } }
+
+/* ── the feed's end (1520:59360, 209 wide at 79, 1898): the green check, "You're all caught up", "Back to top" ── */
+.f5-end { left: 79px; top: 1898px; width: 209px; height: 183px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.f5-end .ck { width: 44px; height: 44px; flex: none; overflow: visible; }
+.f5-end .ck .bg { transform-box: fill-box; transform-origin: 50% 50%; }
+.f5-end .ck .mk { stroke-dasharray: 1; stroke-dashoffset: 1; }   /* (drawn on by yf-page.js tick when the end comes into view) */
+.f5-end .t { font: 500 24px/28px Newsreader, Georgia, serif; color: #1d2539; white-space: nowrap; }
+.f5-end .s { font: 400 13px/18px var(--noon); color: #7e859b; white-space: nowrap; }
+.f5-end .top { margin-top: 17px; display: flex; align-items: center; gap: 6px; padding: 10px 18px 10px 16px; border: 1px solid #e3e5eb; border-radius: 999px;
+  background: #fff; cursor: pointer; box-shadow: 0 4px 12px rgba(15,20,41,.06), 0 1px 2px rgba(15,20,41,.04);
+  font: 600 14px/20px var(--noon) !important; color: #1d2539 !important; transition: scale .3s cubic-bezier(0.22, 1, 0.36, 1); }
+.f5-end .top:active { scale: .96; transition-duration: .12s; }
+.f5-end .top img { width: 14px; height: 14px; }
+
+/* ── the arc (1520:59243), the pills — "Redeem now" (1520:59267), "See all basics" (1520:59270) ── */
+.f5-arc { left: 0; top: 1781px; width: 375px; height: 36px; pointer-events: none; }
+.f5-cta.rd { top: 618px; }
+.f5-cta.sb { top: 1787px; }
+.f5-cta { left: 98px; width: 179px; height: 56px; z-index: 2; padding: 2px 24px 0; /* (the label 1 px lower, as Figma renders it) */ display: flex; align-items: center; justify-content: center;
+  border: 1px solid #eef0f4; border-radius: 28px; background: #fff; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(15,20,41,.08), 0 1px 2px rgba(15,20,41,.05);
+  font: 600 16px/24px var(--noon) !important; color: #1d2539 !important;
+  transition: scale .34s cubic-bezier(0.22, 1, 0.36, 1), box-shadow .2s cubic-bezier(0.33, 1, 0.68, 1); }
+/* the press (yf-page.js .is-press, held from touch-down to release): the pill dips to 96 % and its lift settles */
+.f5-cta.is-press { scale: .96; box-shadow: 0 2px 8px rgba(15,20,41,.08), 0 1px 2px rgba(15,20,41,.05); transition-duration: .12s, .12s; }
+
+/* ── the quiet loops on the stickers' hearts and sparkles (on the outer box, with the individual scale / rotate
+   properties, so they never touch the reveal on the img or Figma's tilt on .t) ──
+   the pixel hearts beat — a "lub-dub" every 1.8 s, the second beat softer — the two half a cycle apart; the sparkles
+   twinkle — a quarter turn as they swell to full and fade back — 2.4 s, the two a half cycle apart. Paused off screen. */
+.f5-dec { animation-fill-mode: both; animation-iteration-count: infinite; }
+.f5-dec.hb { animation-name: f5Beat; animation-duration: 1.8s; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+@keyframes f5Beat {
+  0%, 40%, 100% { scale: 1; }
+  9% { scale: 1.16; }
+  18% { scale: .98; }
+  27% { scale: 1.09; }
+}
+.f5-dec.sp { animation-name: f5Twinkle; animation-duration: 2.4s; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+@keyframes f5Twinkle {
+  0%, 100% { scale: .62; rotate: 0deg; opacity: .55; }
+  50% { scale: 1.1; rotate: 90deg; opacity: 1; }
+}
+.is-off, .is-off * { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) { .f5-dec { animation: none !important; } }
