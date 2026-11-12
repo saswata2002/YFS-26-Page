@@ -449,6 +449,46 @@
 .d3.fy .fy-rwish.is-on svg { opacity: 1; } .d3.fy .fy-rwish.is-on img { opacity: 0; }
 .d3.fy .d3-rf .fy-rcta:active { transform: scale(.97); }
 
+/* ── updates from Figma For-You 616:27565 (iteration 3) ── */
+/* no pixel arrows round "Top picks"; the title 10 lower and centred; the second title and the refills 8.5–11 left of centre */
+.fy .d3-cubes { display: none; }
+.fy .d3-title:nth-of-type(2) { padding-left: 0; padding-right: .84px; }
+.fy .d3-title:nth-of-type(3) { padding-left: 0; padding-right: 17px; }
+.fy .d3-ticker { top: 1280px; }
+/* the deck's front card (616:27886 "AirPods · Floating controls"): 264 wide, white, the photo box #F9F9FB with the heart and
+   the + inside it, the rating chip at its foot; the name 16/22, the plain price + struck price, the express tag under them */
+.fy .d3-dk { left: 56px; width: 264px; }
+.d3.fy .d3-dk .in, .fy .d3-dk:not(.is-top) .in { width: 264px; gap: 12px; padding: 12px 12px 16px; border: 1px solid #eef0f4; border-radius: 20px; background: #fff;
+  box-shadow: 0 8px 24px rgba(15,20,41,.06); }
+.d3.fy .d3-dk .main { width: 240px; height: 327px; border: 0; border-radius: 14px; background: #f9f9fb; }
+.fy .d3-dk .main .ph { left: 15px; top: 58.3px; width: 209px; height: 209px; }
+.fy .d3-dk .main .ph.crop { overflow: hidden; }
+.fy .d3-dk .main .ph.crop img { position: absolute; left: -12.44%; top: -14.98%; width: 126.32%; height: 126.32%; max-width: none; max-height: none; mix-blend-mode: normal; }
+.fy .d3-dk .main .ph.cover { left: -6px; top: -21px; width: 252px; height: 369px; }
+.fy .rt { left: 8px; bottom: 8px; gap: 4px; padding: 4px 6px; border-radius: 8px; background: #f4f5f8; font: 600 13px/16px var(--noon); letter-spacing: -0.12px; color: #1d2539; }
+.fy .rt i { font-weight: 400; color: #7e859b; }
+.d3.fy .fy-add { right: 8px; bottom: 8px; }
+.d3.fy .fy-wish { right: 19px; top: 20px; width: 32px; height: 32px; }
+.d3.fy .fy-wish img { width: 32px; height: 32px; }
+.d3.fy .fy-wish svg { left: -2.29px; top: -2.29px; width: 36.57px; height: 36.57px; }
+.d3.fy .d3-dk .info { align-items: stretch; gap: 8px; padding: 0 4px; }
+.d3.fy .d3-dk .info .nm { height: 44px; text-align: left; font: 500 16px/22px var(--noon); letter-spacing: -0.25px; color: #1d2539; }
+.d3.fy .d3-dk .info .pr { justify-content: flex-start; align-items: baseline; gap: 6px; height: 28px; }
+.d3.fy .d3-dk .info .pr b { font: 700 20px/28px var(--noon); letter-spacing: -0.25px; color: #1d2539; }
+.d3.fy .d3-dk .info .pr s { font: 400 14px/20px var(--noon); letter-spacing: -0.15px; color: #7e859b; }
+.d3.fy .d3-dk .info .ex { width: 118px; height: 20px; margin: 0; }
+/* the refill card (616:28012): 340 tall, 10.5 further left; "Last bought" first, then the name, the plain price row */
+.fy .d3-refill { top: 1462px; height: 340px; }
+.fy .d3-rslot { left: 64px; height: 340px; }
+.fy-rf .tx { gap: 0; }
+.fy-rf .lb { order: 0; height: calc(14px * (1 - var(--k, 0))); margin: 0 0 calc(4px * (1 - var(--k, 0))); }
+.fy-rf .nm { margin-bottom: 6px; }
+.fy-rf .pr { gap: 4px; }
+.d3.fy .fy-rf .pr b { font: 700 16px/22px var(--noon); letter-spacing: -0.15px; color: #1d2539; }
+.d3.fy .fy-rf .pr b i { font-style: normal; }
+.fy-rf .pr s { font: 400 11px/14px var(--noon); letter-spacing: -0.1px; color: #475067; }
+.fy-rf .pr em { font: 600 11px/14px var(--noon); letter-spacing: -0.1px; }
+
 /* iOS WebKit: plain content that fades in inside the page's scroller keeps its own layer for good. Once its reveal lands,
    WebKit doesn't redraw the scroller's tile under it, so after a scroll away and back it showed blank (the "Top picks"
    title over the refills, 2026-11-11). Cards, the deck and the ticker already have layers of their own */

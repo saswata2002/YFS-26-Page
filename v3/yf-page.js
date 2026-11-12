@@ -29,7 +29,8 @@ const DATA = {
     { title: `20% extra off up to ${D}100`, sub: 'with Emirates Islamic', tag: 'All users', code: 'EIB20', ends: '12/11/2026', card: 'ei2', look: 'ice' },
     { title: `25% extra off up to ${D}100`, sub: 'when you pay with tabby', tag: 'All users', code: 'TABBYCASH25', ends: '12/11/2026', card: 'tabby', look: 'mint' },
   ],
-  deck: [      // "Top picks, picked for you": Figma's Ninja Crispi, then the 11.11 sale
+  deck: [      // "Top picks, picked for you": Figma's AirPods (616:27886), the Ninja Crispi, then the 11.11 sale
+    { src: A('fy/00ff6.png'), crop: true, name: 'Apple Airpods Pro 2 Wireless Earbuds', price: 899, was: 1399, rating: 4.3, count: 128, express: true },
     { src: A('fy/df9f1.png'), cover: true, name: 'Ninja Crispi 4 in 1 Air Fryer Cooking System 4.2L & 3.1 L Glass', price: 899, was: 1399, off: 33, rating: 4.3, count: 128, express: true },
     { img: 'deck0', name: 'evvoli Air Fryer 8 Preset Programs, Digital Display 5.5L 1850W', price: 102, was: 499, express: true },
     { img: 'deck1', name: 'Samsung Galaxy S26 Ultra Dual SIM Cobalt Violet 12GB RAM 256GB 5G', price: 3349, was: 5099, express: true },
@@ -38,7 +39,7 @@ const DATA = {
     { img: 'deck4', name: 'FUJIFILM Instax Mini EVO Hybrid Instant Camera, Gentle Rose', price: 779, was: 999, express: false },
   ],
   refill: [    // the second "Top picks": Figma's three in the middle and either side (Fine tissue, Fine kitchen towel → | ← Nescafe), then the staples
-    { src: A('fy/5e392.png'), name: 'Fine Facial Tissue 200 Sheets 2 Ply Pack of 10 White', price: 39, was: 59, off: 33, last: 'Last bought 28 Oct' },
+    { src: A('fy/5e392.png'), name: 'Fine Facial Tissue 200 Sheets 2 Ply Pack of 10 White', price: 39.28, was: 59, off: 33, last: 'Last bought 28 Oct' },
     { src: A('fy/d1e4f.png'), name: 'Fine Kitchen Towel 60 Sheets 3 Ply Pack of 12 Rolls White 26.5x21cm', price: 30.7, was: 39.19, off: 22, last: 'Last bought 19 Oct' },
     { img: 'refill0', name: 'Fine Facial Tissue 130 Sheets 2 Ply Pack of 5', price: 13.45, was: 17.36, last: 'Last bought 28 Oct' },
     { img: 'refill1', name: 'Persil Power Gel Liquid Laundry Detergent Deep Clean 4.8L', price: 41.7, was: 82.6, last: 'Last bought 12 Oct' },
@@ -71,10 +72,10 @@ const coupon = (c, i) => `<div class="d3-cslot" data-i="${i}" data-o="${i % DATA
 const priceRow = (it) => `<div class="pr"><b><i>${D}</i>${money(it.price)}</b><s>${plain(it.was)}</s><em>${pct(it)}%</em></div>`;
 const RATE = (it) => (it.rating ? `<span class="rt"><img src="${A('fy/10bd8.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)}</b> <i>(${it.count})</i></span>` : '');
 const deckCard = (it, i) => `<div class="d3-dk" data-i="${i}"><div class="in rv">
-  <div class="main"><div class="ph${it.cover ? ' cover' : ''}"><img src="${SRC(it)}" alt="" draggable="false"></div><i class="tint"></i>${RATE(it)}
-    <button class="d3-add fy-add" type="button" aria-label="Add to cart"><img class="pl" src="${A('fy/e7f81.svg')}" alt="" draggable="false"><span class="ok">${CHECK}</span></button></div>
-  <button class="d3-wish fy-wish" type="button" aria-label="Add to wishlist" aria-pressed="false"><img src="${A('fy/99cbc.svg')}" alt="" draggable="false">${HEART}</button>
-  <div class="info"><p class="nm">${it.name}</p><div class="row"><div class="pr">${HL(it, 'fy/7f258.svg', 'fy/446f5.svg')}<s>${plain(it.was)}</s><em>${pct(it)}%</em></div>${it.express ? `<img class="ex" src="${A('fy/ee82d.svg')}" alt="express · Today" draggable="false">` : '<span class="ex"></span>'}</div></div>
+  <div class="main"><div class="ph${it.cover ? ' cover' : ''}${it.crop ? ' crop' : ''}"><img src="${SRC(it)}" alt="" draggable="false"></div><i class="tint"></i>${RATE(it)}
+    <button class="d3-add fy-add" type="button" aria-label="Add to cart"><img class="pl" src="${A('fy/cab5f.svg')}" alt="" draggable="false"><span class="ok">${CHECK}</span></button></div>
+  <button class="d3-wish fy-wish" type="button" aria-label="Add to wishlist" aria-pressed="false"><img src="${A('fy/069f9.svg')}" alt="" draggable="false">${HEART}</button>
+  <div class="info"><p class="nm">${it.name}</p><div class="pr"><b><i>${D}</i> ${plain(it.price)}</b><s>${plain(it.was)}</s></div>${it.express ? `<img class="ex" src="${A('fy/8be6e.svg')}" alt="express · Today" draggable="false">` : '<span class="ex"></span>'}</div>
 </div></div>`;
 // the price highlight (Figma's "Price Highlight"): the price on noon's pink tag between its two zigzag ends
 const HL = (it, l, r) => `<span class="hl"><img src="${A(l)}" alt="" draggable="false"><b><i>${D}</i>${plain(it.price)}</b><img src="${A(r)}" alt="" draggable="false"></span>`;
@@ -83,7 +84,7 @@ const HL = (it, l, r) => `<span class="hl"><img src="${A(l)}" alt="" draggable="
 const refillCard = (it, i) => `<div class="d3-rslot" data-i="${i}"><div class="d3-rf fy-rf rv">
   <i class="glow"><img class="gl" src="${A('fy/78127.svg')}" alt="" draggable="false"><img class="gs" src="${A('fy/e00b1.svg')}" alt="" draggable="false"></i>
   <div class="ph"><img src="${SRC(it)}" alt="" draggable="false"></div>
-  <div class="tx"><p class="nm">${it.name}</p><div class="row"><div class="pr">${HL(it, 'fy/f564b.svg', 'fy/d8912.svg')}<s>${plain(it.was)}</s><em>${pct(it)}%</em></div><img class="ex" src="${A('fy/0d1ec.svg')}" alt="express · Today" draggable="false"></div><span class="lb">${it.last}</span></div>
+  <div class="tx"><span class="lb">${it.last}</span><p class="nm">${it.name}</p><div class="row"><div class="pr"><b><i>${D}</i>${plain(it.price)}</b><s>${plain(it.was)}</s><em>${pct(it)}%</em></div><img class="ex" src="${A('fy/0d1ec.svg')}" alt="express · Today" draggable="false"></div></div>
   <button class="d3-add fy-rcta" type="button" aria-label="Add to cart"><img class="pl" src="${A('fy/b7ea7.svg')}" alt="" draggable="false"><span class="t">Add to cart</span><span class="ok">${CHECK}<span>Added to cart</span></span></button>
   <button class="d3-wish fy-rwish" type="button" aria-label="Add to wishlist" aria-pressed="false"><img src="${A('fy/5317a.svg')}" alt="" draggable="false">${HEART}</button>
 </div></div>`;
@@ -132,10 +133,10 @@ scroller.innerHTML = `<div class="d3 fy">
     <i class="sp s0"><img src="${A('fy/c7030.svg')}" alt=""></i><i class="sp s1"><img src="${A('fy/e8219.svg')}" alt=""></i><i class="sp s2"><img src="${A('fy/be23a.svg')}" alt=""></i><i class="sp s3"><img src="${A('fy/53b64.svg')}" alt=""></i><i class="sp s4"><img src="${A('fy/4e33b.svg')}" alt=""></i>
   </button>
   ${CUBES('l')}${CUBES('r')}
-  ${two(602.45, 'Top picks,', 'picked for you', 'p')}
+  ${two(612.45, 'Top picks,', 'picked for you', 'p')}
   <div class="d3-abs d3-deck" data-no-drag aria-roledescription="carousel">${DATA.deck.map(deckCard).join('')}</div>
   <div class="d3-abs d3-ticker rv" data-scroll aria-label="Flash deal offers, win discounts on brands"><div class="run">${tickerUnit.repeat(4)}</div></div>
-  ${two(1365.24, 'Top picks,', 'picked for you', 'q').replace(/rv" data-k="q(a|b)"/g, 'rv" data-scroll')}
+  ${two(1347, 'Top picks,', 'picked for you', 'q').replace(/rv" data-k="q(a|b)"/g, 'rv" data-scroll')}
   <div class="d3-abs d3-refill" data-no-drag data-scroll aria-roledescription="carousel">${DATA.refill.map(refillCard).join('')}</div>
 </div>`;
 sheet.appendChild(scroller);
@@ -172,12 +173,17 @@ const BEATS = {
   deck: [560, 'translateY(56px) scale(.96)'],
 };
 let io = null, live = false;
-const cancelOwn = (el) => el.getAnimations().forEach((a) => { if (!(a instanceof CSSAnimation)) a.cancel(); });   // (script animations only: the CSS loops keep running)
+// a revealed block's end state is written inline and its animations released once they land: iOS WebKit drops the pixels
+// of a layer held by a filled animation once it has scrolled out of the page's scroller, and never repaints it on the way
+// back (the block stays blank until something else touches it). `held` = there, no animation; cancelOwn = back to hidden
+const held = (el) => { el.style.opacity = '1'; };
+const cancelOwn = (el) => { el.getAnimations().forEach((a) => { if (!(a instanceof CSSAnimation)) a.cancel(); }); el.style.opacity = ''; };   // (script animations only: the CSS loops keep running)
 function playIn(el, from, delay, o = {}) {
   cancelOwn(el);
   const d = reduce.matches ? 0 : delay;
-  el.animate([{ transform: reduce.matches ? 'none' : from }, { transform: 'none' }], { duration: o.ms || REVEAL.ms, easing: REVEAL.ease, delay: d, fill: 'both' });
-  el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: o.fadeMs || REVEAL.fadeMs, easing: REVEAL.fade, delay: d, fill: 'both' });
+  const a = el.animate([{ transform: reduce.matches ? 'none' : from }, { transform: 'none' }], { duration: o.ms || REVEAL.ms, easing: REVEAL.ease, delay: d, fill: 'both' });
+  const b = el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: o.fadeMs || REVEAL.fadeMs, easing: REVEAL.fade, delay: d, fill: 'both' });
+  Promise.all([a.finished, b.finished]).then(() => { held(el); a.cancel(); b.cancel(); }, () => {});   // (landed: hold it inline, see held)
 }
 // how each beat plays (its beat delay is used when the reveal runs on the clock; with the bot rising it's a beat's offset
 // within its group — title lines, coupon fan — and the group starts when the bot has risen clear of it)
@@ -186,7 +192,7 @@ function playBeat(el, delay) {
   if (k === 'bg') {
     // the top chevrons: each line comes in on its own after a short beat — the inner one behind the bot first, then
     // outwards, 180 ms apart — easing down 10 px into place as it fades up (wrappers .cvr, so the loop on .cv keeps running)
-    cancelOwn(el); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' });
+    cancelOwn(el); held(el);
     [...el.querySelectorAll('.cvr')].sort((a, c) => a.dataset.r - c.dataset.r).forEach((g, i) =>
       playIn(g, 'translateY(-10px)', delay + (reduce.matches ? 0 : 260 + i * 180), { ms: 1300, fadeMs: 900 }));
   }
@@ -482,7 +488,7 @@ function assignRoles(els, wrapD, map) {
   els.forEach((el, i) => {
     const k = map[Math.round(wrapD(i))];
     el.dataset.k = k || '';
-    if (!k) { el.getAnimations().forEach((a) => a.cancel()); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); }
+    if (!k) { el.getAnimations().forEach((a) => a.cancel()); held(el); }
   });
 }
 // the square-to-quad homography (Heckbert), as a CSS matrix3d for a w × h element with its origin at 0 0
@@ -510,7 +516,8 @@ const coupons = (() => {
     if (reduce.matches) { t1.innerHTML = c.title; t2.textContent = c.sub; return; }
     offer.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-4px)' }], { duration: 140, easing: FADE_OUT, fill: 'forwards' }).onfinish = () => {
       t1.innerHTML = c.title; t2.textContent = c.sub;
-      offer.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: FADE_IN, fill: 'forwards' });
+      const inA = offer.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: FADE_IN, fill: 'forwards' });
+      inA.finished.then(() => { held(offer); offer.getAnimations().forEach((x) => x.cancel()); }, () => {});
     };
   };
   const collect = (slot) => {
@@ -557,9 +564,9 @@ const deck = (() => {
   // slot k: x, y, rotation (deg), scale, blur (px), opacity — about the card's top centre (Figma's frames 49913 / 49908 / 49903)
   const SLOT = [
     { x: 0, y: 0, r: 0, s: 1, b: 0, o: 1 },
-    { x: 3.5, y: -18.8, r: 2.67, s: 0.8758, b: 1.44, o: 1 },
-    { x: 3, y: -34.9, r: -2, s: 0.7424, b: 1.9, o: 1 },
-    { x: 3, y: -38, r: -2, s: 0.7, b: 2.2, o: 0 },
+    { x: 3.5, y: -18.8, r: 2.67, s: 0.9787, b: 1.44, o: 1 },   // (616:27875: the cards behind keep their 295-wide size behind the 264 front card)
+    { x: 3, y: -34.9, r: -2, s: 0.8296, b: 1.9, o: 1 },
+    { x: 3, y: -38, r: -2, s: 0.782, b: 2.2, o: 0 },
   ];
   const slot = (k) => SLOT[Math.min(k, 3)];
   const KEYS = ['x', 'y', 'r', 's', 'b', 'o'], K = 280.6, C = 27.14;
@@ -661,7 +668,7 @@ const deck = (() => {
       const d = reduce.matches ? 0 : delay, step = reduce.matches ? 0 : 140;
       [1, 2, Infinity].forEach((n, i) => setTimeout(() => { if (!live) return; fanned = Math.max(fanned, n); aim(); run(); }, d + i * step));
     },
-    roles() { cards.forEach((c, i) => { const el = c.firstElementChild; el.dataset.k = i === order[0] ? 'deck' : ''; if (i !== order[0]) { el.getAnimations().forEach((a) => a.cancel()); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); } }); },
+    roles() { cards.forEach((c, i) => { const el = c.firstElementChild; el.dataset.k = i === order[0] ? 'deck' : ''; if (i !== order[0]) { el.getAnimations().forEach((a) => a.cancel()); held(el); } }); },
   };
 })();
 
@@ -709,7 +716,7 @@ const refill = (() => {
         const d = Math.round(loop.wrapD(+s.dataset.i)), c = s.firstElementChild;
         if (d === 0) playIn(c, 'translateY(28px) scale(.97)', delay);
         else if (Math.abs(d) === 1) playIn(c, `translateX(${-d * 64}px) scale(.94)`, delay + 160);
-        else { c.getAnimations().forEach((x) => x.cancel()); c.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); }
+        else { c.getAnimations().forEach((x) => x.cancel()); held(c); }
       });
     },
   };
