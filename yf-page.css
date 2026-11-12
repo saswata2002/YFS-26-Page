@@ -196,8 +196,14 @@
 .d3-coupons { left: 0; top: 305px; width: 375px; height: 290px; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
 .d3-cslot { position: absolute; left: 98px; top: 0; width: 180px; height: 276px; transform-origin: 0 0; will-change: transform, opacity; cursor: grab;
   -webkit-backface-visibility: hidden; backface-visibility: hidden; }
-.gc { position: relative; width: 180px; height: 276px; overflow: hidden; }
-.gc > * { position: absolute; }
+.gc { position: relative; width: 180px; height: 276px; perspective: 900px; }
+/* the front (Figma's coupon) and the back (collected), each turned on its own clock — the earlier iterations' flip, now
+   with a subtle elastic landing: a spring (ω 11, ζ .72 — yf-page.js writes it as --gc-flip) that carries the turn about
+   4 % (≈ 7°) past flat and settles back, 0.9 s; the soft ease-out where linear() isn't supported */
+.gc .face, .gc .back { -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  transition: transform .9s var(--gc-flip, cubic-bezier(0.22, 1, 0.36, 1)); }
+.gc .face { position: absolute; inset: 0; overflow: hidden; }
+.gc .face > * { position: absolute; }
 .gc .body { left: -29px; top: -30px; width: 239.627px; height: 322.097px; max-width: none; }
 /* the holo panel: the offer's own gradient, Figma's light rays, the bank card */
 .gc .holo { left: 6px; top: 6px; width: 168px; height: 148px; overflow: hidden; border-radius: 7.954px; }
@@ -226,14 +232,26 @@
 .gc .strip { left: -29px; top: 216px; width: 239.002px; height: 90px; background: var(--st);
   -webkit-mask: url('f/f8/02da2.png') 0 0 / 100% 100% no-repeat; mask: url('f/f8/02da2.png') 0 0 / 100% 100% no-repeat; }
 .gc .exp { left: 20px; top: 253px; width: 141.3px; height: 13px; opacity: .8; }
-.gc .exp span { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; justify-content: center; gap: 3px; white-space: nowrap;
-  font: 500 11px/13px var(--noon); letter-spacing: .909px; color: #1a1206; opacity: .8;
-  transition: opacity .2s cubic-bezier(0.33, 1, 0.68, 1), transform .3s cubic-bezier(0.22, 1, 0.36, 1); }
-.gc .exp .ok { opacity: 0; transform: translateY(5px); letter-spacing: .5px; }
-.gc .exp .ok svg { width: 11px; height: 11px; flex: none; }
-/* collected: "Code … copied" takes the expiry's place */
-.gc.is-collected .exp .on { opacity: 0; transform: translateY(-5px); }
-.gc.is-collected .exp .ok { opacity: .8; transform: none; }
+.gc .exp span { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; justify-content: center; white-space: nowrap;
+  font: 500 11px/13px var(--noon); letter-spacing: .909px; color: #1a1206; opacity: .8; }
+/* the back: the ticket in the offer's strip colour; the dark disc's tick draws itself on once it has come round */
+.gc .back { position: absolute; left: 1px; top: 1px; width: 178px; height: 274px; border-radius: 10px; background: var(--st); color: #1a1206;
+  transform: rotateY(-180deg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 14px;
+  box-shadow: inset 0 0 0 1px rgba(26,18,6,.06); }
+.gc.is-collected .face { transform: rotateY(180deg); }
+.gc.is-collected .back { transform: none; }
+.gc .back .ck { width: 44px; height: 44px; border-radius: 50%; background: #1a1206; color: var(--st); display: flex; align-items: center; justify-content: center; }
+.gc .back .ck svg { width: 24px; height: 24px; }
+.gc .back .ck path { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.gc.is-collected .back .ck path { animation: gcTick .5s .36s cubic-bezier(0.33, 1, 0.68, 1) forwards; }
+@keyframes gcTick { to { stroke-dashoffset: 0; } }
+/* the dark disc pops in with a small elastic bounce as the back comes round (112 % → 96 % → 102 % → 100 %) */
+.gc.is-collected .back .ck { animation: gcPop .62s .2s cubic-bezier(0.33, 1, 0.68, 1) both; }
+@keyframes gcPop { 0% { scale: .4; } 45% { scale: 1.12; } 68% { scale: .96; } 86% { scale: 1.02; } 100% { scale: 1; } }
+.gc .back b { margin-top: 12px; font: 700 18px/24px var(--noon); }
+.gc .back .cd { margin-top: 6px; padding: 4px 12px; border-radius: 8px; border: 1.5px dashed rgba(26,18,6,.45); font: 700 15px/20px var(--noon); letter-spacing: 1.2px; }
+.gc .back em { margin-top: 10px; font: 500 11.5px/14px var(--noon); font-style: normal; opacity: .75; }
+@media (prefers-reduced-motion: reduce) { .gc .face, .gc .back { transition: none; } .gc.is-collected .back .ck path { animation: none; stroke-dashoffset: 0; } .gc.is-collected .back .ck { animation: none; } }
 
 /* ── the feed's end (1520:59360, 209 wide at 79, 1898): the green check, "You're all caught up", "Back to top" ── */
 .f5-end { left: 79px; top: 1898px; width: 209px; height: 183px; display: flex; flex-direction: column; align-items: center; gap: 8px; }

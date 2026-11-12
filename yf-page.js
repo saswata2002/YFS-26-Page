@@ -93,19 +93,24 @@ const heading = (cls, k, ribbon, a, b, c) => `<div class="d3-abs f5-hd ${cls} rv
 const dec = (k, src, [l, t, w, h], [iw, ih, tf = 'none'], loop, d = 0) => `<span class="d3-abs f5-dec${loop ? ` ${loop}` : ''}" style="left:${l}px;top:${t}px;width:${w}px;height:${h}px${d ? `;animation-delay:${d}s` : ''}"><i class="t" style="width:${iw}px;height:${ih}px;transform:${tf}"><img class="rv" data-k="${k}" src="${src}" alt="" draggable="false"></i></span>`;
 // a gift coupon (Figma 1520:59245 "face", 180 × 276): the ticket (its body art), the holo panel — the offer's own colours,
 // the light rays, the bank card on it — the dashed tear line, the offer's two lines, and the scalloped expiry strip
-// (Figma's strip art as a mask, filled with the offer's colour). Collected (a tap, or Redeem now): the strip says the
-// code is copied
+// (Figma's strip art as a mask, filled with the offer's colour). Collected (a tap on the middle one, or Redeem now): it
+// flips over to its back — the offer's strip colour, the tick drawing itself on in its dark disc, "Code copied", the
+// code, "Applied at checkout" (the earlier iterations' coupon back) — and flips back on a second tap
+const TICK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" pathLength="1" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const BANK = {
   ei: (c) => `<i class="chip"></i><img class="lg" src="${G('c31f9.png')}" alt="Emirates Islamic" draggable="false"><b class="visa">VISA</b><em class="tier">${c.tier}</em>`,
   tabby: () => `<img class="tb" src="${A('p/logo-tabby.png')}" alt="tabby" draggable="false"><span class="split">Split in 4. No interest.</span>`,
 };
 const coupon = (c, i) => `<div class="d3-cslot" data-i="${i}" data-o="${i % DATA.coupons.length}"><div class="gc rv" style="--h0:${c.h0};--h1:${c.h1};--st:${c.strip}" role="button" aria-label="${c.t1.replace(D, 'AED ')} ${c.t2}">
-  <img class="body" src="${G('46794.png')}" alt="" draggable="false">
-  <div class="holo"><i class="grad"></i><img class="rays" src="${G('9a150.png')}" alt="" draggable="false"><div class="bank ${c.card}">${BANK[c.card](c)}</div></div>
-  <img class="dash" src="${G('a4e46.png')}" alt="" draggable="false">
-  <p class="t1">${c.t1}</p><p class="t2">${c.t2}</p>
-  <i class="strip"></i>
-  <p class="exp"><span class="on">EXPIRES ON 12/11/2026</span><span class="ok">${CHECK}CODE ${c.code} COPIED</span></p>
+  <div class="face">
+    <img class="body" src="${G('46794.png')}" alt="" draggable="false">
+    <div class="holo"><i class="grad"></i><img class="rays" src="${G('9a150.png')}" alt="" draggable="false"><div class="bank ${c.card}">${BANK[c.card](c)}</div></div>
+    <img class="dash" src="${G('a4e46.png')}" alt="" draggable="false">
+    <p class="t1">${c.t1}</p><p class="t2">${c.t2}</p>
+    <i class="strip"></i>
+    <p class="exp"><span>EXPIRES ON 12/11/2026</span></p>
+  </div>
+  <div class="back" aria-hidden="true"><i class="ck">${TICK}</i><b>Code copied</b><span class="cd">${c.code}</span><em>Applied at checkout</em></div>
 </div></div>`;
 
 const scroller = document.createElement('div');
@@ -565,10 +570,20 @@ const coupons = (() => {
     const dx = (d > 0 ? 1 : -1) * (a - 1) * 120;                                             // (on past the edge)
     return side.map(([x, y]) => [x + dx, y]);
   };
+  // the flip's elastic landing: a spring (ω 11, ζ .72 — about 4 % past, then settled) sampled into a CSS linear() curve
+  if (window.CSS && CSS.supports('transition-timing-function', 'linear(0, 1)')) {
+    const w = 11, z = 0.72, wd = w * Math.sqrt(1 - z * z), T = 0.9, n = 45;
+    const pts = Array.from({ length: n + 1 }, (_, i) => { const t = (i / n) * T; return i === n ? 1 : 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t)); });
+    document.documentElement.style.setProperty('--gc-flip', `linear(${pts.map((p) => p.toFixed(4)).join(', ')})`);
+  }
   const collect = (slot) => {
     slot = slot || slots.find((s) => Math.abs(loop.wrapD(+s.dataset.i)) < 0.5);
     const o = slot.dataset.o, on = !slot.firstElementChild.classList.contains('is-collected');
     slots.filter((s) => s.dataset.o === o).forEach((s) => s.firstElementChild.classList.toggle('is-collected', on));   // (its twin too)
+    // …and the coupon itself gives a little: it dips as it turns, rebounds just past full size and settles (on the
+    // individual scale property, so it never meets the reveal's or the carousel's transforms)
+    if (on && !reduce.matches) slot.firstElementChild.animate([{ scale: 1 }, { scale: 0.96, offset: 0.3 }, { scale: 1.025, offset: 0.62 }, { scale: 0.995, offset: 0.82 }, { scale: 1 }],
+      { duration: 760, easing: 'cubic-bezier(0.37, 0, 0.63, 1)' });
     if (on) { try { navigator.clipboard && navigator.clipboard.writeText(DATA.coupons[o].code).catch(() => {}); } catch {} }
     H(on ? 'success' : 'tap');
     if (on) bot.hop(1.4);
@@ -722,9 +737,14 @@ const deck = (() => {
 const refill = (() => {
   const stage = $('.d3-refill'), slots = [...stage.querySelectorAll('.d3-rslot')];
   const PITCH = 225.5, SS = 181 / 222;
+  // the side cards turn slightly in 3D, away from the middle — their inner edge (next to the middle card) going back,
+  // the outer edge coming forward (user, 2026-11-12: inverted) — by TILT° at the side, growing
+  // with the card's distance from the middle (flat in the middle, so the turn eases in and out as you swipe); each card
+  // seen through its own perspective, so the two sides mirror each other
+  const TILT = 12, PERSP = 900;
   const loop = loopCarousel({ stage, count: slots.length, step: PITCH, tapToFocus: true, place: (wrapD) => slots.forEach((el, i) => {
     const d = wrapD(i), a = Math.abs(d), k = Math.min(1, a);
-    el.style.transform = `translate3d(${(d * PITCH).toFixed(2)}px, 0, 0) scale(${(1 - (1 - SS) * k).toFixed(4)})`;
+    el.style.transform = `perspective(${PERSP}px) translate3d(${(d * PITCH).toFixed(2)}px, 0, 0) rotateY(${(-Math.sign(d) * TILT * k).toFixed(3)}deg) scale(${(1 - (1 - SS) * k).toFixed(4)})`;
     el.style.setProperty('--k', k.toFixed(4));
     // (the type morphs in 16 steps — 0.1 px of size each, below what the eye can see — so its glyphs are re-rasterised a
     // handful of times per swipe instead of every frame)
