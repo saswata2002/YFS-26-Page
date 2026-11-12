@@ -656,6 +656,12 @@ img.contain { object-fit: contain; }
 /* picked up and carried (hold + drag): above everything in the flow until it's home again */
 .orbi.carrying { z-index: 33; }
 .orbi-hit.carrying { z-index: 34; }
+/* iteration 02: the bot is a Lottie (#orbiLot) — the 3D canvas stays for the engine but isn't drawn or shown.
+   The box is 168 px (the Lottie's 500 px frame at the page's 40 px/unit, + the entry's overshoot) and only ever
+   scales down from there (main.js placeLottie), so the vector raster stays sharp */
+#orbi { visibility: hidden; }
+.orbi.orbi-lot { width: 168px; height: 168px; transform-origin: 0 0; }
+.orbi-lot svg { display: block; }
 .orbi-hit { position: absolute; left: 287px; top: 644px; width: 80px; height: 80px; z-index: 16; cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent; }
 .orbi-hit.grabbing { cursor: grabbing; }
 

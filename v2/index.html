@@ -55,6 +55,9 @@
 <!-- ══ 1068:81084 — Orbi Soft Idle + Helmet (80 × 80 at 287, 644): the 3D noon bot,
      1:1 from github.com/saswata2002/3D-noon-bot. Floats over the scroll, under the nav. -->
 <canvas class="orbi" id="orbi" aria-hidden="true"></canvas>
+<!-- iteration 02: the bot is the "Orbi Idle Loop" Lottie (lottie/test.lottie, played from lottie/orbi-idle.json), looping
+     always; main.js still moves it (spot, dock, carry, hops) — the 3D canvas above is no longer drawn -->
+<div class="orbi orbi-lot" id="orbiLot" aria-hidden="true"></div>
 <div class="orbi-hit" id="orbiHit" role="img" aria-label="noon assistant" data-node-id="1068:81084"></div>
 
 </div>
@@ -75,6 +78,7 @@
 </script>
 <script type="module" src="/home-app/assets/index-BMq9KHUf.js"></script>
 <script src="haptics.js"></script>
+<script src="vendor/lottie_light.min.js"></script>
 <script type="importmap">
 { "imports": { "three": "../orbi/vendor/three.module.js" } }
 </script>

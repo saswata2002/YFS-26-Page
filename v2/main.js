@@ -2270,8 +2270,41 @@ function frame(now) {
   govern(now);
   update(Math.min(clock.getDelta(), 1 / 30));
   cadenceN = (cadenceN + 1) % 6;
-  if (cadenceN % renderEvery(now) === 0) renderer.render(scene, camera);
+  placeLottie();                                             // (iteration 02: the Lottie is the bot — no 3D draw)
   requestAnimationFrame(frame);
+}
+
+// ─── iteration 02: the bot is a Lottie ("Orbi Idle Loop", lottie/test.lottie → lottie/orbi-idle.json) ─────────
+// It plays on loop, always. The engine above still runs every gesture, spring and page move; each frame the
+// (the played JSON has the file's eye blink — Eyes scale 100 → 30 % at frames 62–66 — taken out: eyes stay open)
+// Lottie box is put where the 3D ball would be drawn: the ball's centre in the 500×500 comp (250, 262.4, r 125)
+// lands on the bot's spot, and 125 comp px = one unit there. Hops, the error shake and a carry's lean and
+// tumble come along; a sideways spin can't (the drawing is flat).
+const LOT = { el: document.getElementById('orbiLot'), box: 168, cx: 250, cy: 262.4, r: 125, last: '', cls: '' };
+const lotAnim = window.lottie && LOT.el ? window.lottie.loadAnimation({
+  container: LOT.el, renderer: 'svg', loop: true, autoplay: true, path: 'lottie/orbi-idle.json',
+  rendererSettings: { preserveAspectRatio: 'xMidYMid meet', progressiveLoad: false },
+}) : null;
+if (lotAnim) {
+  // never paused: a backgrounded tab or a hidden page resumes it where it left off
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) lotAnim.play(); });
+}
+function placeLottie() {
+  if (!LOT.el) return;
+  const cls = canvas.className + ' orbi-lot';                // (on-page / carrying / is-removed follow the canvas)
+  if (cls !== LOT.cls) { LOT.el.className = cls; LOT.cls = cls; }
+  const unit = view.unit * (1 + CARRY.lift * carry.lift) * intro.scale;
+  const tremble = m.shake ? Math.sin(simT * 90) * m.shake : 0;
+  const x = view.cx + carry.x + (m.x + tremble) * view.unit;
+  // hops only: the engine's own idle bob (hoverY's sine) is left out — the Lottie floats by itself
+  const y = view.cy + carry.y - (m.y - m.hoverY) * view.unit;
+  const s = Math.max(1e-4, unit / LOT.r) * 500 / LOT.box;    // the box's own scale (≤ 1 at rest)
+  const roll = THREE.MathUtils.clamp(-carry.vx * 0.00045, -0.32, 0.32) + carry.tumble;
+  const k = LOT.box / 500;                                   // comp px → box px
+  const tf = `translate3d(${(x - LOT.cx * k * s).toFixed(2)}px, ${(y - LOT.cy * k * s).toFixed(2)}px, 0) `
+    + `rotate(${(-roll * 180 / Math.PI).toFixed(2)}deg) scale(${s.toFixed(4)})`;
+  if (tf !== LOT.last) { LOT.el.style.transform = tf; LOT.last = tf; }
+  LOT.el.style.visibility = body.visible && intro.scale > 0.002 ? '' : 'hidden';
 }
 
 drawFace(faceCur, 1);
