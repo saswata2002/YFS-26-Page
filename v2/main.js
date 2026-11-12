@@ -2276,7 +2276,7 @@ function frame(now) {
 
 // ─── iteration 02: the bot is a Lottie ("Orbi Idle Loop", lottie/test.lottie → lottie/orbi-idle.json) ─────────
 // It plays on loop, always. The engine above still runs every gesture, spring and page move; each frame the
-// (the played JSON has the file's eye blink — Eyes scale 100 → 30 % at frames 62–66 — taken out: eyes stay open)
+// (the played JSON keeps the file's eye blink, frames 62–66; only its time remap's stray frame-1 key is fixed — it blanked the bot once a loop)
 // Lottie box is put where the 3D ball would be drawn: the ball's centre in the 500×500 comp (250, 262.4, r 125)
 // lands on the bot's spot, and 125 comp px = one unit there. Hops, the error shake and a carry's lean and
 // tumble come along; a sideways spin can't (the drawing is flat).
