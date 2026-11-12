@@ -83,14 +83,14 @@ window.Haptics = (() => {
 })();
 
 /* ── Page taps (the Product Upscale engine's tap listener, on the GitFlow Home) ──
-   The Home is the "noon App GitFlow" project's (home-app/, #nkHome); its controls are <button> /
+   The Home is the "noon App GitFlow" project's (../home-app/, #nkHome); its controls are <button> /
    [role=button] (its Pressable), the tab bar a floating nav[data-variant]. Its own kit only buzzes on
    page navigations (Android only), so this engine plays every tap, on iOS too:
      tick     a tab in the tab bar (nothing when tapping the one already selected) — on touch-down
      tap      anything else tappable in the Home — it all sits in the scrolling feed / rails, so on a
               clean release (moved < 8px, < 600ms): starting a scroll or a swipe on it never buzzes
-   The bot, the Orbi sheet and its scrim play their own (orbi/main.js); the sheet's composer
-   buttons theirs (orbi/colour-picker.js). */
+   The bot, the Orbi sheet and its scrim play their own (../orbi/main.js); the sheet's composer
+   buttons theirs (../orbi/colour-picker.js). */
 (() => {
   const H = window.Haptics;
   const TAPPABLE = '#nkHome button, #nkHome [role="button"], #nkHome a[href]';

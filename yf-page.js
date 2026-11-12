@@ -1,109 +1,140 @@
-/* ══ Iteration 3 — the bot's full page: "Deals we think you'll love", 1:1 with Figma Saswata 1473:49855 ══════════════
-   A copy of iteration 1's flow (the circle reveal out of the bot, the "Curating for you" beat, pull-to-close, the
-   mini header, the bot's reactions) with this page built into #orbiSheet at Figma's own x / y (yf-page.css):
-     · a looping 3D coupon carousel (the bank offers live on noon.com), each one flips to its code on a tap
-     · a deck of top picks: swipe the front card away (or tap the pixel arrows), add to cart, the bot catches it
-     · a scrolling "Flash deal offers" strip, a swipeable refill card with a wishlist heart, "Shop all deals"
-   The reveal: the page plays in behind the bot as it leaves for its corner (one soft expo-out settle, front first,
-   the others fanning out from under it), then every block below the fold glides up as it scrolls into view. */
+/* ══ Iteration 5 — the bot's full page, 1:1 with Figma Saswata 1520:59225 ("Option 2 · Light", 375 × 2136) ═══════
+   A copy of iteration 4's flow (the circle reveal out of the bot, the "Curating for you" beat, pull-to-close, the bot's
+   reactions, add-to-cart into the bot) with Figma's page built into #orbiSheet at its own x / y (yf-page.css):
+     · the bot big at the top centre (the yellow Orbi), "HEY NEHA, HERE'S A GIFT FOR YOU" under it
+     · the gift coupons: the bank offer flat in the middle, its neighbours turned away in perspective at half strength;
+       swipe them round, tap the middle one (or "Redeem now") to copy its code
+     · "TOP DEALS, PICKED JUST FOR YOU" and the deck of top picks (noon's Product card, 222 wide): swipe the front card
+       away, it swings out and tucks in at the back of the pile behind Figma's two ghost cards
+     · "LET'S RESTOCK, AT LOW PRICES" and the basics carousel: the middle card 222 wide (with "Last bought"), its
+       neighbours the Small card (181) either side — every card morphs between the two as it moves
+     · the arc, "See all basics", and the feed's end: "You're all caught up" with "Back to top"
+   Every card's nudge line rolls through noon's PLP nudges (Figma's "Nudges - PLP" strip). Once you scroll, the bot
+   glides up into the top-right corner, small, and comes back to the centre at the top. */
 const sheet = document.getElementById('orbiSheet');
-const D = '';                                       // Noontree's dirham glyph
+const D = '';                                   // Noontree's dirham glyph
 const H = (k) => { try { window.Haptics && window.Haptics[k] && window.Haptics[k](); } catch {} };
 const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
 // the reveal: a long, soft settle (expo-out) for the move, a quicker fade — content glides in rather than pops
 const REVEAL = { ms: 1100, ease: 'cubic-bezier(0.16, 1, 0.3, 1)', fadeMs: 640, fade: 'cubic-bezier(0.25, 0.1, 0.25, 1)' };
-const FADE_IN = 'cubic-bezier(0.33, 1, 0.68, 1)', FADE_OUT = 'cubic-bezier(0.65, 0, 0.35, 1)';
-const A = (f) => `f/${f}`;                                     // this iteration's art (Figma exports + noon photos)
+const FADE_IN = 'cubic-bezier(0.33, 1, 0.68, 1)';
+const A = (f) => `f/${f}`;                    // this iteration's art
+const F = (f) => A(`f7/${f}`);                // Figma 789:10090's exports
+const G = (f) => A(`f8/${f}`);                // Figma 1520:59225's exports
 
-// ─── data: live from noon.com/uae-en (2026-11-09) — the homepage's bank offers (Emirates Islamic 09–12 Nov, tabby
-// 08–12 Nov), the 11.11 sale's top deals, and household staples from the grocery store (prices as listed that day)
-const money = (v) => (Math.round(v * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
-const pct = (it) => Math.floor((1 - it.price / it.was) * 100);   // (noon rounds its % off down)
+// ─── data: Figma's products first (AirPods in the deck; Pampers in the middle of the carousel with Gerber and MTR
+// either side), then noon.com's 11.11 deals and household staples (2026-11-09)
+const num = (v) => (v % 1 ? v.toFixed(2) : String(v));      // Figma: "16.20", "899" — no thousands comma
+const pct = (it) => (it.off != null ? it.off : Math.floor((1 - it.price / it.was) * 100));
 const DATA = {
-  coupons: [   // the hero coupon first (Figma's "Midnight Gold"), then the others round the ring
-    { title: `30% extra off up to ${D}150`, sub: 'with Emirates Islamic', tag: 'noon One users', code: 'EIB30', ends: '12/11/2026', card: 'ei', look: 'gold' },
-    { title: `20% extra off up to ${D}100`, sub: 'with Emirates Islamic', tag: 'All users', code: 'EIB20', ends: '12/11/2026', card: 'ei2', look: 'ice' },
-    { title: `25% extra off up to ${D}100`, sub: 'when you pay with tabby', tag: 'All users', code: 'TABBYCASH25', ends: '12/11/2026', card: 'tabby', look: 'mint' },
+  // the gift coupons (Figma 1520:59245 and the two either side): the bank offers live on noon.com that week. Each one's
+  // holo panel and expiry strip carry its own colours (the middle one Figma's purple + yellow; the side ones sampled off
+  // Figma's renders of them: Emirates Islamic's blue, tabby's mint)
+  coupons: [
+    { t1: `30% extra off up to ${D}150`, t2: 'with Emirates Islamic', card: 'ei', tier: 'Platinum', code: 'EIB30', h0: '#2a1fa8', h1: '#8f7cff', strip: '#f5c46b' },
+    { t1: `20% extra off up to ${D}100`, t2: 'with Emirates Islamic', card: 'ei', tier: 'Signature', code: 'EIB20', h0: '#0e3a85', h1: '#4485cb', strip: '#b3dbff' },
+    { t1: `25% extra off up to ${D}100`, t2: 'when you pay with tabby', card: 'tabby', code: 'TABBYCASH25', h0: '#0a5640', h1: '#2ea97a', strip: '#a5efcb' },
   ],
-  deck: [      // "Top picks, picked for you": the 11.11 sale
-    { img: 'deck0', name: 'evvoli Air Fryer 8 Preset Programs, Digital Display 5.5L 1850W', price: 102, was: 499, express: true },
-    { img: 'deck1', name: 'Samsung Galaxy S26 Ultra Dual SIM Cobalt Violet 12GB RAM 256GB 5G', price: 3349, was: 5099, express: true },
-    { img: 'deck2', name: 'Hisense 7Kg Front Loading Washing Machine, 1200RPM, Steam Wash', price: 749, was: 999, express: true },
-    { img: 'deck3', name: 'Hawkins Futura 5L Hard Anodised Deep Kadhai with Steel Lid', price: 67, was: 204, express: true },
-    { img: 'deck4', name: 'FUJIFILM Instax Mini EVO Hybrid Instant Camera, Gentle Rose', price: 779, was: 999, express: false },
+  deck: [
+    { src: F('00ff6.png'), crop: true, name: 'Apple Airpods Pro 2 Wireless Earbuds', price: 899, was: 1399, off: 33, rating: 4.3, count: 128 },
+    { src: A('fy/df9f1.png'), cover: true, name: 'Ninja Crispi 4 in 1 Air Fryer Cooking System 4.2L & 3.1 L Glass', price: 899, was: 1399, off: 33, rating: 4.3, count: 128 },
+    { img: 'deck0', name: 'evvoli Air Fryer 8 Preset Programs, Digital Display 5.5L 1850W', price: 102, was: 499 },
+    { img: 'deck1', name: 'Samsung Galaxy S26 Ultra Dual SIM Cobalt Violet 12GB RAM 256GB 5G', price: 3349, was: 5099 },
+    { img: 'deck2', name: 'Hisense 7Kg Front Loading Washing Machine, 1200RPM, Steam Wash', price: 749, was: 999 },
+    { img: 'deck3', name: 'Hawkins Futura 5L Hard Anodised Deep Kadhai with Steel Lid', price: 67, was: 204 },
+    { img: 'deck4', name: 'FUJIFILM Instax Mini EVO Hybrid Instant Camera, Gentle Rose', price: 779, was: 999 },
   ],
-  refill: [    // the second "Top picks": things you buy again
-    { img: 'refill0', name: 'Fine Facial Tissue 130 Sheets 2 Ply Pack of 5', price: 13.45, was: 17.36, last: 'Last purchased on 28 Oct' },
-    { img: 'refill1', name: 'Persil Power Gel Liquid Laundry Detergent Deep Clean 4.8L', price: 41.7, was: 82.6, last: 'Last purchased on 12 Oct' },
-    { img: 'refill2', name: 'Fine Comfort Toilet Paper 2 Ply, 12 Rolls x 180 Sheets', price: 12.4, was: 19.26, last: 'Last purchased on 2 Nov' },
-    { img: 'refill3', name: 'Fairy Lavender Dishwashing Liquid, 3X Grease Cutting Power', price: 12.9, was: 18.34, last: 'Last purchased on 20 Oct' },
-    { img: 'refill4', name: 'Masafi Pure Low Sodium Natural Water 1.5L, Pack of 12', price: 9.5, was: 16.8, last: 'Last purchased on 4 Nov' },
+  refill: [    // index 0 is the middle card, 1 to its right, the last to its left
+    { src: F('4716a.png'), name: 'Pampers Ultimate Comfort Pants Diapers Size 6 (16+kg) Super Saving Pack', price: 44.89, was: 74.01, off: 39, rating: 4.7, last: 'Last bought on 28 oct' },
+    { src: F('2e34c.png'), name: 'MTR Dosa Mix, 200g', price: 2.7, was: 5.67, off: 52, rating: 2.0, last: 'Last bought on 2 nov' },
+    { src: A('fy/5e392.png'), name: 'Fine Facial Tissue 200 Sheets 2 Ply Pack of 10 White', price: 39.28, was: 59, off: 33, rating: 4.3, last: 'Last bought on 28 oct' },
+    { img: 'refill1', name: 'Persil Power Gel Liquid Laundry Detergent Deep Clean 4.8L', price: 41.7, was: 82.6, last: 'Last bought on 12 oct' },
+    { src: A('fy/d1e4f.png'), name: 'Fine Kitchen Towel 60 Sheets 3 Ply Pack of 12 Rolls White 26.5x21cm', price: 30.7, was: 39.19, off: 22, rating: 4.3, last: 'Last bought on 19 oct' },
+    { img: 'refill3', name: 'Fairy Lavender Dishwashing Liquid, 3X Grease Cutting Power', price: 12.9, was: 18.34, last: 'Last bought on 20 oct' },
+    { src: A('fy/c7a58.png'), name: 'Nescafe Classic Coffee Jar 190grams Single', price: 30.7, was: 39.19, off: 22, rating: 4.3, last: 'Last bought on 24 oct' },
+    { src: F('c4463.png'), name: 'Gerber Organic NutriPuffs Raspberry & Banana, 35g', price: 16.2, was: 27.27, off: 41, rating: 4.3, last: 'Last bought on 4 nov' },
   ],
 };
-const IMG = (k) => A(`p/${k}.webp`);
+const SRC = (it) => it.src || A(`p/${it.img}.webp`);
 
 // ─── markup ──────────────────────────────────────────────────────────────────────────────────────────────────
-const PLUS = '<svg class="pl" viewBox="0 0 40 40" aria-hidden="true"><path d="M27.475 19.1375H20.8625V12.525C20.8625 12.2963 20.7716 12.0769 20.6099 11.9151C20.4481 11.7534 20.2287 11.6625 20 11.6625C19.7713 11.6625 19.5519 11.7534 19.3901 11.9151C19.2284 12.0769 19.1375 12.2963 19.1375 12.525V19.1375H12.525C12.2963 19.1375 12.0769 19.2284 11.9151 19.3901C11.7534 19.5519 11.6625 19.7713 11.6625 20C11.6625 20.2287 11.7534 20.4481 11.9151 20.6099C12.0769 20.7716 12.2963 20.8625 12.525 20.8625H19.1375V27.475C19.1375 27.7037 19.2284 27.9231 19.3901 28.0849C19.5519 28.2466 19.7713 28.3375 20 28.3375C20.2287 28.3375 20.4481 28.2466 20.6099 28.0849C20.7716 27.9231 20.8625 27.7037 20.8625 27.475V20.8625H27.475C27.7037 20.8625 27.9231 20.7716 28.0849 20.6099C28.2466 20.4481 28.3375 20.2287 28.3375 20C28.3375 19.7713 28.2466 19.5519 28.0849 19.3901C27.9231 19.2284 27.7037 19.1375 27.475 19.1375Z"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const HEART = '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7.99998 14.1066C7.99999 13.2163 8.27005 12.3471 8.77448 11.6135C9.27891 10.88 9.99399 10.3167 10.8253 9.99811C11.6565 9.6795 12.5649 9.62054 13.4304 9.82902C14.2959 10.0375 15.0778 10.5036 15.6728 11.1658C15.7147 11.2106 15.7654 11.2463 15.8216 11.2707C15.8779 11.2952 15.9386 11.3078 16 11.3078C16.0613 11.3078 16.122 11.2952 16.1783 11.2707C16.2346 11.2463 16.2853 11.2106 16.3272 11.1658C16.9203 10.4993 17.7024 10.0293 18.5693 9.81827C19.4362 9.60726 20.3468 9.66526 21.1799 9.98457C22.013 10.3039 22.7291 10.8693 23.2329 11.6057C23.7367 12.3421 24.0042 13.2144 24 14.1066C24 15.9386 22.8 17.3066 21.6 18.5066L17.2064 22.757C17.0573 22.9282 16.8735 23.0657 16.6672 23.1604C16.4609 23.2551 16.2368 23.3049 16.0098 23.3063C15.7828 23.3077 15.5581 23.2609 15.3506 23.1688C15.1431 23.0767 14.9576 22.9415 14.8064 22.7722L10.4 18.5066C9.19998 17.3066 7.99998 15.9466 7.99998 14.1066Z" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const CUBES = (side) => `<div class="d3-abs d3-cubes ${side}" data-k="arrows" role="button" aria-label="${side === 'l' ? 'Previous pick' : 'Next pick'}">
-  <i class="c0 rv"><img src="${A('2a5d6.svg')}" alt="" draggable="false"></i><i class="c1 rv"><img src="${A('2a72d.svg')}" alt="" draggable="false"></i><i class="c2 rv"><img src="${A('f97bf.svg')}" alt="" draggable="false"></i></div>`;
-// a bank card on the coupon's holographic panel (131.9 × 83.4, Figma's "Image 14 3")
-const CARD = {
-  ei: `<i class="chip"></i><img class="lg" src="${A('p/logo-ei.png')}" alt="Emirates Islamic" draggable="false"><b class="visa">VISA</b><em class="tier">Platinum</em>`,
-  ei2: `<i class="chip"></i><img class="lg" src="${A('p/logo-ei.png')}" alt="Emirates Islamic" draggable="false"><b class="visa">VISA</b><em class="tier">Signature</em>`,
-  tabby: `<img class="tb" src="${A('p/logo-tabby.png')}" alt="tabby" draggable="false"><span class="split">Split in 4. No interest.</span>`,
-};
-const coupon = (c, i) => `<div class="d3-cslot" data-i="${i}" data-o="${i % DATA.coupons.length}"><div class="d3-cp rv look-${c.look}">
-  <div class="face">
-    <img class="body" src="${A('049d7.svg')}" alt="" draggable="false">
-    <i class="dodge"><img src="${A('c151b.svg')}" alt="" draggable="false"></i>
-    <img class="glow g0" src="${A('1f0f3.svg')}" alt="" draggable="false"><img class="glow g1" src="${A('7dc6b.svg')}" alt="" draggable="false">
-    <div class="holo"><i class="grad"></i><img class="rays" src="${A('9d964.svg')}" alt="" draggable="false"><span class="tag">${c.tag}</span><div class="bank bank-${c.card}">${CARD[c.card]}</div></div>
-    <img class="dash" src="${A('40b1b.svg')}" alt="" draggable="false">
-    <p class="t1">${c.title}</p><p class="t2">${c.sub}</p>
-    <i class="strip"></i><p class="exp">EXPIRES ON ${c.ends}</p>
+// Figma's outline/heart (18 × 18), inline so it can fill
+const HEART = '<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M16 6.54545C16 4.58735 14.3677 3 12.3542 3C10.8487 3 9.55633 3.88737 9 5.1536C8.44367 3.88737 7.15131 3 5.64583 3C3.6323 3 2 4.58735 2 6.54545C2 12.2344 9 16 9 16C9 16 16 12.2344 16 6.54545Z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+// "Nudges - PLP": the lines at Figma's own offsets in the strip (the last one is the first again, so it loops)
+const NUDGES = [['89102', 'Lowest price in 30 days'], ['96509', 'Free delivery'], ['0aaea', 'Selling out fast'], ['cd44d', '5k+ units sold'], ['4c424', '#2 Bestseller'], ['89102', 'Lowest price in 30 days']];
+const NTOP = [0, 41.09, 75.33, 109.58, 143.82, 178.06];
+const NUDGE = `<span class="ng" aria-label="${NUDGES[0][1]}"><span class="run">${NUDGES.map(([f, t], i) => `<span style="top:${NTOP[i]}px"><img src="${F(f + '.svg')}" alt="" draggable="false"><b>${t}</b></span>`).join('')}</span></span>`;
+// noon's Product card (Figma 801:1043): the photo box with the heart and the +, the name, rating + nudge, price, express
+const card = (it, refill) => `<div class="pc${refill ? ' r' : ''} rv">
+  <div class="main"><div class="ph${it.crop ? ' crop' : ''}${it.cover ? ' cover' : ''}"><img src="${SRC(it)}" alt="" draggable="false"></div>
+    <button class="pc-add" type="button" aria-label="Add to cart" aria-pressed="false"><img class="pl" src="${F('472fb.svg')}" alt="" draggable="false"><span class="ok">${CHECK}</span></button>
+    <button class="pc-wish" type="button" aria-label="Add to wishlist" aria-pressed="false">${HEART}</button></div>
+  <div class="dt">
+    <p class="nm">${it.name}</p>
+    <div class="mt">${it.rating ? `<span class="rt"><img src="${F('73954.svg')}" alt="" draggable="false">${it.rating.toFixed(1)}${!refill && it.count ? ` (${it.count})` : ''}</span>` : ''}${NUDGE}</div>
+    <div class="pg"><div class="pr"><b><i>${D}</i> ${num(it.price)}</b><s>${num(it.was)}</s><em>${pct(it)}%</em></div><img class="ex" src="${F('2232f.svg')}" alt="express · Today" draggable="false"></div>
   </div>
-  <div class="back"><i class="ck">${CHECK}</i><b>Code copied</b><span class="cd">${c.code}</span><em>Applied at checkout</em></div>
+</div>`;
+const deckCard = (it, i) => `<div class="d3-dk" data-i="${i}">${card(it, false)}</div>`;
+const refillCard = (it, i) => `<div class="d3-rslot" data-i="${i}">${card(it, true)}</div>`;
+// the sticker headings (Figma "heading · top deals" 789:10328 / "heading · let's restock" 789:10322): the yellow ribbon,
+// a white word and an orange-gradient word tipped −3° (each with Figma's black outside stroke and hard shadow), the black
+// line under them at −2.5°. Each word's box is placed by its centre and tipped there. The sticker reveals as one piece —
+// ribbon and words together (the reveal moves the whole sticker, so nothing inside it comes apart)
+const word = (w) => `<b data-t="${w}"><span>${w}</span></b>`;
+const heading = (cls, k, ribbon, a, b, c) => `<div class="d3-abs f5-hd ${cls} rv" data-k="${k}">
+  <img class="rb" src="${ribbon}" alt="" draggable="false">
+  <span class="w a">${word(a)}</span><span class="w g">${word(b)}</span>
+  <span class="w c"><b>${c}</b></span></div>`;
+// a pixel heart or a sparkle at Figma's box [left, top, w, h]; the art [w, h] inside it with its tilt / flip; `loop` = the
+// heart's beat or the sparkle's twinkle (yf-page.css), `d` its offset in the loop
+const dec = (k, src, [l, t, w, h], [iw, ih, tf = 'none'], loop, d = 0) => `<span class="d3-abs f5-dec${loop ? ` ${loop}` : ''}" style="left:${l}px;top:${t}px;width:${w}px;height:${h}px${d ? `;animation-delay:${d}s` : ''}"><i class="t" style="width:${iw}px;height:${ih}px;transform:${tf}"><img class="rv" data-k="${k}" src="${src}" alt="" draggable="false"></i></span>`;
+// a gift coupon (Figma 1520:59245 "face", 180 × 276): the ticket (its body art), the holo panel — the offer's own colours,
+// the light rays, the bank card on it — the dashed tear line, the offer's two lines, and the scalloped expiry strip
+// (Figma's strip art as a mask, filled with the offer's colour). Collected (a tap, or Redeem now): the strip says the
+// code is copied
+const BANK = {
+  ei: (c) => `<i class="chip"></i><img class="lg" src="${G('c31f9.png')}" alt="Emirates Islamic" draggable="false"><b class="visa">VISA</b><em class="tier">${c.tier}</em>`,
+  tabby: () => `<img class="tb" src="${A('p/logo-tabby.png')}" alt="tabby" draggable="false"><span class="split">Split in 4. No interest.</span>`,
+};
+const coupon = (c, i) => `<div class="d3-cslot" data-i="${i}" data-o="${i % DATA.coupons.length}"><div class="gc rv" style="--h0:${c.h0};--h1:${c.h1};--st:${c.strip}" role="button" aria-label="${c.t1.replace(D, 'AED ')} ${c.t2}">
+  <img class="body" src="${G('46794.png')}" alt="" draggable="false">
+  <div class="holo"><i class="grad"></i><img class="rays" src="${G('9a150.png')}" alt="" draggable="false"><div class="bank ${c.card}">${BANK[c.card](c)}</div></div>
+  <img class="dash" src="${G('a4e46.png')}" alt="" draggable="false">
+  <p class="t1">${c.t1}</p><p class="t2">${c.t2}</p>
+  <i class="strip"></i>
+  <p class="exp"><span class="on">EXPIRES ON 12/11/2026</span><span class="ok">${CHECK}CODE ${c.code} COPIED</span></p>
 </div></div>`;
-const priceRow = (it) => `<div class="pr"><b><i>${D}</i>${money(it.price)}</b><s>${money(it.was)}</s><em>${pct(it)}%</em></div>`;
-const deckCard = (it, i) => `<div class="d3-dk" data-i="${i}"><div class="in rv">
-  <div class="main"><div class="ph"><img src="${IMG(it.img)}" alt="" draggable="false"></div><i class="tint"></i></div>
-  <div class="info"><p class="nm">${it.name}</p>${priceRow(it)}${it.express ? `<img class="ex" src="${A('d26a7.svg')}" alt="express · Today" draggable="false">` : '<span class="ex"></span>'}
-    <button class="d3-add" type="button" aria-label="Add to cart">${PLUS}<span class="ok">${CHECK}</span></button></div>
-</div></div>`;
-const refillCard = (it, i) => `<div class="d3-rslot" data-i="${i}"><div class="d3-rf rv">
-  <div class="main"><div class="ph"><img src="${IMG(it.img)}" alt="" draggable="false"></div><i class="tint"></i>
-    <button class="d3-wish" type="button" aria-label="Add to wishlist" aria-pressed="false">${HEART}</button></div>
-  <div class="info"><p class="nm">${it.name}</p><div class="pr"><b><i>${D}</i> ${money(it.price)}</b><span class="wp"><s>${money(it.was)}</s><em>${pct(it)}%</em></span></div><p class="last">${it.last}</p></div>
-  <button class="d3-add" type="button" aria-label="Add to cart">${PLUS}<span class="ok">${CHECK}</span></button>
-</div></div>`;
-const PCT = ['08887', '8b80f', 'a1be9'].map((f) => `<img src="${A(f + '.svg')}" alt="" draggable="false">`).join('');
-const HEART_SM = '<svg class="hs" viewBox="41 1.7 10.5 9.5" aria-hidden="true"><path d="M47.0508 2.71063H45.5508L45.0508 1.71063H42.5508L41.0508 3.21063V6.71063L45.5508 11.2106H47.0508L51.5508 6.71063V3.21063L50.0508 1.71063H47.5508L47.0508 2.71063Z" fill="#6348DA"/></svg>';
-const tickerUnit = `<span class="u"><b>Flash deal offers</b><span class="pc">${PCT}</span><b>Win discounts on ${HEART_SM} brands</b></span>`;
-const cta = (label, cls) => `<button class="d3-abs d3-cta ${cls} rv" type="button"><span class="lb">${label}</span></button>`;
-const two = (y, a, b, k) => `<h2 class="d3-abs d3-title" style="top:${y}px"><span class="ln rv" data-k="${k}a">${a}</span><span class="ln rv" data-k="${k}b">${b}</span></h2>`;
 
 const scroller = document.createElement('div');
 scroller.className = 'yf-scroll d3-scroll';
 scroller.setAttribute('data-no-drag', '');
-scroller.innerHTML = `<div class="d3">
-  <img class="d3-abs d3-bg rv" data-k="bg" src="${A('ce7ef.svg')}" alt="" draggable="false">
-  <span class="d3-abs d3-leaf l0 rv" data-k="leafL"><img src="${A('cc1fe.svg')}" alt="" draggable="false"></span>
-  <span class="d3-abs d3-leaf l1 rv" data-k="leafR"><img src="${A('c576a.svg')}" alt="" draggable="false"></span>
-  ${two(117.26, 'Deals we', 'think you\'ll love', 't')}
-  <div class="d3-abs d3-coupons" data-no-drag aria-roledescription="carousel">${[...DATA.coupons, ...DATA.coupons].map(coupon).join('')}</div>
-  ${cta('Redeem Now', 'redeem').replace('rv"', 'rv" data-k="cta"')}
-  <img class="d3-abs d3-shape rv" data-k="shape" src="${A('94761.svg')}" alt="" draggable="false">
-  ${CUBES('l')}${CUBES('r')}
-  ${two(640.11, 'Top picks,', 'picked for you', 'p')}
-  <div class="d3-abs d3-deck" data-no-drag aria-roledescription="carousel">${DATA.deck.map(deckCard).join('')}</div>
-  <div class="d3-abs d3-ticker rv" data-scroll aria-label="Flash deal offers, win discounts on brands"><div class="run">${tickerUnit.repeat(4)}</div></div>
-  ${two(1365.24, 'Top picks,', 'picked for you', 'q').replace(/rv" data-k="q(a|b)"/g, 'rv" data-scroll')}
-  <div class="d3-abs d3-refill" data-no-drag data-scroll aria-roledescription="carousel">${DATA.refill.map(refillCard).join('')}</div>
-  <img class="d3-abs d3-arc rv" data-scroll src="${A('e5712.svg')}" alt="" draggable="false">
-  ${cta('Shop all deals', 'all').replace('rv"', 'rv" data-scroll')}
+scroller.innerHTML = `<div class="d3 f5" data-node-id="1520:59229">
+  <img class="d3-abs f5-bg rv" data-k="bg" src="${G('d75ef.png')}" alt="" draggable="false">
+  ${heading('hn', 'h', G('500e8.svg'), 'HEY', 'NEHA,', 'HERE\'S A GIFT FOR YOU')}
+  ${dec('hx', G('70a92.svg'), [24.88, 182.4, 45.197, 52.603], [37.647, 46.776, 'rotate(-10deg) scaleY(-1)'], 'hb')}
+  ${dec('hx', G('fb026.svg'), [315, 214.61, 31.906, 30.349], [28.475, 26.645, 'rotate(8deg) scaleY(-1)'], 'hb', -0.9)}
+  ${dec('hx', G('4e23f.svg'), [307, 164.64, 20.957, 20.072], [17.871, 16.721, 'rotate(12deg) scaleY(-1)'], 'hb', -0.45)}
+  ${dec('hx', G('1984d.svg'), [63, 165, 26, 26], [26, 26], 'sp')}${dec('hx', G('613fd.svg'), [277, 277, 22, 22], [22, 22], 'sp', -1.2)}
+  <div class="d3-abs d3-coupons" data-no-drag aria-roledescription="carousel" aria-label="Gift coupons">${[...DATA.coupons, ...DATA.coupons].map(coupon).join('')}</div>
+  <img class="d3-abs f5-shape rv" data-k="shape" src="${G('35123.png')}" alt="" draggable="false">
+  <button class="d3-abs f5-cta rd rv" data-k="redeem" type="button">Redeem now</button>
+  ${heading('td', 't', F('9b612.svg'), 'TOP', 'DEALS,', 'PICKED JUST FOR YOU')}
+  ${dec('tx', F('c2f52.svg'), [37.29, 724.85, 31.906, 30.349], [28.475, 26.646, 'rotate(-8deg) scaleY(-1)'], 'hb')}
+  ${dec('tx', F('1984d.svg'), [305, 723.2, 26, 26], [26, 26], 'sp')}
+  <div class="d3-abs d3-deck" data-no-drag aria-roledescription="carousel" aria-label="Top deals">${DATA.deck.map(deckCard).join('')}</div>
+  ${heading('rs', 'r', F('ae09d.svg'), 'LET\'S', 'RESTOCK,', 'AT LOW PRICES')}
+  ${dec('rx', G('d36b2.svg'), [333, 1322, 31.906, 30.349], [28.475, 26.645, 'rotate(8deg) scaleY(-1)'], 'hb', -0.9)}
+  <div class="d3-abs d3-refill" data-k="refill" data-no-drag aria-roledescription="carousel" aria-label="Restock at low prices">${DATA.refill.map(refillCard).join('')}</div>
+  ${dec('rx', G('99ac9.svg'), [-39.98, 1254, 134.451, 400], [80.595, 392.604, 'rotate(-8deg) scaleY(-1)'], 'under')}
+  <img class="d3-abs f5-arc rv" data-k="arc" src="${F('89823.svg')}" alt="" draggable="false">
+  <button class="d3-abs f5-cta sb rv" data-k="cta" type="button">See all basics</button>
+  <div class="d3-abs f5-end rv" data-k="end" data-node-id="1520:59360">
+    <svg class="ck" viewBox="0 0 44 44" aria-hidden="true"><circle class="bg" cx="22" cy="22" r="22" fill="#E6F6EE"/><path class="mk" d="M14.5 22.5L19.5 27.5L29.5 17" pathLength="1" fill="none" stroke="#0F8857" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><p class="t">You're all caught up</p><p class="s">Fresh picks land here every morning</p>
+    <button class="top" type="button"><img src="${G('d7473.svg')}" alt="" draggable="false">Back to top</button>
+  </div>
 </div>`;
 sheet.appendChild(scroller);
 sheet.classList.add('is-yf', 'is-d3');
@@ -122,56 +153,153 @@ const page = scroller.firstElementChild;
 const $ = (s) => page.querySelector(s), $$ = (s) => [...page.querySelectorAll(s)];
 
 // ─── the reveal ─────────────────────────────────────────────────────────────────────────────────────────────
-// timed from the end of the curating beat (the bot leaving for its corner): ms delay, from-transform. Top to bottom,
-// 40–80 ms apart; the hero coupon rises first and its neighbours fan out from under it; the deck's front card lands
-// and the cards behind it spread out after (deck.fan)
+// key: [delay on the clock (ms), from-transform, group, offset in its group (ms)]. Top to bottom: the light behind the bot
+// first; each sticker rises in as one piece (ribbon and words together), then its hearts and sparkles pop in around it;
+// the middle coupon rises and its neighbours fan out from under it; the panel and "Redeem now"; the deck's front
+// card rises and the cards behind it fan out from under it (deck.fan); the carousel's middle card rises (its neighbours
+// glide out with the scroll, refill.reveal); the arc and "See all basics"; the feed's end last
 const BEATS = {
-  bg: [0, 'scale(1.06)'], ta: [40, 'translateY(14px)'], tb: [100, 'translateY(14px)'],
-  leafL: [240, 'translate(10px, 8px) rotate(-40deg) scale(.5)'], leafR: [300, 'translate(-10px, -6px) rotate(40deg) scale(.5)'],
-  cp1: [150, 'translateY(30px) scale(.96)'], cp0: [330, 'translateX(46px) scale(.94)'], cp2: [330, 'translateX(-46px) scale(.94)'],
-  cta: [400, 'translateY(14px) scale(.97)'], shape: [440, 'translateY(46px)'],
-  pa: [500, 'translateY(14px)'], pb: [560, 'translateY(14px)'], arrows: [600, 'scale(.6)'],
-  deck: [560, 'translateY(56px) scale(.96)'],
+  bg: [0, 'scale(1.04)', 'bg', 0],
+  h: [0, 'translateY(14px) scale(.96)', 'hey', 0], hx: [200, 'scale(.4)', 'hey', 200],
+  cp1: [300, 'translateY(30px) scale(.96)', 'coupons', 0], cp0: [470, 'translateX(46px) scale(.94)', 'coupons', 170], cp2: [470, 'translateX(-46px) scale(.94)', 'coupons', 170],
+  shape: [520, 'translateY(24px)', 'redeem', 0], redeem: [560, 'translateY(16px) scale(.97)', 'redeem', 40],
+  t: [640, 'translateY(14px) scale(.96)', 'top', 0], tx: [840, 'scale(.4)', 'top', 200],
+  deck: [940, 'translateY(56px) scale(.96)', 'deck', 0],
+  r: [1100, 'translateY(14px) scale(.96)', 'restock', 0], rx: [1300, 'scale(.4)', 'restock', 200],
+  refill: [1280, null, 'refill', 0],
+  arc: [1440, 'translateY(10px)', 'cta', 0], cta: [1440, 'translateY(16px) scale(.97)', 'cta', 60],
+  end: [1560, 'translateY(20px)', 'end', 0],
 };
-let io = null, live = false;
-const cancelOwn = (el) => el.getAnimations().forEach((a) => { if (!(a instanceof CSSAnimation)) a.cancel(); });   // (script animations only: the CSS loops keep running)
+let live = false, lazyIO = null;
+// a revealed block's end state is written inline and its animations released once they land: iOS WebKit drops the pixels
+// of a layer held by a filled animation once it has scrolled out of the page's scroller, and never repaints it on the way
+// back (the block stays blank until something else touches it). `held` = there, no animation; cancelOwn = back to hidden
+const held = (el) => { el.style.opacity = '1'; };
+const cancelOwn = (el) => { el.getAnimations().forEach((a) => { if (!(a instanceof CSSAnimation)) a.cancel(); }); el.style.opacity = ''; };
 function playIn(el, from, delay, o = {}) {
   cancelOwn(el);
   const d = reduce.matches ? 0 : delay;
-  el.animate([{ transform: reduce.matches ? 'none' : from }, { transform: 'none' }], { duration: o.ms || REVEAL.ms, easing: REVEAL.ease, delay: d, fill: 'both' });
-  el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: o.fadeMs || REVEAL.fadeMs, easing: REVEAL.fade, delay: d, fill: 'both' });
+  const a = el.animate([{ transform: reduce.matches ? 'none' : from }, { transform: 'none' }], { duration: o.ms || REVEAL.ms, easing: REVEAL.ease, delay: d, fill: 'both' });
+  const b = el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: o.fadeMs || REVEAL.fadeMs, easing: REVEAL.fade, delay: d, fill: 'both' });
+  Promise.all([a.finished, b.finished]).then(() => { held(el); a.cancel(); b.cancel(); }, () => {});
 }
-function reveal() {
-  live = true;
-  coupons.roles(); deck.roles();
-  $$('[data-k]').forEach((el) => {
-    const b = BEATS[el.dataset.k]; if (!b) return;
-    if (el.dataset.k === 'bg') playIn(el, b[1], b[0], { ms: 1600, fadeMs: 1100 });
-    else if (el.dataset.k === 'arrows') [...el.children].forEach((c, i) => playIn(c, b[1], b[0] + i * 70));   // small cube to big
-    else playIn(el, b[1], b[0]);
-  });
-  deck.fan(BEATS.deck[0] + 220);
-  setTimeout(() => H('tick'), 320);
-  io && io.disconnect();
-  io = new IntersectionObserver((ents) => {
-    let k = 0;
-    ents.filter((e) => e.isIntersecting).forEach((e) => {
-      io.unobserve(e.target);
-      const el = e.target;
-      if (el.classList.contains('d3-refill')) { refill.reveal((k++) * 80); return; }
-      playIn(el, el.classList.contains('d3-cta') ? 'translateY(16px) scale(.97)' : 'translateY(24px)', (k++) * 80);
+function playBeat(el, delay) {
+  const k = el.dataset.k, b = BEATS[k];
+  if (k === 'refill') { refill.reveal(delay); return; }
+  if (k === 'end') tick(delay + 200);              // (the green check plays as "You're all caught up" glides in)
+  playIn(el, b[1], delay);
+  if (k === 'deck') deck.fan(delay + 480);   // (once the front card is mostly in, so the ones behind never show through it)
+}
+// the product names end the way Figma ends them: two lines, cut at the last character that fits, then "…" (the web's
+// line clamp only cuts at a whole word — "(16+kg)…" where Figma has "(16+kg) S…"). Measured once the fonts are in, on a
+// copy laid out as the middle / front card has it (198 wide)
+let namesFit = false;
+function fitNames() {
+  if (namesFit) return;
+  const go = () => {
+    if (namesFit) return;
+    const probe = document.createElement('p');
+    probe.style.cssText = 'position:absolute;left:-9999px;top:0;width:198px;margin:0;visibility:hidden;display:block';
+    page.appendChild(probe);
+    $$('.pc .nm').forEach((el) => {
+      const full = el.dataset.full || el.textContent, refill = el.closest('.pc.r');
+      el.dataset.full = full; el.title = full;
+      probe.style.font = `500 14px/${refill ? 20 : 19}px ${getComputedStyle(el).fontFamily}`;
+      probe.style.letterSpacing = refill ? '-0.1px' : '0';
+      const max = 2 * (refill ? 20 : 19) + 1, fits = (t) => { probe.textContent = t; return probe.offsetHeight <= max; };
+      if (fits(full)) { el.textContent = full; return; }
+      let lo = 0, hi = full.length;                       // (the longest start that, with "…", still fits in two lines)
+      while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (fits(full.slice(0, mid).trimEnd() + '…')) lo = mid; else hi = mid - 1; }
+      el.textContent = full.slice(0, lo).trimEnd() + '…';
     });
-  }, { root: scroller, threshold: 0.1, rootMargin: '0px 0px -6% 0px' });   // (a touch inside the edge, so the glide is seen)
-  $$('[data-scroll]').forEach((el) => io.observe(el));
+    probe.remove();
+    namesFit = true;
+  };
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(go);
+}
+// the feed's end, "You're all caught up": the green disc pops in on a lively spring (a reward beat — 0.5 → 1.1 → 0.97 →
+// 1, 560 ms) and the tick draws itself on over it, short stroke then long (360 ms in-out, from 220 ms in, the stroke's
+// own length), with a success haptic as it lands. Every time it comes into view; reduced motion: there at once
+function tick(delay) {
+  const svg = $('.f5-end .ck'), disc = svg.querySelector('.bg'), mark = svg.querySelector('.mk');
+  [disc, mark].forEach((el) => el.getAnimations().forEach((a) => a.cancel()));
+  clearTimeout(tick.t);
+  if (reduce.matches) { mark.style.strokeDashoffset = '0'; return; }
+  mark.style.strokeDashoffset = '1';
+  disc.animate([{ transform: 'scale(.5)', opacity: 0 }, { transform: 'scale(1.1)', opacity: 1, offset: 0.42 }, { transform: 'scale(.97)', offset: 0.72 }, { transform: 'scale(1)' }],
+    { duration: 560, delay, easing: 'cubic-bezier(0.33, 1, 0.68, 1)', fill: 'backwards' });
+  const draw = mark.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 360, delay: delay + 220, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'forwards' });
+  draw.finished.then(() => { mark.style.strokeDashoffset = '0'; draw.cancel(); }, () => {});
+  tick.t = setTimeout(() => H('success'), delay + 520);
+}
+function reveal({ withBot = false } = {}) {
+  live = true;
+  fitNames();
+  coupons.roles(); deck.roles();
+  const items = $$('[data-k]').filter((el) => BEATS[el.dataset.k]);
+  if (!withBot || reduce.matches) items.forEach((el) => playBeat(el, BEATS[el.dataset.k][0]));
+  else revealWithBot(items);
+  setTimeout(() => H('tick'), 320);
+  nudges.start();
+}
+// gone back out through the bottom of the screen (the user scrolled back up past it)
+const belowView = (e) => e.rootBounds && e.boundingClientRect.bottom > e.rootBounds.bottom;
+function revealWithBot(items) {
+  const sr = sheet.getBoundingClientRect(), VH = scroller.clientHeight || 812;
+  const anchorOf = (g, el) => (g === 'deck' ? $('.d3-deck .d3-dk.is-top') : g === 'refill' ? $('.d3-refill') : g === 'coupons' ? $('.d3-coupons') : el.closest('.f5-hd') || el);
+  const groups = {};
+  items.forEach((el) => {
+    const [, , g, off] = BEATS[el.dataset.k];
+    if (!groups[g]) {
+      const anchor = anchorOf(g, el), r = anchor.getBoundingClientRect();
+      groups[g] = { name: g, y: r.top - sr.top, h: r.height, anchor: g === 'deck' ? $('.d3-deck') : anchor, els: [] };
+    }
+    groups[g].els.push([el, off]);
+  });
+  const play = (g) => g.els.forEach(([el, off]) => playBeat(el, off));
+  // what's below the screen waits for the scroll: it plays in as it comes into view — and hides again once it has gone
+  // back below the screen, so scrolling down again plays it again. Anything already showing on the first fold plays in
+  // with the rest (Figma 867:7773: the carousel's top peeks in at the bottom edge)
+  const below = [], seq = [];
+  Object.values(groups).forEach((g) => {
+    if (g.name === 'bg') { play(g); return; }                 // (the light behind the bot: at once)
+    const seen = Math.min(VH, g.y + g.h) - Math.max(0, g.y);
+    (seen <= 0 ? below : seq).push(g);
+  });
+  lazyIO && lazyIO.disconnect(); lazyIO = null;
+  if (below.length) {
+    const shown = new Set();
+    lazyIO = new IntersectionObserver((ents) => ents.forEach((e) => {
+      const g = below.find((x) => x.anchor === e.target); if (!g) return;
+      if (e.isIntersecting && !shown.has(g)) {
+        shown.add(g);
+        if (g.name === 'deck') { deck.roles(); playBeat($('.d3-dk.is-top .pc'), 0); } else play(g);
+      } else if (!e.isIntersecting && shown.has(g) && belowView(e)) {
+        shown.delete(g);
+        if (g.name === 'deck') deck.hide(); else if (g.name === 'refill') refill.hide(); else g.els.forEach(([el]) => cancelOwn(el));
+      }
+    }), { root: scroller, threshold: 0.1, rootMargin: '0px 0px -6% 0px' });   // (a touch inside the edge, so the glide is seen)
+    below.forEach((g) => lazyIO.observe(g.anchor));
+  }
+  // what's on screen plays in top to bottom, 70 ms apart — each block no sooner than the bot has risen clear of it
+  seq.sort((a, b) => a.y - b.y);
+  const t0 = performance.now(), HALF = 1.2, CLEAR = 10, GAP = 70;
+  let last = -1e9;
+  const tick = () => {
+    if (!live || !window.orbi.pageOpen) return;
+    const now = performance.now(), v = window.orbi.view, bottom = v.cy + v.unit * HALF + CLEAR;
+    if (seq.length && now - last >= GAP && (seq[0].y > bottom || now - t0 > 1100)) { play(seq.shift()); last = now; }
+    if (seq.length) requestAnimationFrame(tick);
+  };
+  tick();
 }
 function reset() {
-  live = false; io && io.disconnect();
+  live = false; lazyIO && lazyIO.disconnect(); lazyIO = null; dock.reset();
   page.querySelectorAll('.rv').forEach(cancelOwn);
   scroller.scrollTop = 0; onScroll();
-  coupons.jump(0); deck.reset(); refill.jump(0);
-  page.querySelectorAll('.d3-cp.is-collected').forEach((c) => c.classList.remove('is-collected'));
-  page.querySelectorAll('.d3-add.is-on, .d3-wish.is-on').forEach((b) => { b.classList.remove('is-on'); b.setAttribute('aria-pressed', 'false'); });
-  mini.reset();
+  coupons.jump(0); deck.reset(); refill.jump(0); nudges.stop();
+  page.querySelectorAll('.gc.is-collected').forEach((c) => c.classList.remove('is-collected'));
+  page.querySelectorAll('.pc-add.is-on, .pc-wish.is-on').forEach((b) => { b.classList.remove('is-on'); b.setAttribute('aria-pressed', 'false'); });
 }
 
 // ─── the bot, from the page: hops, a happy beat, glances at what's touched, looks the way the page scrolls ─────
@@ -188,63 +316,123 @@ const bot = {
   t: 0, lt: 0,
 };
 page.addEventListener('pointerup', (e) => {
-  const el = e.target.closest('.d3-cp, .d3-dk, .d3-rf, .d3-cta, .d3-cubes'); if (!el || !window.orbi) return;
+  const el = e.target.closest('.d3-cslot, .d3-dk, .d3-rslot, .f5-cta, .f5-end .top'); if (!el || !window.orbi) return;
   const sr = sheet.getBoundingClientRect(), r = el.getBoundingClientRect(), v = window.orbi.view;
   const x = r.left + r.width / 2 - sr.left, y = r.top + r.height / 2 - sr.top;
   bot.look(Math.max(-0.55, Math.min(0.55, (x - v.cx) / 260)), Math.max(-0.15, Math.min(0.32, (y - v.cy) / 900)), 1100);
 });
-// a product added to the cart flies up into the bot on an arc (shrinking, tipping), and the bot catches it with a hop
+// add to cart: the product's photo box lifts off the card and, on its way up, rounds into a disc around the product as
+// it shrinks (its own 320 ms clock, so you watch the card become a circle), and goes straight into the bot along an
+// up-and-over arc — 560 ms, a gentle start and a soft arrival, so the eye can follow it — fading as it enters; the bot jumps
+const FLY_MS = 560, SHAPE_MS = 320;
+const flyEase = (u) => { // cubic-bezier(0.45, 0, 0.2, 1), solved for y at x = u
+  let t = u; for (let i = 0; i < 8; i++) { const x = 3 * (1 - t) * (1 - t) * t * 0.45 + 3 * (1 - t) * t * t * 0.2 + t * t * t - u, dx = 3 * (1 - t) * (1 - t) * 0.45 + 6 * (1 - t) * t * (0.2 - 0.45) + 3 * t * t * (1 - 0.2); if (Math.abs(dx) < 1e-6) break; t -= x / dx; }
+  return 3 * (1 - t) * t * t + t * t * t;
+};
 function flyToBot(src) {
   if (!src || reduce.matches || !window.orbi) { bot.hop(1.4); return; }
   const sr = sheet.getBoundingClientRect(), r = src.getBoundingClientRect(), v = window.orbi.view;
-  const fly = src.cloneNode(true); fly.className = 'd3-fly';
-  Object.assign(fly.style, { left: `${r.left - sr.left}px`, top: `${r.top - sr.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+  const img = src.querySelector('img'); if (!img) { bot.hop(1.4); return; }
+  const ir = img.getBoundingClientRect();
+  const w = r.width, h = r.height, d0 = Math.min(w, h), R = parseFloat(getComputedStyle(src).borderTopLeftRadius) || 12;
+  const DD = 44, sEnd = DD / d0;                                             // the disc it ends as
+  const bx = v.cx, by = v.cy;                                                // into the bot
+  const fly = document.createElement('div'); fly.className = 'd3-fly';
+  fly.innerHTML = `<i class="dc"><img src="${img.currentSrc || img.src}" alt="" draggable="false"></i>`;
+  Object.assign(fly.style, { left: `${r.left - sr.left}px`, top: `${r.top - sr.top}px`, width: `${w}px`, height: `${h}px` });
+  const disc = fly.firstElementChild, pic = disc.firstElementChild;
+  // the product exactly where it is in the card (same box, same fit), so the lift-off doesn't jump
+  Object.assign(pic.style, { left: `${ir.left - r.left}px`, top: `${ir.top - r.top}px`, width: `${ir.width}px`, height: `${ir.height}px`, objectFit: getComputedStyle(img).objectFit || 'contain' });
   sheet.appendChild(fly);
-  const x1 = v.cx - (r.left - sr.left) - r.width / 2, y1 = v.cy - (r.top - sr.top) - r.height / 2;
-  const cx = x1 * 0.35, cy = Math.min(0, y1) - 120;                         // the arc's control point: up and over
-  const ease = (u) => (u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2);
-  const kf = Array.from({ length: 17 }, (_, i) => {
-    const u = ease(i / 16), q = 1 - u;
-    const x = 2 * q * u * cx + u * u * x1, y = 2 * q * u * cy + u * u * y1;
-    return { transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${(1 - 0.86 * u).toFixed(3)}) rotate(${(-14 * u).toFixed(1)}deg)`, opacity: i > 14 ? 0 : 1, offset: i / 16 };
+  const x1 = bx - (r.left - sr.left) - w / 2, y1 = by - (r.top - sr.top) - h / 2;
+  const cx = x1 * 0.2, cy = Math.min(0, y1) * 0.55 - 36;                   // the arc: up first, then over to the bot
+  const N = 24, path = Array.from({ length: N + 1 }, (_, i) => {
+    const u = i / N, p = flyEase(u), q = 1 - p, f = Math.min(1, Math.max(0, (u - 0.8) / 0.2));   // (the last fifth: it shrinks into the bot and fades)
+    return { transform: `translate(${(2 * q * p * cx + p * p * x1).toFixed(1)}px, ${(2 * q * p * cy + p * p * y1).toFixed(1)}px) scale(${(1 - 0.55 * f).toFixed(3)})`, opacity: (1 - f).toFixed(3), offset: u };
   });
-  fly.animate(kf, { duration: 780, easing: 'linear', fill: 'both' }).onfinish = () => { fly.remove(); bot.hop(1.6); H('pop'); bot.cheer(); };
+  const ix = (w - d0) / 2, iy = (h - d0) / 2;
+  const shape = (m, sc) => ({ transform: `scale(${sc.toFixed(4)})`, clipPath: `inset(${(iy * m).toFixed(2)}px ${(ix * m).toFixed(2)}px round ${(R + (d0 / 2 - R) * m).toFixed(2)}px)` });
+  disc.animate([shape(0, 1), shape(1, sEnd)], { duration: SHAPE_MS, easing: 'cubic-bezier(0.5, 0, 0.2, 1)', fill: 'both' });
+  fly.animate(path, { duration: FLY_MS, easing: 'linear', fill: 'both' }).onfinish = () => { fly.remove(); H('pop'); bot.hop(1.8); };
 }
+// add to cart (deck and carousel): the + turns into a tick and the product flies into the bot; again to take it out
+page.addEventListener('click', (e) => {
+  const b = e.target.closest('.pc-add'); if (!b) return;
+  const on = b.classList.toggle('is-on'); b.setAttribute('aria-pressed', String(on));
+  b.setAttribute('aria-label', on ? 'Added to cart' : 'Add to cart');
+  H(on ? 'success' : 'tap');
+  if (on) flyToBot(b.closest('.pc').querySelector('.main'));
+});
+// the wishlist hearts: fill red with a pop, the bot gives a little hop
+page.addEventListener('click', (e) => {
+  const b = e.target.closest('.pc-wish'); if (!b) return;
+  const on = b.classList.toggle('is-on'); b.setAttribute('aria-pressed', String(on));
+  H(on ? 'success' : 'tap');
+  if (on && !reduce.matches) b.animate([{ transform: 'scale(1)' }, { transform: 'scale(.82)', offset: 0.25 }, { transform: 'scale(1.18)', offset: 0.6 }, { transform: 'scale(1)' }], { duration: 460, easing: FADE_IN });
+  if (on) bot.hop(1.1);
+});
+// "See all basics": the pill dips while it's held (a tick on the way in); let go on it and the bot answers
+page.addEventListener('pointerdown', (e) => {
+  const b = e.target.closest('.f5-cta'); if (!b || e.button) return;
+  b.classList.add('is-press'); H('tick');
+  const up = () => { b.classList.remove('is-press'); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); b.removeEventListener('pointerleave', up); };
+  addEventListener('pointerup', up); addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
+});
+$('.f5-cta.sb').addEventListener('click', () => { H('tap'); bot.cheer(); bot.hop(1.2); });
+// "Redeem now": copies the middle coupon's code (it turns to "copied"), the bot jumps for it
+$('.f5-cta.rd').addEventListener('click', () => coupons.collect());
+// "Back to top": the page glides back up (an ease-out on its own clock, interruptible by a touch), the bot comes back
+// to the centre as it arrives
+$('.f5-end .top').addEventListener('click', () => {
+  H('tap');
+  const from = scroller.scrollTop; if (from <= 0) return;
+  if (reduce.matches) { scroller.scrollTop = 0; return; }
+  const ms = Math.min(900, 420 + from * 0.18), t0 = performance.now();
+  let stop = false; const halt = () => { stop = true; };
+  scroller.addEventListener('touchstart', halt, { once: true, passive: true }); scroller.addEventListener('wheel', halt, { once: true, passive: true });
+  const step = (now) => {
+    if (stop) return;
+    const u = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - u, 3);
+    scroller.scrollTop = from * (1 - e);
+    if (u < 1) requestAnimationFrame(step); else { scroller.removeEventListener('touchstart', halt); scroller.removeEventListener('wheel', halt); }
+  };
+  requestAnimationFrame(step);
+});
 
-// ─── the CTAs: fixed labels (Figma's "Redeem Now" / "Shop all deals"), a press dip and a haptic ──────────────────
-$('.d3-cta.redeem').addEventListener('click', () => { coupons.collect(); });
-$('.d3-cta.all').addEventListener('click', () => { H('tap'); bot.hop(1.2); });
+// the hearts' and sparkles' loops (yf-page.css f5Beat / f5Twinkle): paused while they're off screen
+(() => {
+  const calm = new IntersectionObserver((ents) => ents.forEach((e) => e.target.classList.toggle('is-off', !e.isIntersecting)), { root: scroller, rootMargin: '80px 0px' });
+  $$('.f5-dec').forEach((el) => { el.classList.add('is-off'); calm.observe(el); });
+})();
 
-// ─── scroll: a light parallax, the bot reads along, the mini header ──────────────────────────────────────────
-const par = { bg: $('.d3-bg'), l0: $('.d3-leaf.l0'), l1: $('.d3-leaf.l1') };
+// ─── scroll: the bot reads along ──────────────────────────────────────────────────────────────────────────────
 let lastY = 0;
 function onScroll() {
-  const top = scroller.scrollTop, y = Math.min(top, 900);
-  par.bg.style.translate = `0 ${(y * 0.32).toFixed(1)}px`;
-  par.l0.style.translate = `0 ${(y * -0.18).toFixed(1)}px`; par.l1.style.translate = `0 ${(y * -0.1).toFixed(1)}px`;
+  const top = scroller.scrollTop;
   if (live && Math.abs(top - lastY) > 2 && top > 0) bot.look(0, top > lastY ? 0.22 : -0.1, 380);   // reading down / back up
-  ticker.boost(top - lastY);
   lastY = top;
-  mini.update(top);
+  if (live) refill.scrolled(top);                 // the carousel's side cards glide out as it scrolls into view
+  dock.update(top);
 }
 scroller.addEventListener('scroll', onScroll, { passive: true });
-// the mini header: once the title has scrolled away, a black feathered top settles in (just the feather, no text)
-const mini = (() => {
-  const el = document.createElement('div');
-  el.className = 'yf-mini'; el.setAttribute('aria-hidden', 'true');
-  sheet.appendChild(el);
+// the bot rests big at the top centre (main.js VIEW.page, where Figma draws it) while you're at the top of the page;
+// once you start scrolling it glides up into the top-right corner at its small size, and comes back to the centre when
+// you scroll back to the top (hysteresis: out past 40 px, back under 12 px) — iteration 4's dock
+const dock = (() => {
+  const CORNER = { cx: 336, cy: 72, unit: 17 };
   let on = false;
   return {
-    update(top) { const show = top > 150; if (show !== on) { on = show; el.classList.toggle('is-on', on); } },
-    reset() { on = false; el.classList.remove('is-on'); },
+    update(top) {
+      if (!live || curating || !window.orbi || !window.orbi.pageOpen) return;
+      const want = on ? top > 12 : top > 40;
+      if (want === on) return;
+      on = want; window.orbi.stage(on ? CORNER : null);
+    },
+    reset() { on = false; },
   };
 })();
-
-// the quiet loops (leaves, arrows, chevrons): paused while their block is off screen
-(() => {
-  const calm = new IntersectionObserver((ents) => ents.forEach((e) => e.target.classList.toggle('is-off', !e.isIntersecting)), { root: scroller, rootMargin: '120px 0px' });
-  $$('.d3-leaf, .d3-cubes, .d3-bg').forEach((el) => { el.classList.add('is-off'); calm.observe(el); });
-})();
+// the top feather (Figma's "yf-mini", 132 tall): always there, so the page scrolls away under the status bar and the ✕
+(() => { const el = document.createElement('div'); el.className = 'yf-mini'; el.setAttribute('aria-hidden', 'true'); sheet.appendChild(el); })();
 
 // pull down at the top of the page to close it: the page lifts into the card it closes as and follows the finger
 // (a little resistance); let go past 110 px (or with a flick) and it drops away, otherwise it springs back
@@ -253,7 +441,7 @@ const mini = (() => {
   const rubber = (dy) => (dy <= 0 ? 0 : (dy * 0.92) / (1 + dy / 1100));
   const begin = (x, y, target) => {
     if (!window.orbi || !window.orbi.pageOpen || curating || scroller.scrollTop > 0) return;
-    if (target.closest('button, .d3-cubes')) return;                      // (the carousels lock to sideways drags, so a pull still works on them)
+    if (target.closest('button')) return;                      // (the carousels lock to sideways drags, so a pull still works on them)
     cancelAnimationFrame(raf); g = { x, y, on: false, py: 0, v: 0, lt: performance.now(), ly: y, armed: false };
   };
   const move = (x, y, ev) => {
@@ -290,22 +478,15 @@ const mini = (() => {
   addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') move(e.clientX, e.clientY, null); });
   addEventListener('pointerup', (e) => { if (e.pointerType === 'mouse') end(); });
 })();
-// the CTAs' press: held down from touch-down to release (or the finger sliding off), with a tick on the way in
-page.addEventListener('pointerdown', (e) => {
-  const b = e.target.closest('.d3-cta'); if (!b || e.button) return;
-  b.classList.add('is-press'); H('tick');
-  const up = () => { b.classList.remove('is-press'); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); b.removeEventListener('pointerleave', up); };
-  addEventListener('pointerup', up); addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
-});
 
 // ─── carousels ──────────────────────────────────────────────────────────────────────────────────────────────
-// One engine for the coupons and the refill card (iteration 1's): a continuous position `pos` (in items) that a drag
-// moves 1 : 1, a flick carries its speed into a spring (stiffness 240, damping 30.4 — ζ .98, no visible overshoot)
-// which lands on a whole item, and every item is placed from its wrapped distance to `pos`, so the row just keeps
-// going round. Axis-locked: a mostly-vertical drag is left to the page's scroll. One selection tick per landing.
+// A continuous position `pos` (in items) that a drag moves 1 : 1, a flick carries its speed into a spring (stiffness 240,
+// damping 30.4 — ζ .98, no visible overshoot) which lands on a whole item, and every item is placed from its wrapped
+// distance to `pos`, so the row just keeps going round. Axis-locked: a mostly-vertical drag is left to the page's
+// scroll. One selection tick per landing.
 const capture = (el, id) => { try { el.setPointerCapture(id); } catch {} };   // (a pointer that's already gone can't be captured)
 function loopCarousel({ stage, count, step, place, tapToFocus = false, onTap = null, onLand = null }) {
-  let n = count, pos = 0, vel = 0, target = 0, raf = 0, drag = null, landed = 0, idleUntil = 0;
+  let n = count, pos = 0, vel = 0, target = 0, raf = 0, drag = null, landed = 0;
   const norm = (i) => ((i % n) + n) % n;
   const wrapD = (i) => { let d = i - pos; d -= Math.round(d / n) * n; return d; };
   const render = () => place(wrapD);
@@ -338,29 +519,22 @@ function loopCarousel({ stage, count, step, place, tapToFocus = false, onTap = n
   });
   const end = (e) => {
     if (!drag || e.pointerId !== drag.id) return;
-    const d = drag; drag = null; idleUntil = performance.now() + 8000;
+    const d = drag; drag = null;
     if (d.axis === 'x') { const v = -d.v * 1000 / step; vel = v; go(Math.round(pos + Math.max(-1.4, Math.min(1.4, v * 0.18)))); }
     else if (!d.axis && tapToFocus && d.item) {
       const dd = wrapD(+d.item.dataset.i);
-      if (Math.abs(dd) < 0.5 && onTap) { onTap(d.item); go(Math.round(pos)); } else go(Math.round(pos + dd));   // a tap on a side item brings it forward
+      if (Math.abs(dd) < 0.5) { onTap && onTap(d.item); go(Math.round(pos)); } else go(Math.round(pos + dd));   // a tap on a side item brings it forward
     }
     else go(Math.round(pos));
   };
   addEventListener('pointerup', end); addEventListener('pointercancel', end);
   return {
     wrapD, go,
-    get target() { return target; }, get at() { return norm(Math.round(target)); }, get busy() { return !!drag || performance.now() < idleUntil; },
+    get at() { return norm(Math.round(target)); },
     jump(i) { cancelAnimationFrame(raf); raf = 0; pos = target = landed = i; vel = 0; render(); },
   };
 }
-// the reveal's beats go to whichever items are in those slots now; the rest are simply there
-function assignRoles(els, wrapD, map) {
-  els.forEach((el, i) => {
-    const k = map[Math.round(wrapD(i))];
-    el.dataset.k = k || '';
-    if (!k) { el.getAnimations().forEach((a) => a.cancel()); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); }
-  });
-}
+
 // the square-to-quad homography (Heckbert), as a CSS matrix3d for a w × h element with its origin at 0 0
 function m3d(q, w, h) {
   const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = q;
@@ -371,73 +545,93 @@ function m3d(q, w, h) {
   return `matrix3d(${f(a / w)},${f(d / w)},0,${f(g / w)},${f(b / h)},${f(e / h)},0,${f(hh / h)},0,0,1,0,${f(x0)},${f(y0)},0,1)`;
 }
 
-// the coupons: Figma's three on the inside of a ring — the hero coupon flat in the middle, the side ones turned in
-// towards you (their inner edge taller, at 50 %), and further ones going round out of sight. Each slot's 179.6 × 275.8
-// face is mapped onto its quad (traced from the Figma side coupons) by a projective transform; interpolating the quads
-// turns them smoothly as the ring moves. The three offers twice over, so one is always coming in from the edge.
+// the gift coupons (Figma 1520:59245 + the two d3-cslot renders): the middle one flat, 180 × 276 at (98, 305); its
+// neighbours turned away from the middle in perspective at half strength — their near edge 212 tall, 41 px in from the
+// middle coupon's side, the far edge going off the screen's edge (the quads fitted to Figma's renders: top and bottom
+// edges converging on the same vanishing point, the visible slice the same share of the coupon). In between, every
+// corner travels straight from one pose to the next and the card is drawn through them as a true perspective map, so
+// the turn reads as one card rotating; further out they slide on and fade away. The offers twice over, so one is always
+// coming in from the edge. Swipe them round (the carousel spring); a tap on a side one brings it forward; a tap on the
+// middle one, or "Redeem now", copies its code.
 const coupons = (() => {
-  const stage = $('.d3-coupons'), slots = [...stage.querySelectorAll('.d3-cslot')], N = slots.length;
-  const CW = 179.638, CH = 275.797;
-  const Q = {   // TL, TR, BR, BL in stage coordinates (the stage sits at page 0, 209)
-    0: [[97.68, 0], [277.32, 0], [277.32, 275.8], [97.68, 275.8]],
-    1: [[317.32, 27.9], [399.32, 69.4], [399.32, 210], [317.32, 243.2]],
-    2: [[432, 92], [470, 112], [470, 186], [432, 204]],
-  };
-  const mirror = (q) => [[375 - q[1][0], q[1][1]], [375 - q[0][0], q[0][1]], [375 - q[3][0], q[3][1]], [375 - q[2][0], q[2][1]]];
-  const quadAt = (d) => {
-    const a = Math.min(2, Math.abs(d)), k = Math.floor(Math.min(a, 1.999)), t = a - k;
-    const q = Q[k].map((p, j) => [p[0] + (Q[k + 1][j][0] - p[0]) * t, p[1] + (Q[k + 1][j][1] - p[1]) * t]);
-    return d < 0 ? mirror(q) : q;
+  const stage = $('.d3-coupons'), slots = [...stage.querySelectorAll('.d3-cslot')], N = slots.length, W = 180, Hc = 276;
+  const FLAT = [[0, 0], [W, 0], [W, Hc], [0, Hc]];
+  const SIDE_R = [[221, 28], [301.4, 69], [301.4, 210.95], [221, 240.3]];                     // (right: near edge first)
+  const SIDE_L = SIDE_R.map(([x, y]) => [W - x, y]).map((p, i, a) => a[[1, 0, 3, 2][i]]);   // (mirrored about the middle)
+  const lerpQ = (A, B, t) => A.map((p, i) => [p[0] + (B[i][0] - p[0]) * t, p[1] + (B[i][1] - p[1]) * t]);
+  const quad = (d) => {
+    const a = Math.abs(d), side = d > 0 ? SIDE_R : SIDE_L;
+    if (a <= 1) return lerpQ(FLAT, side, a);
+    const dx = (d > 0 ? 1 : -1) * (a - 1) * 120;                                             // (on past the edge)
+    return side.map(([x, y]) => [x + dx, y]);
   };
   const collect = (slot) => {
     slot = slot || slots.find((s) => Math.abs(loop.wrapD(+s.dataset.i)) < 0.5);
-    const o = slot.dataset.o, cp = slot.firstElementChild, on = !cp.classList.contains('is-collected');
+    const o = slot.dataset.o, on = !slot.firstElementChild.classList.contains('is-collected');
     slots.filter((s) => s.dataset.o === o).forEach((s) => s.firstElementChild.classList.toggle('is-collected', on));   // (its twin too)
     if (on) { try { navigator.clipboard && navigator.clipboard.writeText(DATA.coupons[o].code).catch(() => {}); } catch {} }
     H(on ? 'success' : 'tap');
-    if (on) bot.hop(1.2);
+    if (on) bot.hop(1.4);
   };
-  const loop = loopCarousel({ stage, count: N, step: 180, tapToFocus: true, onTap: collect,
+  const loop = loopCarousel({ stage, count: N, step: 200, tapToFocus: true, onTap: collect,
     place: (wrapD) => slots.forEach((el, i) => {
       const d = wrapD(i), a = Math.abs(d);
-      el.style.transform = m3d(quadAt(d), CW, CH);
-      el.style.opacity = a >= 2 ? 0 : a <= 1 ? (1 - 0.5 * a).toFixed(3) : (0.5 * (2 - a)).toFixed(3);   // Figma: side coupons at 50 %
+      el.style.transform = m3d(quad(d), W, Hc);
+      el.style.setProperty('--k', Math.min(1, a).toFixed(3));   // (the bank card turns see-through towards the side, yf-page.css)
+      el.style.opacity = a <= 1 ? (1 - 0.5 * a).toFixed(3) : Math.max(0, 0.5 * (2 - a)).toFixed(3);   // Figma: the side coupons at 50 %
       el.style.zIndex = String(10 - Math.round(a * 3));
       el.style.visibility = a >= 2 ? 'hidden' : '';
+      el.classList.toggle('is-mid', a < 0.5);
+      el.setAttribute('aria-hidden', String(a >= 0.5));
     }) });
   stage.addEventListener('click', (e) => e.preventDefault());
   return {
-    jump: loop.jump, collect: () => collect(null),
+    jump: (i) => loop.jump(i), collect: () => collect(null),
     roles() { assignRoles(slots.map((s) => s.firstElementChild), loop.wrapD, { '-1': 'cp0', 0: 'cp1', 1: 'cp2' }); },
   };
 })();
+// the reveal's beats go to whichever items are in those slots now; the rest are simply there
+function assignRoles(els, wrapD, map) {
+  els.forEach((el, i) => {
+    const k = map[Math.round(wrapD(i))];
+    el.dataset.k = k || '';
+    if (!k) { el.getAnimations().forEach((a) => a.cancel()); held(el); }
+  });
+}
 
-// the deck of top picks: the front card flat, the two behind it smaller, tipped either way and softly out of focus
-// (Figma's stack). Drag the front card sideways and it follows the finger, tilting; let go past 96 px or with a flick
-// and it's thrown off that side and tucked in at the back, while the others step forward — every card on its own
-// spring (the MOVE spring: stiffness 280.6, damping 27.14), interruptible, carrying the hand's speed. The pixel arrows
-// either side throw it too.
+// the deck of top picks: the front card flat (Figma 789:12983, 222 × 324 at 71.5, 266), the two behind it as Figma's
+// ghost cards — the nearer one 196 wide tipped +2.67°, 14 px higher, the far one 219 wide tipped −2°, 27 px higher, both
+// softly out of focus and washed (--g) to the ghosts' white-to-#EEF0F4. Drag the front card sideways and it follows the
+// finger, tilting; let go past 96 px or with a flick and it swings out that side and tucks in at the back of the pile
+// while the others step forward — every card on its own spring (the MOVE spring: stiffness 280.6, damping 27.14),
+// interruptible, carrying the hand's speed. A tap on a card peeking out behind brings the next one forward.
 const deck = (() => {
-  const stage = $('.d3-deck'), cards = [...stage.querySelectorAll('.d3-dk')], N = cards.length;
-  // slot k: x, y, rotation (deg), scale, blur (px), opacity — about the card's top centre (Figma's frames 49913 / 49908 / 49903)
+  const stage = $('.d3-deck'), cards = [...stage.querySelectorAll('.d3-dk')];
+  // slot k: x, y (of the card's top centre), rotation (deg), scale, blur (px), opacity, ghost wash
   const SLOT = [
-    { x: 0, y: 0, r: 0, s: 1, b: 0, o: 1 },
-    { x: 3.5, y: -18.8, r: 2.67, s: 0.8758, b: 1.44, o: 1 },
-    { x: 3, y: -34.9, r: -2, s: 0.7424, b: 1.9, o: 1 },
-    { x: 3, y: -38, r: -2, s: 0.7, b: 2.2, o: 0 },
+    { x: 0, y: 0, r: 0, s: 1, b: 0, o: 1, g: 0 },
+    { x: 6.1, y: -14.2, r: 2.67, s: 0.8845, b: 1.09, o: 1, g: 1 },     // 789:10254 (drawn over the far one)
+    { x: 0, y: -27.2, r: -2, s: 0.9865, b: 1.9, o: 0.8, g: 1 },        // 789:10249
+    { x: 0, y: -27.2, r: -2, s: 0.9865, b: 2.2, o: 0, g: 1 },
   ];
-  const slot = (k) => SLOT[Math.min(k, 3)];
-  const KEYS = ['x', 'y', 'r', 's', 'b', 'o'], K = 280.6, C = 27.14;
-  let order = cards.map((_, i) => i), raf = 0, drag = null, fanned = false;
-  const st = cards.map(() => ({ ...SLOT[0], v: { x: 0, y: 0, r: 0, s: 0, b: 0, o: 0 }, t: { ...SLOT[0] }, fly: 0 }));
+  // the pile leans the way the last card was flicked (the share build's Option 1): a flick to the left mirrors it
+  let lean = 1;
+  const slot = (k) => { const q = SLOT[Math.min(k, 3)]; return { ...q, x: lean * q.x, r: lean * q.r }; };
+  const KEYS = ['x', 'y', 'r', 's', 'b', 'o', 'g'], K = 280.6, C = 27.14;
+  let order = cards.map((_, i) => i), raf = 0, drag = null, fanned = 0;   // (how many cards behind the front one are out)
+  const st = cards.map(() => ({ ...SLOT[0], v: { x: 0, y: 0, r: 0, s: 0, b: 0, o: 0, g: 0 }, t: { ...SLOT[0] }, fly: 0 }));
   const paint = () => cards.forEach((c, i) => {
     const s = st[i];
     c.style.transform = `translate3d(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px, 0) rotate(${s.r.toFixed(3)}deg) scale(${s.s.toFixed(4)})`;
-    const b = Math.round(s.b * 10) / 10; c.style.filter = b > 0.05 ? `blur(${b}px)` : '';
+    // (the blur in 0.5 px steps while the card moves — a filter whose radius changes every frame is re-run every frame —
+    // and Figma's exact radius once it has come to rest)
+    const moving = Math.abs(s.b - s.t.b) > 0.01 || Math.abs(s.v.b) > 0.01;
+    const b = moving ? Math.round(s.b * 2) / 2 : Math.round(s.b * 100) / 100; c.style.filter = b > 0.05 ? `blur(${b}px)` : '';
     c.style.opacity = s.o.toFixed(3);
+    c.style.setProperty('--g', Math.max(0, Math.min(1, s.g)).toFixed(3));
   });
-  const layer = () => order.forEach((ci, k) => { cards[ci].style.zIndex = String(st[ci].fly ? 40 : 30 - k); cards[ci].classList.toggle('is-top', k === 0); });
-  const aim = () => order.forEach((ci, k) => { if (!st[ci].fly) st[ci].t = { ...slot(fanned ? k : Math.min(k, 0)) }; if (!fanned && k > 0) st[ci].t.o = 0; });
+  const layer = () => order.forEach((ci, k) => { cards[ci].style.zIndex = String(st[ci].fly ? 40 : 30 - k); cards[ci].classList.toggle('is-top', k === 0); cards[ci].setAttribute('aria-hidden', String(k !== 0)); });
+  const aim = () => order.forEach((ci, k) => { if (!st[ci].fly) st[ci].t = { ...slot(k <= fanned ? k : 0) }; if (k > fanned) st[ci].t.o = 0; });
   function run() {
     if (raf) return;
     let last = performance.now();
@@ -445,13 +639,13 @@ const deck = (() => {
       const dt = Math.min(0.032, (now - last) / 1000); last = now;
       let moving = false;
       st.forEach((s, i) => {
-        if (drag && drag.ci === i) return;
+        if (drag && drag.ci === i && drag.axis === 'x') return;
         for (let h = dt; h > 1e-6; h -= 1 / 240) {
           const k = Math.min(h, 1 / 240);
-          KEYS.forEach((p) => { const c = p === 'o' || p === 'b' ? 0.8 : 1; s.v[p] += (K * c * (s.t[p] - s[p]) - C * Math.sqrt(c) * s.v[p]) * k; s[p] += s.v[p] * k; });
+          KEYS.forEach((p) => { const c = p === 'o' || p === 'b' || p === 'g' ? 0.8 : 1; s.v[p] += (K * c * (s.t[p] - s[p]) - C * Math.sqrt(c) * s.v[p]) * k; s[p] += s.v[p] * k; });
         }
-        if (s.fly && Math.abs(s.x) > 420) recycle(i);
-        const still = KEYS.every((p) => Math.abs(s.t[p] - s[p]) < (p === 's' || p === 'o' ? 0.0008 : 0.04) && Math.abs(s.v[p]) < 0.05);
+        if (s.fly && Math.abs(s.x) > 185) recycle(i);   // (at the edge of its swing it tucks in behind)
+        const still = KEYS.every((p) => Math.abs(s.t[p] - s[p]) < (p === 's' || p === 'o' || p === 'g' ? 0.0008 : 0.04) && Math.abs(s.v[p]) < 0.05);
         if (still) KEYS.forEach((p) => { s[p] = s.t[p]; s.v[p] = 0; }); else moving = true;
       });
       paint();
@@ -459,25 +653,26 @@ const deck = (() => {
     };
     raf = requestAnimationFrame(tick);
   }
-  // the thrown card, once off screen, goes in at the very back (hidden) and comes round again from there
+  // the thrown card swings out to the side, then — behind everything now — slides back into the last slot of the pile,
+  // so you watch it go to the end of the stack
   function recycle(i) {
     const s = st[i]; s.fly = 0;
-    Object.assign(s, slot(3)); KEYS.forEach((p) => { s.v[p] = 0; }); s.t = { ...slot(order.indexOf(i)) };
+    s.v.x *= 0.25; s.t = { ...slot(order.indexOf(i)) };
     layer();
   }
   function throwTop(dir, v = 0) {
     const ci = order[0], s = st[ci];
-    s.fly = dir; s.t = { x: dir * 470, y: s.y + 20, r: dir * 16, s: s.s, b: 0, o: 1 };
+    lean = dir;   // (the pile swings to lean after it)
+    s.fly = dir; s.t = { x: dir * 240, y: s.y + 10, r: dir * 14, s: 0.96, b: 0, o: 1, g: 0 };
     s.v.x = Math.max(Math.abs(s.v.x), Math.abs(v) * 1000, 900) * dir;
     order = [...order.slice(1), ci];
     aim(); layer(); H('tick'); run();
-    (dir < 0 ? cubesL : cubesR).classList.remove('is-hit'); void stage.offsetWidth; (dir < 0 ? cubesL : cubesR).classList.add('is-hit');
   }
   stage.addEventListener('pointerdown', (e) => {
     if (e.button || e.target.closest('button')) return;
     const c = e.target.closest('.d3-dk'); if (!c) return;
     const ci = +c.dataset.i;
-    if (ci !== order[0]) { throwTop(-1); return; }                          // a tap on a card behind brings it forward
+    if (ci !== order[0]) { throwTop(-1); return; }               // a tap on a card behind brings it forward
     drag = { ci, x: e.clientX, y: e.clientY, x0: st[ci].x, lx: e.clientX, lt: performance.now(), v: 0, axis: null, id: e.pointerId };
   });
   addEventListener('pointermove', (e) => {
@@ -490,7 +685,7 @@ const deck = (() => {
     const s = st[drag.ci]; s.x = drag.x0 + dx; s.y = Math.abs(dx) * 0.04; s.r = dx * 0.045; s.v.x = drag.v * 1000;
     // the cards behind lean in as the front one goes: a step towards their next slot
     const p = Math.min(1, Math.abs(dx) / 180);
-    order.slice(1).forEach((ci, k) => { const A = slot(k + 1), B = slot(k); st[ci].t = Object.fromEntries(KEYS.map((q) => [q, A[q] + (B[q] - A[q]) * p * 0.5])); });
+    order.slice(1).forEach((ci, k) => { const A0 = slot(k + 1), B0 = slot(k); st[ci].t = Object.fromEntries(KEYS.map((q) => [q, A0[q] + (B0[q] - A0[q]) * p * 0.5])); if (k + 1 > fanned) st[ci].t.o = 0; });
     const armed = Math.abs(dx) > 96; if (armed !== drag.armed) { drag.armed = armed; if (armed) H('tick'); }
   });
   const end = (e) => {
@@ -502,84 +697,127 @@ const deck = (() => {
     else { aim(); run(); }
   };
   addEventListener('pointerup', end); addEventListener('pointercancel', end);
-  // add to cart: the button turns into a tick and the product flies into the bot
-  page.addEventListener('click', (e) => {
-    const b = e.target.closest('.d3-add'); if (!b) return;
-    const on = b.classList.toggle('is-on'); b.setAttribute('aria-pressed', String(on));
-    H(on ? 'success' : 'tap');
-    if (on) flyToBot(b.closest('.d3-dk, .d3-rf').querySelector('.ph'));
-  });
-  const cubesL = $('.d3-cubes.l'), cubesR = $('.d3-cubes.r');
-  cubesL.addEventListener('click', () => throwTop(-1)); cubesR.addEventListener('click', () => throwTop(1));
   return {
-    reset() { order = cards.map((_, i) => i); fanned = false; st.forEach((s) => { s.fly = 0; Object.assign(s, SLOT[0]); KEYS.forEach((p) => { s.v[p] = 0; }); }); aim(); order.forEach((ci, k) => { if (k) st[ci].o = 0; }); layer(); paint(); },
-    // the reveal: the front card lands first, then the two behind it fan out from under it
-    fan(delay) { setTimeout(() => { if (!live) return; fanned = true; aim(); run(); }, reduce.matches ? 0 : delay); },
-    roles() { cards.forEach((c, i) => { const el = c.firstElementChild; el.dataset.k = i === order[0] ? 'deck' : ''; if (i !== order[0]) { el.getAnimations().forEach((a) => a.cancel()); el.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); } }); },
+    next: (dir = 1) => throwTop(dir),
+    reset() { cancelAnimationFrame(raf); raf = 0; drag = null; lean = 1; order = cards.map((_, i) => i); fanned = 0; st.forEach((s) => { s.fly = 0; Object.assign(s, SLOT[0]); KEYS.forEach((p) => { s.v[p] = 0; }); }); aim(); order.forEach((ci, k) => { if (k) st[ci].o = 0; }); layer(); paint(); },
+    // scrolled back away below the screen: the cards behind tuck back under the front one (instantly, it's off screen)
+    // and the front one goes back to hidden, so the next scroll down plays the whole entrance again
+    hide() {
+      fanned = 0;
+      order.forEach((ci, k) => { const s0 = st[ci]; if (k && !s0.fly) { Object.assign(s0, { ...slot(0), o: 0 }); KEYS.forEach((p) => { s0.v[p] = 0; }); } });
+      aim(); paint();
+      cards.forEach((c) => cancelOwn(c.firstElementChild));
+    },
+    // the reveal: the front card lands first; then the cards behind it come out from under it one at a time
+    fan(delay) {
+      const d = reduce.matches ? 0 : delay, step = reduce.matches ? 0 : 140;
+      [1, 2, Infinity].forEach((n, i) => setTimeout(() => { if (!live) return; fanned = Math.max(fanned, n); aim(); run(); }, d + i * step));
+    },
+    roles() { cards.forEach((c, i) => { const el = c.firstElementChild; el.dataset.k = i === order[0] ? 'deck' : ''; if (i !== order[0]) { el.getAnimations().forEach((a) => a.cancel()); held(el); } }); },
   };
 })();
 
-// the refill carousel (Figma 1474:50538): a 236-wide main card with its neighbours either side at 80 %, 20 apart and
-// 35.5 lower. Each card morphs as it moves (--k: 0 in the middle → 1 at the side, driven by yf-page.css): its photo
-// box goes from 3 : 4 to the side cards' shorter one, the "Last purchased" line folds away and the + slides from
-// the photo's corner (dark ink) down to the card's corner (white ink). A tap on a side card brings it forward
+// the basics carousel (Figma 1523:61102 – 61105): the middle card 222 × 326 at (76, 1401), its neighbours Figma's Small
+// card (181 × 276, centred on the middle one) with their centres 225.5 either side. Each card is the middle card scaled to
+// 81.5 % at the side, and morphs as it moves (--k: 0 in the middle → 1 at the side, yf-page.css): the buttons keep their
+// 32 px, the type steps down only 14 → 13 and the nudge line fades out, as in Figma's Small card. Drag or flick it round;
+// a tap on a side card brings it forward.
 const refill = (() => {
   const stage = $('.d3-refill'), slots = [...stage.querySelectorAll('.d3-rslot')];
-  const PITCH = 232.4, SS = 0.8, DY = 35.5;
+  const PITCH = 225.5, SS = 181 / 222;
   const loop = loopCarousel({ stage, count: slots.length, step: PITCH, tapToFocus: true, place: (wrapD) => slots.forEach((el, i) => {
-    const d = wrapD(i), a = Math.abs(d), k = Math.min(1, a), ink = Math.round(255 * k);
-    el.style.transform = `translate3d(${(d * PITCH).toFixed(2)}px, ${(DY * k).toFixed(2)}px, 0) scale(${(1 - (1 - SS) * k).toFixed(4)})`;
+    const d = wrapD(i), a = Math.abs(d), k = Math.min(1, a);
+    el.style.transform = `translate3d(${(d * PITCH).toFixed(2)}px, 0, 0) scale(${(1 - (1 - SS) * k).toFixed(4)})`;
     el.style.setProperty('--k', k.toFixed(4));
-    el.style.setProperty('--ox', `${(50 - 50 * k * Math.sign(d)).toFixed(2)}%`);   // (a side card's photo sits towards the middle, so a narrow product still shows in the peek)
-    el.style.setProperty('--ink', `rgb(${ink},${ink},${ink})`); el.style.setProperty('--paper', `rgb(${255 - ink},${255 - ink},${255 - ink})`);
+    // (the type morphs in 16 steps — 0.1 px of size each, below what the eye can see — so its glyphs are re-rasterised a
+    // handful of times per swipe instead of every frame)
+    el.style.setProperty('--kt', (Math.round(k * 16) / 16).toFixed(4));
     el.style.opacity = a <= 1 ? '1' : Math.max(0, 2 - a).toFixed(3);
     el.style.zIndex = String(10 - Math.round(a * 3));
     el.style.visibility = a > 1.9 ? 'hidden' : '';
     el.classList.toggle('is-mid', a < 0.5);
+    el.setAttribute('aria-hidden', String(a >= 0.5));
   }) });
-  // the wishlist heart: fills red with a pop
-  stage.addEventListener('click', (e) => {
-    const b = e.target.closest('.d3-wish'); if (!b) return;
-    const on = b.classList.toggle('is-on'); b.setAttribute('aria-pressed', String(on));
-    H(on ? 'success' : 'tap');
-    if (on && !reduce.matches) b.animate([{ transform: 'scale(1)' }, { transform: 'scale(.82)', offset: 0.25 }, { transform: 'scale(1.18)', offset: 0.6 }, { transform: 'scale(1)' }], { duration: 460, easing: 'cubic-bezier(0.33, 1, 0.68, 1)' });
-    if (on) bot.hop(1.1);
+  // the middle card comes in alone; as the page scrolls on, its two neighbours glide out from behind it, tied to the
+  // scroll itself (the 240 px after the carousel's top is 40 px into the screen, through a smoothstep: they start gently
+  // and arrive softly) and followed by a critically damped spring (ω 11, no overshoot), so a flick or an uneven drag still
+  // reads as one calm, continuous move. Both together, from tucked under the middle card (190 px in, 90 %) to their slots;
+  // they fade up over the first 40 % while they're still mostly behind it. Scroll back up and they tuck back in; touch the
+  // carousel and they come out and stay.
+  const SIDE = { from: 190, s0: 0.9, range: 240, w: 11 };
+  const at = (top) => (top - (stage.offsetTop + 40 - (scroller.clientHeight || 812))) / SIDE.range;
+  let sides = [], p = 1, pT = 1, pv = 0, raf2 = 0, locked = true;
+  const ease = (u) => { const x = Math.min(1, Math.max(0, u)); return x * x * (3 - 2 * x); };
+  const paintSides = () => sides.forEach(([c, d]) => {
+    if (p >= 0.9995) { c.style.transform = ''; c.style.opacity = '1'; return; }
+    const q = Math.max(0, p);
+    c.style.transform = `translate3d(${(-d * SIDE.from * (1 - q)).toFixed(2)}px, 0, 0) scale(${(SIDE.s0 + (1 - SIDE.s0) * q).toFixed(4)})`;
+    c.style.opacity = Math.min(1, q / 0.4).toFixed(3);
   });
+  const settle = () => { if (locked && p === 1) sides = []; };     // (out for good: the cards are the carousel's again)
+  const chase = () => {
+    if (raf2) return;
+    let last = performance.now();
+    const tick = (now) => {
+      const dt = Math.min(0.032, (now - last) / 1000); last = now;
+      for (let h = dt; h > 1e-6; h -= 1 / 240) { const k = Math.min(h, 1 / 240); pv += (SIDE.w * SIDE.w * (pT - p) - 2 * SIDE.w * pv) * k; p += pv * k; }
+      if (Math.abs(pT - p) < 0.0005 && Math.abs(pv) < 0.005) { p = pT; pv = 0; raf2 = 0; paintSides(); settle(); return; }
+      paintSides(); raf2 = requestAnimationFrame(tick);
+    };
+    raf2 = requestAnimationFrame(tick);
+  };
+  const setTarget = (t) => {
+    pT = t;
+    if (reduce.matches) { p = t; pv = 0; paintSides(); settle(); return; }
+    chase();
+  };
+  stage.addEventListener('pointerdown', () => { if (locked) return; locked = true; setTarget(1); });   // (touched before scrolling)
+  const stop = () => { cancelAnimationFrame(raf2); raf2 = 0; sides = []; locked = true; p = pT = 1; pv = 0; };
   return {
     jump: loop.jump,
+    hide() { stop(); slots.forEach((sl) => { sl.firstElementChild.style.transform = ''; cancelOwn(sl.firstElementChild); }); },   // (back to hidden, to play in again)
     reveal(delay) {
-      // the main card rises in, then its neighbours slide out from behind it
+      // the middle card rises in; its neighbours wait, tucked behind it, for the scroll
+      stop();
       slots.forEach((s) => {
         const d = Math.round(loop.wrapD(+s.dataset.i)), c = s.firstElementChild;
+        c.style.transform = '';
         if (d === 0) playIn(c, 'translateY(28px) scale(.97)', delay);
-        else if (Math.abs(d) === 1) playIn(c, `translateX(${-d * 64}px) scale(.94)`, delay + 160);
-        else { c.getAnimations().forEach((x) => x.cancel()); c.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1, fill: 'both' }); }
+        else if (Math.abs(d) === 1) { cancelOwn(c); sides.push([c, d]); }
+        else { c.getAnimations().forEach((x) => x.cancel()); held(c); }
       });
+      locked = false; p = 0; pv = 0;
+      paintSides();
+      setTarget(ease(at(scroller.scrollTop)));              // (already scrolled part-way: already partly out)
+      if (reduce.matches) { locked = true; setTarget(1); }
     },
+    scrolled(top) { if (!locked) setTarget(ease(at(top))); },
+    go: (i) => loop.go(i),
   };
 })();
 
-// the flash-deal strip: a steady marquee that speeds up with the scroll (eased back to its own pace)
-const ticker = (() => {
-  const run = $('.d3-ticker .run'), unit = run.firstElementChild;
-  let x = 0, rate = 1, boostV = 0, raf = 0, last = 0, W = 0, on = false;
-  const frame = (now) => {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    boostV *= Math.pow(0.06, dt); rate += (1 + boostV - rate) * Math.min(1, dt * 7);
-    if (!W) W = unit.getBoundingClientRect().width;
-    x -= 34 * rate * dt; if (W && x <= -W) x += W;
-    run.style.transform = `translate3d(${x.toFixed(2)}px, 0, 0)`;
-    raf = on ? requestAnimationFrame(frame) : 0;
+// the nudge line on every card rolls on to the next one every 2.6 s (in-out, 520 ms) while the page is up; from the last
+// (the first again) it snaps back to the top unseen
+const nudges = (() => {
+  const runs = $$('.ng .run'), labels = $$('.ng');
+  let i = 0, t = 0, back = 0;
+  const set = (y, anim) => runs.forEach((r) => { r.style.transition = anim ? '' : 'none'; r.style.transform = y ? `translate3d(0, ${-y}px, 0)` : ''; });
+  const step = () => {
+    if (!live || document.hidden) return;
+    i += 1; set(NTOP[i], true);
+    labels.forEach((l) => l.setAttribute('aria-label', NUDGES[i][1]));
+    if (i === NTOP.length - 1) back = setTimeout(() => { i = 0; set(0, false); }, 700);
   };
-  const vis = new IntersectionObserver(([e]) => { on = e.isIntersecting && !reduce.matches; if (on && !raf) { last = performance.now(); raf = requestAnimationFrame(frame); } }, { root: scroller, rootMargin: '80px 0px' });
-  vis.observe($('.d3-ticker'));
-  return { boost(dy) { boostV = Math.min(3, boostV + Math.abs(dy) * 0.02); } };
+  return {
+    start() { clearInterval(t); clearTimeout(back); if (!reduce.matches) t = setInterval(step, 2600); },
+    stop() { clearInterval(t); clearTimeout(back); i = 0; set(0, false); labels.forEach((l) => l.setAttribute('aria-label', NUDGES[0][1])); },
+  };
 })();
 
 // ─── the curating beat ──────────────────────────────────────────────────────────────────────────────────────
-// tap → the page opens (empty, dark) while the bot flies to the screen's centre and grows; "Curating for you"
-// blurs up under it and shimmers while the bot looks around (its Working pose); then the line dissolves, the bot
-// springs up to its corner and the page reveals behind it.
+// tap → the page opens (empty) while the bot flies to the screen's centre and grows; "Curating for you" blurs up under
+// it and shimmers while the bot looks around (its Working pose); then the line dissolves, the bot springs up to its
+// corner and the page reveals behind it.
 const CURATE = { textIn: 360, hold: 1250, unit: 40 };
 let curating = false, curateT = 0;
 function curateSpot() {
@@ -604,14 +842,16 @@ function curateEnd() {
   curating = false; clearTimeout(curateT);
   curate.getAnimations().forEach((a) => a.cancel());
   curate.animate([{ opacity: 1, transform: 'none', filter: 'blur(0)' }, { opacity: 0, transform: 'translateY(-6px) scale(.98)', filter: 'blur(6px)' }],
-    { duration: 220, easing: FADE_OUT, fill: 'both' });
+    { duration: 220, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'both' });
   curFx.getAnimations().forEach((a) => a.cancel());
-  curFx.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'both' })
+  curFx.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.06)' }], { duration: 220, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'both' })
     .onfinish = () => curFx.classList.remove('is-on');
   window.orbi.setState('idle');
   window.orbi.stage(null);                                     // the bot springs up to its corner…
   H('tick');
-  setTimeout(() => { if (window.orbi.pageOpen) reveal(); }, 200);  // …and once the words have cleared, the page arrives
+  // …and the page plays in behind it as it goes: whatever is already below the bot starts at once (top to bottom),
+  // the rest the moment the bot has risen clear of it — so nothing ever appears under the bot, and no frame is empty
+  if (window.orbi.pageOpen) reveal({ withBot: true });
 }
 function curateCancel() {
   curating = false; clearTimeout(curateT);
@@ -624,12 +864,13 @@ function curateCancel() {
 addEventListener('orbi:page', (e) => {
   if (e.detail === 'opening') { reset(); curateStart(); }
   else if (e.detail === 'landed' && curating) { window.orbi.setState('working'); curateT = setTimeout(curateEnd, CURATE.hold); }
-  else if (e.detail === 'closing') { if (curating) { curateCancel(); window.orbi.setState('idle'); } }
+  else if (e.detail === 'closing') { if (curating) { curateCancel(); window.orbi.setState('idle'); } live = false; nudges.stop(); }
   else if (e.detail === 'closed') { curateCancel(); reset(); }
 });
+// every image on the page decoded up front (not on its first paint, mid-reveal, which costs a dropped frame or two)
+$$('img').forEach((im) => { if (im.decode) im.decode().catch(() => {}); });
 // photos fetched up front, so nothing pops in mid-reveal
-[...DATA.deck, ...DATA.refill].forEach((it) => { const im = new Image(); im.src = IMG(it.img); });
+[...DATA.deck, ...DATA.refill].forEach((it) => { const im = new Image(); im.src = SRC(it); });
 coupons.jump(0); deck.reset(); refill.jump(0);
-// the dark page wants light status-bar content (applied only while the page is up)
-(function ink() { if (window.orbi) window.orbi.statusInk(1); else requestAnimationFrame(ink); })();
-window.yfPage = { reveal, reset, scroller, deck, coupons };
+(function ink() { if (window.orbi) window.orbi.statusInk(0); else requestAnimationFrame(ink); })();   // (a light page: dark status-bar content)
+window.yfPage = { reveal, reset, scroller, coupons, deck, refill };

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-variant="1">
+<html data-variant="1" lang="en">
 <head>
 <meta charset="UTF-8" />
 <!-- a 375-wide layout on every phone (the Figma frame's width): the browser scales it to fill the screen exactly — Android phones are 360–412 wide -->
@@ -17,7 +17,7 @@
 <link rel="modulepreload" href="/home-app/assets/Navigator-BPJXpRng.js" />
 <link rel="stylesheet" href="styles.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400..600&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;800&family=Newsreader:opsz,wght@6..72,400..600&family=Google+Sans+Flex:opsz,slnt,wdth,wght,GRAD,ROND@6..144,-10..0,25..151,1..1000,0..100,0..100&display=swap" />
 <link rel="stylesheet" href="yf-page.css" />
 <link rel="stylesheet" href="switcher.css">
 </head>
@@ -41,7 +41,7 @@
 <div class="sheet-scrim" id="orbiScrim" aria-hidden="true"></div>
 <section class="sheet" id="orbiSheet" role="dialog" aria-modal="true" aria-label="Deals" aria-hidden="true" inert data-node-id="1086:92760">
   <!-- a full page (2026-10-19): it rises over Home and the bot comes to rest at its top; content removed 2026-10-15 -->
-  <button class="page-close" id="orbiClose" type="button" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+  <button class="page-close" id="orbiClose" type="button" aria-label="Close"><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M5.95833 5.95833L11 11M11 11L16.0417 16.0417M11 11L16.0417 5.95833M11 11L5.95833 16.0417"/></svg></button>
 </section>
 
 <!-- ══ 1096:111182 — remove the bot (Home, while it's held): Scrim 1100:115229, Drop target 1098:14090,
@@ -79,14 +79,10 @@
 { "imports": { "three": "./orbi/vendor/three.module.js" } }
 </script>
 <script type="module" src="main.js"></script>
-<!-- the bot's full page: "Deals we think you'll love" (Figma Saswata 1473:49855) -->
+<!-- the bot's full page (Figma Saswata 1520:59225 "Final") -->
 <script type="module" src="yf-page.js"></script>
 <nav class="vswitch" id="vswitch" aria-label="Design variations">
   <button class="vswitch__b" data-v="1" aria-pressed="true">1</button>
-  <button class="vswitch__b" data-v="2" aria-pressed="false">2</button>
-  <button class="vswitch__b" data-v="3" aria-pressed="false">3</button>
-  <button class="vswitch__b" data-v="4" aria-pressed="false">4</button>
-  <button class="vswitch__b" data-v="5" aria-pressed="false">5</button>
   <i class="vswitch__sep" aria-hidden="true"></i>
   <button class="vswitch__b vswitch__reset vswitch__tip" id="vreset" data-tip="Reset" aria-label="Reset the flow — start again from the top"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 10a6.5 6.5 0 1 0 1.9-4.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3.8 2.8v3.4h3.4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <button class="vswitch__b vswitch__spec vswitch__tip" id="vspec" data-tip="Spec Sheet" aria-label="Spec Sheet — motion spec for this iteration"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 5h5M3 10h9M3 15h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="10" y="3.5" width="7" height="3" rx="1.5" fill="currentColor"/><rect x="14" y="13.5" width="3" height="3" rx="1.5" fill="currentColor"/></svg></button>

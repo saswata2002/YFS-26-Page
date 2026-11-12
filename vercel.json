@@ -1,3 +1,12 @@
 {
-  "redirects": []
+  "redirects": [
+    { "source": "/v2/", "destination": "/", "permanent": false },
+    { "source": "/v2/:path*", "destination": "/", "permanent": false },
+    { "source": "/v3/", "destination": "/", "permanent": false },
+    { "source": "/v3/:path*", "destination": "/", "permanent": false },
+    { "source": "/v4/", "destination": "/", "permanent": false },
+    { "source": "/v4/:path*", "destination": "/", "permanent": false },
+    { "source": "/v5/", "destination": "/", "permanent": false },
+    { "source": "/v5/:path*", "destination": "/", "permanent": false }
+  ]
 }

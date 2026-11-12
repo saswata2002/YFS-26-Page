@@ -22,6 +22,12 @@
 import * as THREE from 'three';
 import { createHelmet, SURFACE_GLSL, SHELL_PATH } from './orbi/helmet.js';
 import { mountColourPicker } from './orbi/colour-picker.js';   // (this page: the sheet's colour slider)
+import { createRobo, FACE as ROBO_FACE } from './robo.js';
+
+// Two looks share this engine: Orbi (the ball + helmet) and Bot 2 (robo.js, Figma "new bot" 1154:78182, from
+// github.com/saswata2002/3D-noon-bot d122b04). Iteration 4 is Bot 2 — the purple screen-face robot; iteration 5 is
+// Orbi again — the yellow ball with its helmet (iteration 1's bot).
+const BOT_LOOK = 'orbi';
 
 // ─── constants ────────────────────────────────────────────────────────────
 const R = 1;                    // body radius (Figma body = 240px → 120px = 1 unit)
@@ -31,6 +37,11 @@ const GRAVITY = 17;              // low: a light, floaty toy ball
 const DRAG_YAW = 0.0105;        // rad per px of horizontal drag (~360° over 600px)
 const DRAG_PITCH = 0.006;       // rad per px of vertical drag (tilt while swiping the visor)
 const MAX_TILT = 0.5;
+// Bot 2 doesn't spin freely: a sideways drag turns it like the vertical drag
+// tilts it — following the finger, softly limited to ±MAX_TURN (rubber band),
+// springing back face-on when released, with no fling.
+const DRAG_TURN = 0.006;        // rad per px (same feel as DRAG_PITCH)
+const MAX_TURN = 0.55;
 const BASE_PITCH = -0.2;        // tip the face up toward the camera
 
 // ─── haptics (haptics.js) ──────────────────────────────────────────────
@@ -136,7 +147,7 @@ scene.add(rim);
 // ~5× fewer pixels than a full-screen WebGL layer over a scrolling page.
 const VIEW = {
   home: { cx: 327, cy: 681.5, unit: 30 },        // 1068:81084 — 80×80 FAB at (287, 644)
-  page: { cx: 336, cy: 72, unit: 17 },          // the Yellow Friday page (2026-11-07): resting small at its top right, beside "Hi Neha!"
+  page: { cx: 187.5, cy: 120, unit: 40 },     // iteration 5: the bot rests big at the top centre of its page, above HEY NEHA (Figma 1520:59225's bot); yf-page.js docks it in the corner on scroll
 };
 const view = { ...VIEW.home };
 // room around the ball for hops, the dizzy orbit, Zz and the soft shadows, even
@@ -222,6 +233,7 @@ const LEFT_EYE = {
   // outer side, dropping toward the nose
   angry:    () => ({ a: linePts(-31, -9, -31, 7), b: linePts(-49, -35, -17, -21), w: 22 }),
 };
+const EYE_SET = BOT_LOOK === 'robo' ? ROBO_FACE.LEFT_EYE : LEFT_EYE;
 const FACE_OF = { idle: 'pill', working: 'pill', greeting: 'greeting', error: 'error', dizzy: 'dizzy', sleepy: 'sleepy', angry: 'angry' };
 const mirror = (pts) => pts.map(([x, y]) => [-x, y]);
 // Mouth: only the greeting smiles; every other face keeps it collapsed to a
@@ -232,14 +244,15 @@ const MOUTH = {
   frown: () => ({ a: arcPts(0, 29, 9.5, Math.PI + 0.6, Math.PI * 2 - 0.6), w: 5.5 }),
   none: () => ({ a: linePts(0, 23, 0, 23), w: 0 }),
 };
+const MOUTH_SET = BOT_LOOK === 'robo' ? ROBO_FACE.MOUTH : MOUTH;
 function faceSpec(state) {
   const kind = FACE_OF[state] || 'pill';
-  const L = LEFT_EYE[kind]();
+  const L = EYE_SET[kind]();
   const R = { a: mirror(L.a), b: mirror(L.b), w: L.w };
   const pill = kind === 'pill' ? 1 : 0;
   const happy = kind === 'greeting' ? 1 : 0;
   const angry = kind === 'angry' ? 1 : 0;
-  const mouth = happy ? MOUTH.smile() : angry ? MOUTH.frown() : MOUTH.none();
+  const mouth = happy ? MOUTH_SET.smile() : angry ? MOUTH_SET.frown() : MOUTH_SET.none();
   // brow width: the angry brow is a thinner stroke than its eye (stroke b)
   return { eyes: [L, R], mouth, glint: pill, lip: pill, cheeks: happy, flush: angry, brow: angry, blink: pill };
 }
@@ -316,7 +329,8 @@ function flushImage() {                             // the angry red flush, blur
   return flush;
 }
 
-function drawFace(spec, open = 1) {
+function drawFace(spec, open = 1, tk = null) {
+  if (robo) { robo.drawFace(spec, open, tk); return; }   // Bot 2: the face lives on its screen
   fctx.clearRect(0, 0, FACE_PX, FACE_PX);
   fctx.save();
   fctx.translate(0, FACE_DY * S);
@@ -502,12 +516,29 @@ ${HELMET_AO_GLSL}
 #include <opaque_fragment>`);
 };
 
-const body = new THREE.Mesh(geometry, bodyMat);
+const robo = BOT_LOOK === 'robo' ? createRobo() : null;
+const body = robo ? robo.group : new THREE.Mesh(geometry, bodyMat);
 body.frustumCulled = false;
 scene.add(body);
 
-const helmet = createHelmet();
-body.add(helmet.group);
+// Bot 2 has no helmet: a stand-in keeps the shared visor code paths inert
+const helmet = robo
+  ? { group: new THREE.Group(), visorDown: false, visorMoving: false, visorPickables: [], setVisorDown() {}, toggleVisor() {}, update() {}, setAccent() {}, setLogoWhite() {} }
+  : createHelmet();
+if (!robo) body.add(helmet.group);
+if (robo) {
+  robo.setMetalEnv(pmrem.fromScene(robo.chromeEnvironment(), 0.02).texture);   // the chrome bezel's own reflections
+  key.color.set(robo.lights.key);
+  bounce.color.set(robo.lights.sky);
+  bounce.groundColor.set(robo.lights.ground);
+  rim.color.set(robo.lights.rim);
+}
+// Bot 2's head is smaller in engine units than Orbi's ball + helmet (it drew ~1.4× smaller in the same frame), so it's
+// scaled up to read the same size as the yellow bot everywhere: Home's corner, the curating beat, the page's corner
+// (measured against iteration 3: Home 87 × 72 px, page 50 × 42 px incl. shadow)
+const BOT_SCALE = robo ? 1.42 : 1;
+const BODY_BOTTOM = (robo ? robo.bottom : R) * BOT_SCALE;   // distance from the centre down to where it sits on the floor
+const ORBIT_UP = robo ? 1.2 * BOT_SCALE : 1.55;      // dizzy beads circle this far above the centre
 
 // ─── shadows, exactly as Figma frame 1060:79394 ───────────────────────────
 // In the 80px frame the body is r 30, so 1 unit = 30px; Figma blur radius r
@@ -538,22 +569,26 @@ function shadowSprite(draw, extent = SHADOW_EXTENT) {
   scene.add(mesh);
   return mesh;
 }
-const bodyShadow = shadowSprite((ctx, k) => {
-  blurFill(ctx, 0.22 * k, 'rgba(0,0,0,0.4)', (c) => {   // Figma σ 0.15, softened ×1.5
-    c.beginPath(); c.arc(0, 0, R * k, 0, Math.PI * 2); c.fill();   // offset applied in placeShadows
-  });
-});
-const helmetShadow = shadowSprite((ctx, k) => {
-  blurFill(ctx, 0.11 * k, 'rgba(0,0,0,0.45)', (c) => {  // Figma σ 0.075, softened ×1.5
-    c.scale(k / 120, k / 120);
-    c.translate(-164, -158);                            // offset applied in placeShadows
-    c.fill(new Path2D(SHELL_PATH));
-  });
-});
+// Orbi's two drop shadows (ball + helmet shell); Bot 2 brings its own (head + ears) — see DROP
+const orbiShadows = () => [
+  [shadowSprite((ctx, k) => {
+    blurFill(ctx, 0.22 * k, 'rgba(0,0,0,0.4)', (c) => {   // Figma σ 0.15, softened ×1.5
+      c.beginPath(); c.arc(0, 0, R * k, 0, Math.PI * 2); c.fill();   // offset applied in placeShadows
+    });
+  }), 0.183],
+  [shadowSprite((ctx, k) => {
+    blurFill(ctx, 0.11 * k, 'rgba(0,0,0,0.45)', (c) => {  // Figma σ 0.075, softened ×1.5
+      c.scale(k / 120, k / 120);
+      c.translate(-164, -158);                            // offset applied in placeShadows
+      c.fill(new Path2D(SHELL_PATH));
+    });
+  }), 0.083],
+];
 // Held (Figma 1096:112825): the whole bot casts a big soft shadow — y +18, blur 24, #000 35% on the
-// 88 px frame (unit 33) → offset 0.545, σ 0.364 — the silhouette of ball + helmet shell, faded in by the lift
+// 88 px frame (unit 33) → offset 0.545, σ 0.364 — the bot's silhouette, faded in by the lift
 const liftShadow = shadowSprite((ctx, k) => {
   blurFill(ctx, 0.364 * k, 'rgba(0,0,0,0.35)', (c) => {
+    if (robo) { robo.silhouette(c, k); return; }
     c.beginPath(); c.arc(0, 0, R * k, 0, Math.PI * 2); c.fill();
     c.save(); c.scale(k / 120, k / 120); c.translate(-164, -158); c.fill(new Path2D(SHELL_PATH)); c.restore();
   });
@@ -567,7 +602,11 @@ const contactShadow = shadowSprite((ctx, k) => {
 });
 const toCam = new THREE.Vector3(), camUp = new THREE.Vector3(), qRoll = new THREE.Quaternion(), zAxis = new THREE.Vector3(0, 0, 1);
 let viewRoll = 0;                                     // the bot's on-screen roll this frame
-const DROP = [[bodyShadow, 0.183], [helmetShadow, 0.083], [liftShadow, 0.545]];   // Figma y offsets (units)
+// [sprite, Figma y offset (units)]; Bot 2's are blurred the WebKit-safe way (blurFill)
+const DROP = [
+  ...(robo ? robo.shadows.map((s) => [shadowSprite((ctx, k) => blurFill(ctx, s.sigma * k, s.color, (c) => s.paint(c, k))), s.dy]) : orbiShadows()),
+  [liftShadow, 0.545],
+];
 function placeShadows() {
   toCam.subVectors(camera.position, body.position).normalize();
   camUp.set(0, 1, 0).applyQuaternion(camera.quaternion);
@@ -576,20 +615,21 @@ function placeShadows() {
   for (const [sp, dy] of DROP) {
     sp.position.copy(body.position).addScaledVector(toCam, -1.6);   // just behind the bot
     const sc = camera.position.distanceTo(sp.position) / dBody;
-    sp.scale.setScalar(sc * intro.scale);
-    sp.position.addScaledVector(camUp, -dy * sc * intro.scale);   // light from above: offset stays straight down
+    sp.scale.setScalar(sc * intro.scale * BOT_SCALE);
+    sp.position.addScaledVector(camUp, -dy * sc * intro.scale * BOT_SCALE);   // light from above: offset stays straight down
     sp.quaternion.copy(camera.quaternion).multiply(qRoll);   // silhouette turns with the bot
   }
   // contact shadow stays on the ground line and softens as the bot rises
   const lift = Math.max(0, body.position.y - HOVER_Y);
   // drop shadows soften as the bot rises
-  bodyShadow.material.opacity = helmetShadow.material.opacity = THREE.MathUtils.clamp((2.8 - lift) / 1.3, 0, 1);
+  for (const [sp] of DROP) sp.material.opacity = THREE.MathUtils.clamp((2.8 - lift) / 1.3, 0, 1);
   contactShadow.position.set(body.position.x, CONTACT_Y, 0);
   contactShadow.quaternion.copy(camera.quaternion);
   contactShadow.scale.setScalar((1 + Math.min(lift, 2) * 0.4) * intro.scale);
   contactShadow.material.opacity = THREE.MathUtils.clamp(1 - lift * 0.45, 0, 1) * Math.min(1, intro.scale) * (1 - 0.45 * carry.lift);   // held: 55 % (Figma 1096:112827)
   liftShadow.material.opacity = carry.lift * Math.min(1, intro.scale);   // only while held
-  bodyShadow.visible = helmetShadow.visible = contactShadow.visible = body.visible;
+  for (const [sp] of DROP) sp.visible = body.visible;
+  contactShadow.visible = body.visible && !robo;      // Figma Bot 2 has no ground ellipse
   liftShadow.visible = body.visible && carry.lift > 0.005;
 }
 
@@ -662,6 +702,7 @@ function planReturn() {
 function nudge(dir) {
   m.lastDir = dir;
   m.homing = false;
+  if (robo) { m.spinV += dir * 4; return; }          // Bot 2: a small look-round, never a full turn
   m.spinV += dir * 14;                                // about one full turn, then home
   m.settlePending = true;
 }
@@ -729,6 +770,28 @@ let morph = null;                 // { from, to, t } while a state change morphs
 let stateTime = 0;
 let eyeOpen = 1;
 let blinkT = -1, nextBlink = 2.5;
+// Bot 2's visor ticker: every so often while idle, the eyes blink shut, a line of text scrolls across the screen
+// (in from the right, out to the left, like an LED sign) and the eyes open again
+const TICKER = { text: 'HEY NEHA!   \u00b7   YELLOW FRIDAY SALE', speed: 92, close: 0.16, open: 0.24, first: 4, every: [9, 13] };
+let ticker = null, nextTicker = TICKER.first;
+const tickerCalm = matchMedia('(prefers-reduced-motion: reduce)');
+function stepTicker(dt) {
+  const tk = ticker;
+  tk.t += dt;
+  if (tk.phase === 'close') {
+    const p = Math.min(1, tk.t / TICKER.close);
+    drawFace(faceCur, lerp(1, 0, easeInQuad(p)));
+    if (p >= 1) Object.assign(tk, { phase: 'scroll', t: 0, x: robo.screenW + 4 });
+  } else if (tk.phase === 'scroll') {
+    tk.x -= TICKER.speed * dt;
+    drawFace(faceCur, 1, tk);
+    if (tk.x + tk.w < -4) Object.assign(tk, { phase: 'open', t: 0 });
+  } else {
+    const p = Math.min(1, tk.t / TICKER.open);
+    drawFace(faceCur, ease(p));
+    if (p >= 1) { ticker = null; nextTicker = TICKER.every[0] + Math.random() * (TICKER.every[1] - TICKER.every[0]); nextBlink = 1.5 + Math.random() * 2; }
+  }
+}
 const scripts = [];               // timed one-shots { at, fn }
 
 function schedule(at, fn) { scripts.push({ at: stateTime + at, fn }); }
@@ -850,7 +913,7 @@ function toggleVisor() {
 // C cycles the bot's colour: the ball (base + lower tint) and the
 // helmet's paint + stitching (accent) change together and glide over ~0.5 s.
 // The last choice is remembered per browser (a convenience only).
-const THEMES = [
+const ORBI_THEMES = [
   // brand tiles from Figma "colour options" (1107:115295); accent = the tile colour
   { name: 'noon',      body: 0xffeb45, tint: 0xf2dc00, accent: 0xfeee00, sheen: 0xfff6c8, shade: [0.9, 0.86, 0.74] },
   { name: 'supermall', body: 0x2526cc, tint: 0x1d1ea0, accent: 0x2122b8 },
@@ -859,6 +922,20 @@ const THEMES = [
   { name: 'noon Food', body: 0xe01858, tint: 0xaf1345, accent: 0xe01858 },
   { name: 'NowNow',    body: 0xf33a01, tint: 0xbe2d01, accent: 0xf33a01 },
 ];
+// Bot 2: the Figma purple, then the same brand colours remapped over its palette
+const ROBO_THEMES = [
+  { name: 'Purple' },
+  { name: 'noon', brand: 0xfeee00 },
+  { name: 'supermall', brand: 0x2122b8 },
+  { name: 'Minutes', brand: 0xd12b28 },
+  { name: 'Jahez', brand: 0xf8113a },
+  { name: 'noon Food', brand: 0xe01858 },
+  { name: 'NowNow', brand: 0xf33a01 },
+];
+const THEMES = robo ? ROBO_THEMES : ORBI_THEMES;
+const THEME_KEY = robo ? 'orbi.theme.bot2' : 'orbi.theme';
+// Figma Bot 2 palette (head gradient, ears, rim / reflection lilacs)
+const ROBO_BASE = { headTop: 0xb886ff, headMid: 0x7924ff, headBot: 0x3a089e, earTop: 0xb07aff, earBot: 0x3e0aa8, rimLow: 0xcca6ff, refl: 0xe3d0ff };
 // Sheen, rim light and helmet-shade colour follow the body; noon keeps its
 // hand-tuned originals, the rest derive them the same way.
 const WHITE = new THREE.Color(1, 1, 1);
@@ -871,7 +948,28 @@ function themeColor(th, hex) {
   const hsl = c.getHSL({}, THREE.SRGBColorSpace);
   return c.setHSL(hsl.h, hsl.s * BRAND_SAT, hsl.l, THREE.SRGBColorSpace);
 }
+// Bot 2: every palette colour takes the brand hue and saturation; its
+// lightness is the brand's, offset by how far that colour sits from the Figma
+// purple's mid tone (×0.55 — the purple's spread reads far paler on warm
+// hues). Yellows get their darks lifted so they don't go olive.
+function roboColors(th) {
+  const out = {};
+  const SRGB = THREE.SRGBColorSpace;
+  if (!th.brand) { for (const k in ROBO_BASE) out[k] = new THREE.Color(ROBO_BASE[k]); return out; }
+  const b = new THREE.Color(th.brand).getHSL({}, SRGB);
+  const bs = th.name === 'noon' ? b.s : b.s * BRAND_SAT;
+  const mid = new THREE.Color(ROBO_BASE.headMid).getHSL({}, SRGB);
+  const yellow = b.h > 0.1 && b.h < 0.2;
+  for (const k in ROBO_BASE) {
+    const c = new THREE.Color(ROBO_BASE[k]).getHSL({}, SRGB);
+    let l = b.l + (c.l - mid.l) * 0.55;
+    if (yellow) l = 0.3 + l * 0.7;
+    out[k] = new THREE.Color().setHSL(b.h, Math.min(1, c.s * bs / mid.s), THREE.MathUtils.clamp(l, 0.05, 0.95), SRGB);
+  }
+  return out;
+}
 function toColors(th) {
+  if (robo) return roboColors(th);
   const body = themeColor(th, th.body), tint = themeColor(th, th.tint);
   const t = [(th.tint >> 16 & 255) / 255, (th.tint >> 8 & 255) / 255, (th.tint & 255) / 255];
   const mx = Math.max(...t);
@@ -884,10 +982,11 @@ function toColors(th) {
   };
 }
 let themeIdx = 0;
-try { themeIdx = Math.min(THEMES.length - 1, Math.max(0, +localStorage.getItem('orbi.theme') || 0)); } catch {}
+try { themeIdx = Math.min(THEMES.length - 1, Math.max(0, +localStorage.getItem(THEME_KEY) || 0)); } catch {}
 const themeCur = toColors(THEMES[themeIdx]);
 let themeTarget = toColors(THEMES[themeIdx]);
 function applyTheme() {
+  if (robo) { robo.setPalette(themeCur); return; }
   bodyMat.color.copy(themeCur.body);
   uniforms.uTint.value.copy(themeCur.tint);
   uniforms.uRimColor.value.copy(themeCur.rim);
@@ -901,8 +1000,10 @@ function applyTheme() {
 let themeRate = 7;                                    // blend speed (1/s); quicker while it swaps mid-spin
 function updateTheme(dt) {
   const k = 1 - Math.exp(-dt * themeRate);
-  for (const key of ['body', 'tint', 'accent', 'sheen', 'rim', 'shade']) themeCur[key].lerp(themeTarget[key], k);
-  themeCur.logo += (themeTarget.logo - themeCur.logo) * k;
+  for (const key in themeTarget) {
+    if (themeCur[key]?.isColor) themeCur[key].lerp(themeTarget[key], k);
+    else themeCur[key] += (themeTarget[key] - themeCur[key]) * k;
+  }
   applyTheme();
 }
 // (upstream's swatch button lives in its state bar, which isn't brought over —
@@ -928,7 +1029,7 @@ function launchSpin(to, pending) {
 }
 function cycleColour() {
   themeIdx = (themeIdx + 1) % THEMES.length;
-  try { localStorage.setItem('orbi.theme', String(themeIdx)); } catch {}
+  try { localStorage.setItem(THEME_KEY, String(themeIdx)); } catch {}
   syncColour();
   if (intro.active) endIntro();
   const TAU = Math.PI * 2;
@@ -983,6 +1084,7 @@ function endColourSpin() {
 }
 syncColour();
 applyTheme();
+
 addEventListener('keydown', (e) => {
   const n = parseInt(e.key, 10);
   if (n >= 1 && n <= STATES.length) {
@@ -1035,7 +1137,7 @@ let gesture = null;
 
 hit.addEventListener('pointerdown', (e) => {
   if (locked) { haptic('tap'); hop(1.6); dispatchEvent(new CustomEvent('orbi:poke')); return; }   // (the experience runs it)
-  gesture = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, lt: performance.now(), t: performance.now(), t0: e.timeStamp, moved: 0, axis: null, fired: false };
+  gesture = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, lt: performance.now(), t: performance.now(), t0: e.timeStamp, moved: 0, axis: null, fired: false, turn: 0 };
   haptic('tap');
   if (intro.active) { const sp = m.spin; endIntro(); m.spin = sp; }   // grab takes over mid-turn
   if (colourSpin.active) { const sp = m.spin; endColourSpin(); m.spin = sp; }
@@ -1082,6 +1184,16 @@ hit.addEventListener('pointermove', (e) => {
     return;
   }
   if (state === 'sleepy') setState('idle', { quiet: true });
+  if (robo) {
+    // rubber band: raw drag → soft-limited turn (tanh), starting from where it was
+    if (!gesture.turnInit) { gesture.turn = Math.atanh(THREE.MathUtils.clamp(m.spin / MAX_TURN, -0.95, 0.95)) * MAX_TURN; gesture.turnInit = true; }
+    gesture.turn += dx * DRAG_TURN;
+    const next = MAX_TURN * Math.tanh(gesture.turn / MAX_TURN);
+    m.dragVel += ((next - m.spin) / dt - m.dragVel) * 0.35;
+    m.spin = next;
+    if (dx) m.lastDir = Math.sign(dx);
+    return;
+  }
   m.spin += dx * DRAG_YAW;
   // smoothed angular velocity, used for the release glide and the lean
   m.dragVel += ((dx * DRAG_YAW) / dt - m.dragVel) * 0.35;
@@ -1103,7 +1215,7 @@ function endGesture(e) {
   }
   // stale velocity (pointer held still before release) shouldn't fling it
   const idle = performance.now() - g.lt;
-  m.spinV = idle > 80 ? 0 : THREE.MathUtils.clamp(m.dragVel, -14, 14);
+  m.spinV = robo ? 0 : idle > 80 ? 0 : THREE.MathUtils.clamp(m.dragVel, -14, 14);   // Bot 2: no fling, just springs back
   const off = m.spin - Math.round(m.spin / (Math.PI * 2)) * Math.PI * 2;   // turn away from the nearest face-on
   m.settlePending = Math.abs(off) > 0.1 || Math.abs(m.spinV) > 1;
   m.dragVel = 0;
@@ -1348,14 +1460,15 @@ const easeInQuad = (x) => x * x;
 const easeOutCubicF = (x) => 1 - (1 - x) ** 3;
 // The "closed eye": a short horizontal stroke, exactly the size of a pill eye
 // squashed shut (28 wide × ~7 tall), so the two can hand over seamlessly.
-const SQUASH = 7.1 / 54;
+const SQUASH = BOT_LOOK === 'robo' ? ROBO_FACE.SQUASH : 7.1 / 54;
 const CLOSED = (() => {
-  const l = linePts(-42.5, -7, -21.5, -7);
-  return { eyes: [{ a: l, b: l, w: 7 }, { a: mirror(l), b: mirror(l), w: 7 }], mouth: MOUTH.none(), glint: 0, lip: 1, cheeks: 0, blink: 0 };
+  const l = BOT_LOOK === 'robo' ? ROBO_FACE.CLOSED_LINE() : linePts(-42.5, -7, -21.5, -7);
+  return { eyes: [{ a: l, b: l, w: 7 }, { a: mirror(l), b: mirror(l), w: 7 }], mouth: MOUTH_SET.none(), glint: 0, lip: 1, cheeks: 0, blink: 0 };
 })();
 const VIA = { close: 0.16, open: 0.26 };            // s: blink shut, then open into the new shape
 const VIA_BACK = { reshape: 0.3, open: 0.26 };      // back to pills: relax shut, then open gently
 function updateFace(dt) {
+  if (morph && ticker) ticker = null;                // (a state change takes the face over: the ticker stops)
   // pill ⇄ other face: squash the pills shut, then the closed line bends into
   // the new shape (and the reverse: reshape to closed, then open into pills)
   if (morph && morph.via) {
@@ -1393,6 +1506,10 @@ function updateFace(dt) {
   }
   // blinks on the pill eyes
   if (faceCur.blink > 0.5) {
+    if (robo && state === 'idle' && !tickerCalm.matches) {
+      if (!ticker && blinkT < 0 && (nextTicker -= dt) <= 0) ticker = { phase: 'close', t: 0, text: TICKER.text, w: robo.tickerWidth(TICKER.text) };
+      if (ticker) { stepTicker(dt); return; }
+    }
     nextBlink -= dt;
     if (nextBlink <= 0 && blinkT < 0) blinkT = 0;
     if (blinkT >= 0) {
@@ -1710,7 +1827,7 @@ function updateStage(dt) {
   }
   if ((stageSnap && stage) || pulled) { view.cx = t.cx; view.cy = t.cy; view.unit = t.unit; stageV.cx = stageV.cy = stageV.unit = 0; }
   else {
-    const w = 11, z = 1;                                      // (critically damped: the bot glides in, no wobble)
+    const w = stage ? 11 : 9, z = 1;                        // (critically damped: the bot glides in, no wobble)
     for (const k of ['cx', 'cy', 'unit']) {
       stageV[k] += (w * w * (t[k] - view[k]) - 2 * z * w * stageV[k]) * dt;
       view[k] += stageV[k] * dt;
@@ -2028,7 +2145,7 @@ function update(dt) {
   }
 
   // hover height: a gentle bob, or sitting on the floor when asleep
-  if (state === 'sleepy') m.hoverY = FLOOR_Y + R;
+  if (state === 'sleepy') m.hoverY = FLOOR_Y + BODY_BOTTOM;
   else m.hoverY = HOVER_Y + Math.sin(t * 1.6) * (state === 'working' ? 0.02 : 0.05);
 
   updateIntro(dt);
@@ -2045,6 +2162,7 @@ function update(dt) {
   updateTilt(dt);
   helmet.update(dt);
   updateTheme(dt);
+  robo?.update(t);
   // state pose, crossfaded from the previous state's pose after a change
   poseBlend = Math.min(1, poseBlend + dt / POSE_BLEND_S);
   prevStateTime += dt;
@@ -2064,7 +2182,7 @@ function update(dt) {
   euler.set(pitch, yaw + m.spin, roll, 'YXZ');
   viewRoll = roll;
   body.quaternion.setFromEuler(euler);
-  body.scale.setScalar(Math.max(1e-4, intro.scale));
+  body.scale.setScalar(Math.max(1e-4, intro.scale * BOT_SCALE));
   const tremble = m.shake ? Math.sin(t * 90) * m.shake : 0;
   body.position.set(m.x + sway + tremble, m.y, 0);
 
@@ -2080,7 +2198,7 @@ function update(dt) {
     if (!o.visible) return;
     const a = t * 3.2 + o.userData.phase;
     tmpV.set(Math.cos(a) * 0.62, 0.02 * Math.sin(a * 2 + i), Math.sin(a) * 0.36);
-    o.position.copy(body.position).addScaledVector(up, 1.55).add(tmpV);
+    o.position.copy(body.position).addScaledVector(up, ORBIT_UP).add(tmpV);
   });
 
   // Zz — drift up and to the right, then fade
@@ -2176,5 +2294,5 @@ window.orbi = {
     goPage(false, { v0: -THREE.MathUtils.clamp(Math.max(vy, 900) / (H + 70 - y), 1.2, 8) });
   },
   lock(on) { locked = !!on; }, statusInk(v) { inkOverride = v == null ? null : +v; placePage(); }, gazeAt(yaw, pitch) { gazeLock = yaw == null ? null : { yaw, pitch }; }, hop,
-  get pageOpen() { return pageNav.open; },
-  gov: GOV, tilt, restoreBot, carry, look, pageNav, get dozed() { return dozed; }, poke, goPage, view, setState, nudge, cycleColour, get theme() { return THEMES[themeIdx].name; }, helmet, toggleVisor, advance: update, faceCanvas, intro, gaze, replay: () => { setState('idle', { quiet: true }); helmet.setVisorDown(false); syncVisor(); Object.assign(intro, { active: true, t: 0, scale: 0, greeted: false, popped: false }); }, get state() { return state; }, motion: m, bodyUniforms: uniforms, bodyMat, renderer, scene, camera };
+  get pageOpen() { return pageNav.open; }, get pageSpot() { return VIEW.page; },
+  gov: GOV, tilt, restoreBot, carry, look, pageNav, get dozed() { return dozed; }, poke, goPage, view, setState, nudge, cycleColour, get theme() { return THEMES[themeIdx].name; }, helmet, toggleVisor, advance: update, faceCanvas: robo ? robo.screenCanvas : faceCanvas, bot: BOT_LOOK, intro, gaze, replay: () => { setState('idle', { quiet: true }); helmet.setVisorDown(false); syncVisor(); Object.assign(intro, { active: true, t: 0, scale: 0, greeted: false, popped: false }); }, get state() { return state; }, motion: m, bodyUniforms: uniforms, bodyMat, renderer, scene, camera };

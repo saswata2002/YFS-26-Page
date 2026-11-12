@@ -45,7 +45,7 @@ body {
 :where(a):where(:not(#nkHome *)) { color: inherit; text-decoration: none; }
 :where(button):where(:not(#nkHome *)) { all: unset; box-sizing: border-box; cursor: pointer; }
 
-/* ── Home = the "noon App GitFlow" project's Home (home-app/, mounted into #nkHome by its own bundle) ──
+/* ── Home = the "noon App GitFlow" project's Home (../home-app/, mounted into #nkHome by its own bundle) ──
    The kit lays its screens out for its 390-wide device (fixed widths in its tokens), so it renders at 390 and is
    scaled to this 375 frame (×375/390) — its exact layout, proportionally. Its height follows the phone (this
    frame's height × 390/375: 844 on an 812 frame, its own device), and its top inset is this page's status bar
@@ -645,11 +645,11 @@ img.contain { object-fit: contain; }
 /* ══ 1068:81084 Orbi (3D bot) — floating FAB ═══════════════════════════════
    Figma frame 80×80 at (287, 644); ball r 30 centred at (327, 681.5). The canvas
    is a 260×280 box that travels with the bot (a compositor transform), with room
-   for hops, props and soft shadows; orbi/main.js frames the camera so the resting
+   for hops, props and soft shadows; ../orbi/main.js frames the camera so the resting
    ball lands exactly on the Figma box. Only #orbiHit (the
    Figma box itself) takes pointer input. */
 .orbi { position: absolute; left: 0; top: 0; width: 260px; height: 280px; z-index: 15; pointer-events: none; display: block;
-  will-change: transform; }   /* a small box that rides with the bot (orbi/main.js CANVAS_BOX) */
+  will-change: transform; }   /* a small box that rides with the bot (../orbi/main.js CANVAS_BOX) */
 /* while the Orbi sheet is open (or animating) the bot sits above it, as the matched Smart Animate layer */
 .orbi.on-page { z-index: 31; }
 .orbi-hit.on-page { z-index: 32; }
@@ -662,7 +662,7 @@ img.contain { object-fit: contain; }
 /* ══ 1093:108979 Status Bar — iOS light status bar, 375×42.565, fixed above every view
    (outside #home, so nothing in the flow covers it). The header's gradient sits behind it,
    so it needs no backdrop. While the Orbi sheet's black scrim is up it switches to light
-   content: orbi/main.js sets --sb-ink (0 dark → 1 white) with the scrim's progress. */
+   content: ../orbi/main.js sets --sb-ink (0 dark → 1 white) with the scrim's progress. */
 .sbar { position: absolute; left: 0; top: 0; width: 375px; height: 42.565px; z-index: 60; pointer-events: none;
   --sb-ink: 0; filter: invert(var(--sb-ink)); }
 .sbar > * { position: absolute; }
@@ -681,12 +681,12 @@ img.contain { object-fit: contain; }
 .view--home { z-index: 1; }
 
 /* ══ 1086:92697 "Brand Banner2" — Orbi in a bottom sheet ═════════════════
-   orbi/main.js drives one progress (0 Home, 1 open): Home → a rounded card
+   ../orbi/main.js drives one progress (0 Home, 1 open): Home → a rounded card
    355×768.7 at (10, 43) (scale 0.9467, r 18.93 on screen = 20 before scale),
    scrim → #000 at 80%, sheet → up from below the screen to y 233. */
 .home-card { position: absolute; inset: 0; overflow: hidden; transform-origin: 0 0; }
 /* while the sheet is up or moving, Home shrinks behind it on its own layer: the compositor scales the pixels it has,
-   instead of re-rasterising the whole page at every new scale (orbi/main.js setSheetLive) */
+   instead of re-rasterising the whole page at every new scale (../orbi/main.js setSheetLive) */
 .home-card.is-lifted { will-change: transform; border-radius: 24px; }
 .home-card { transition: border-radius .2s cubic-bezier(.65, 0, .35, 1); }   /* (noon motion: radius on its own clock, never the move spring) */
 .sheet-scrim {
@@ -694,10 +694,10 @@ img.contain { object-fit: contain; }
   background: #000; opacity: 0; visibility: hidden;
 }
 .sheet {
-  /* a full page (2026-10-19): the whole frame (since 2026-11-07 the Yellow Friday page, yf/), revealed as a circle growing out of the bot */
+  /* a full page (2026-10-19): the whole frame (since 2026-11-07 the Yellow Friday page, ../yf/), revealed as a circle growing out of the bot */
   position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 29;
   background: #f9f9fb; overflow: hidden;
-  visibility: hidden; clip-path: circle(0 at 50% 100%);   /* (2026-11-06: opens as a circle out of the bot — orbi/main.js placePage) */
+  visibility: hidden; clip-path: circle(0 at 50% 100%);   /* (2026-11-06: opens as a circle out of the bot — ../orbi/main.js placePage) */
   touch-action: none;
 }
 /* close: 40 × 40 at the top left, under the status bar (the full page has no scrim to tap) */
@@ -720,7 +720,7 @@ img.contain { object-fit: contain; }
   color: #666d85; text-align: center;
 }
 
-/* ── Composer + Orbi's colour slider (not in the Figma frame; orbi/colour-picker.js) ──
+/* ── Composer + Orbi's colour slider (not in the Figma frame; ../orbi/colour-picker.js) ──
    A 327×100 card 12px in from the sheet's sides and bottom: "Ask Orbi anything", then
    + · swatch · mic · voice (36px targets; the swatch's ring centre is at (219, 72), the
    slider's track is 307×44 at (10, 46) — colour-picker.js ICON / TRACK). The script
@@ -804,7 +804,7 @@ img.contain { object-fit: contain; }
 }
 .cpk__knob.is-held i { transform: scale(1.08); }
 
-/* ══ 1096:111182 Remove the bot — shown while it's held on Home (orbi/main.js) ══
+/* ══ 1096:111182 Remove the bot — shown while it's held on Home (../orbi/main.js) ══
    1:1 with Figma, anchored to the bottom of the 812 frame:
      Scrim        1100:115229  375×381 from y 431 — black 0 → .55 (35%) → .85 (70%) → .92
      Drop target  1098:14090   64×64 at (155.5, 661): white 14%, 1.5px white 50% inside stroke,
