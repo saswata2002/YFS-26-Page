@@ -736,11 +736,13 @@ const refill = (() => {
     el.setAttribute('aria-hidden', String(a >= 0.5));
   }) });
   // the reveal: the middle card is solid from the start — it's opaque within 160 ms — and scales up from 86 % to full on
-  // the page's soft settle (expo-out, 1.1 s); once it's solid, its two neighbours slide out from behind it — together,
-  // on one soft spring (stiffness 130, ζ .92: no visible overshoot, there in ≈ 0.55 s) — from completely hidden behind it
-  // (250 px in, at 90 %: inside the middle card's edges, so nothing pokes out) to their slots. Opaque all the way, no fade:
-  // it's the middle card that hides them, so nothing is ever seen through anything. A touch mid-reveal finishes it at once.
-  const SIDE = { from: 250, s0: 0.9, K: 130, Z: 0.92, after: 300 };
+  // the page's soft settle (expo-out, 1.1 s); once it's nearly full size, its two neighbours slide out from behind it —
+  // together, on one slow critically damped spring (stiffness 60, ζ 1: it starts from rest, so they ease out rather than
+  // shoot out, glide, and settle with no bounce — 95 % there at ≈ 0.6 s, at rest by ≈ 0.9 s) — from completely hidden
+  // behind it (250 px in, at 90 %: inside the middle card's edges, so nothing pokes out) to their slots. Opaque all the
+  // way, no fade: it's the middle card that hides them, so nothing is ever seen through anything. A touch mid-reveal
+  // finishes it at once.
+  const SIDE = { from: 250, s0: 0.9, K: 60, Z: 1, after: 380 };
   const springPath = (() => {            // progress 0 → 1 of that spring, sampled every 1/60 s until it's settled
     const c = 2 * SIDE.Z * Math.sqrt(SIDE.K), out = [0];
     let x = 1, v = 0;
