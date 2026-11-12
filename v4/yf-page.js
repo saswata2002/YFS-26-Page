@@ -310,22 +310,39 @@ page.addEventListener('pointerup', (e) => {
   const x = r.left + r.width / 2 - sr.left, y = r.top + r.height / 2 - sr.top;
   bot.look(Math.max(-0.55, Math.min(0.55, (x - v.cx) / 260)), Math.max(-0.15, Math.min(0.32, (y - v.cy) / 900)), 1100);
 });
-// a product added to the cart flies up into the bot on an arc (shrinking, tipping), and the bot catches it with a hop
+// add to cart: the product's photo box lifts off the card and, on its way up, rounds into a disc around the product as
+// it shrinks (its own 320 ms clock, so you watch the card become a circle), and goes straight into the bot along an
+// up-and-over arc — 560 ms, a gentle start and a soft arrival, so the eye can follow it — fading as it enters; the bot jumps
+const FLY_MS = 560, SHAPE_MS = 320;
+const flyEase = (u) => { // cubic-bezier(0.45, 0, 0.2, 1), solved for y at x = u
+  let t = u; for (let i = 0; i < 8; i++) { const x = 3 * (1 - t) * (1 - t) * t * 0.45 + 3 * (1 - t) * t * t * 0.2 + t * t * t - u, dx = 3 * (1 - t) * (1 - t) * 0.45 + 6 * (1 - t) * t * (0.2 - 0.45) + 3 * t * t * (1 - 0.2); if (Math.abs(dx) < 1e-6) break; t -= x / dx; }
+  return 3 * (1 - t) * t * t + t * t * t;
+};
 function flyToBot(src) {
   if (!src || reduce.matches || !window.orbi) { bot.hop(1.4); return; }
   const sr = sheet.getBoundingClientRect(), r = src.getBoundingClientRect(), v = window.orbi.view;
-  const fly = src.cloneNode(true); fly.className = 'd3-fly';
-  Object.assign(fly.style, { left: `${r.left - sr.left}px`, top: `${r.top - sr.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+  const img = src.querySelector('img'); if (!img) { bot.hop(1.4); return; }
+  const ir = img.getBoundingClientRect();
+  const w = r.width, h = r.height, d0 = Math.min(w, h), R = parseFloat(getComputedStyle(src).borderTopLeftRadius) || 12;
+  const D = 44, sEnd = D / d0;                                               // the disc it ends as
+  const bx = v.cx, by = v.cy;                                                // into the bot
+  const fly = document.createElement('div'); fly.className = 'd3-fly';
+  fly.innerHTML = `<i class="dc"><img src="${img.currentSrc || img.src}" alt="" draggable="false"></i>`;
+  Object.assign(fly.style, { left: `${r.left - sr.left}px`, top: `${r.top - sr.top}px`, width: `${w}px`, height: `${h}px` });
+  const disc = fly.firstElementChild, pic = disc.firstElementChild;
+  // the product exactly where it is in the card (same box, same fit), so the lift-off doesn't jump
+  Object.assign(pic.style, { left: `${ir.left - r.left}px`, top: `${ir.top - r.top}px`, width: `${ir.width}px`, height: `${ir.height}px`, objectFit: getComputedStyle(img).objectFit || 'contain' });
   sheet.appendChild(fly);
-  const x1 = v.cx - (r.left - sr.left) - r.width / 2, y1 = v.cy - (r.top - sr.top) - r.height / 2;
-  const cx = x1 * 0.35, cy = Math.min(0, y1) - 120;                         // the arc's control point: up and over
-  const ease = (u) => (u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2);
-  const kf = Array.from({ length: 17 }, (_, i) => {
-    const u = ease(i / 16), q = 1 - u;
-    const x = 2 * q * u * cx + u * u * x1, y = 2 * q * u * cy + u * u * y1;
-    return { transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${(1 - 0.86 * u).toFixed(3)}) rotate(${(-14 * u).toFixed(1)}deg)`, opacity: i > 14 ? 0 : 1, offset: i / 16 };
+  const x1 = bx - (r.left - sr.left) - w / 2, y1 = by - (r.top - sr.top) - h / 2;
+  const cx = x1 * 0.2, cy = Math.min(0, y1) * 0.55 - 36;                   // the arc: up first, then over to the bot
+  const N = 24, path = Array.from({ length: N + 1 }, (_, i) => {
+    const u = i / N, p = flyEase(u), q = 1 - p, f = Math.min(1, Math.max(0, (u - 0.8) / 0.2));   // (the last fifth: it shrinks into the bot and fades)
+    return { transform: `translate(${(2 * q * p * cx + p * p * x1).toFixed(1)}px, ${(2 * q * p * cy + p * p * y1).toFixed(1)}px) scale(${(1 - 0.55 * f).toFixed(3)})`, opacity: (1 - f).toFixed(3), offset: u };
   });
-  fly.animate(kf, { duration: 780, easing: 'linear', fill: 'both' }).onfinish = () => { fly.remove(); bot.hop(1.6); H('pop'); bot.cheer(); };
+  const ix = (w - d0) / 2, iy = (h - d0) / 2;
+  const shape = (m, sc) => ({ transform: `scale(${sc.toFixed(4)})`, clipPath: `inset(${(iy * m).toFixed(2)}px ${(ix * m).toFixed(2)}px round ${(R + (d0 / 2 - R) * m).toFixed(2)}px)` });
+  disc.animate([shape(0, 1), shape(1, sEnd)], { duration: SHAPE_MS, easing: 'cubic-bezier(0.5, 0, 0.2, 1)', fill: 'both' });
+  fly.animate(path, { duration: FLY_MS, easing: 'linear', fill: 'both' }).onfinish = () => { fly.remove(); H('pop'); bot.hop(1.8); };
 }
 
 // ─── the CTAs: fixed labels (Figma's "Redeem Now" / "Shop all deals"), a press dip and a haptic ──────────────────
@@ -657,7 +674,7 @@ const deck = (() => {
     const b = e.target.closest('.d3-add'); if (!b) return;
     const on = b.classList.toggle('is-on'); b.setAttribute('aria-pressed', String(on));
     H(on ? 'success' : 'tap');
-    if (on) flyToBot(b.closest('.d3-dk, .d3-rf').querySelector('.ph'));
+    if (on) { const c = b.closest('.d3-dk, .d3-rf'); flyToBot(c.querySelector('.main') || c.querySelector('.ph')); }
   });
   const cubesL = $('.d3-cubes.l'), cubesR = $('.d3-cubes.r');
   cubesL.addEventListener('click', () => throwTop(-1)); cubesR.addEventListener('click', () => throwTop(1));

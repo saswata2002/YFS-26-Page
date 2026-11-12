@@ -236,9 +236,10 @@
 .yf-mini.is-on { opacity: 1; transform: none; }
 
 /* a product on its way into the bot */
-.d3-fly { position: absolute; z-index: 6; margin: 0; pointer-events: none; will-change: transform, opacity; box-shadow: 0 10px 26px rgba(0,0,0,.45);
-  border-radius: 12px; background: #f6f6f6; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-.d3-fly img { max-width: 86%; max-height: 86%; object-fit: contain; mix-blend-mode: multiply; }
+.d3-fly { position: absolute; z-index: 6; margin: 0; pointer-events: none; will-change: transform, opacity; transform-origin: 50% 50%;
+  filter: drop-shadow(0 6px 12px rgba(15,20,41,.16)); }
+.d3-fly .dc { position: absolute; inset: 0; background: #f9f9fb; transform-origin: 50% 50%; will-change: transform, clip-path; }
+.d3-fly .dc img { position: absolute; max-width: none; max-height: none; }
 
 /* ── the quiet loops: slow, low-contrast, never moving anything you're reading ──
    the chevrons up top carry a slow wave of light. yf-page.js pauses each block while it's off screen (.is-off) */
