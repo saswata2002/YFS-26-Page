@@ -25,8 +25,9 @@ import { mountColourPicker } from '../orbi/colour-picker.js';   // (this page: t
 import { createRobo, FACE as ROBO_FACE } from './robo.js';
 
 // Two looks share this engine: Orbi (the ball + helmet) and Bot 2 (robo.js, Figma "new bot" 1154:78182, from
-// github.com/saswata2002/3D-noon-bot d122b04). Iteration 4 is Bot 2 — the purple screen-face robot.
-const BOT_LOOK = 'robo';
+// github.com/saswata2002/3D-noon-bot d122b04). Iteration 4 is Bot 2 — the purple screen-face robot; iteration 5 is
+// Orbi again — the yellow ball with its helmet (iteration 1's bot).
+const BOT_LOOK = 'orbi';
 
 // ─── constants ────────────────────────────────────────────────────────────
 const R = 1;                    // body radius (Figma body = 240px → 120px = 1 unit)
@@ -146,7 +147,7 @@ scene.add(rim);
 // ~5× fewer pixels than a full-screen WebGL layer over a scrolling page.
 const VIEW = {
   home: { cx: 327, cy: 681.5, unit: 30 },        // 1068:81084 — 80×80 FAB at (287, 644)
-  page: { cx: 336, cy: 72, unit: 17 },         // iteration 5: the bot rests in the page's top-right corner (Figma 789:10090 puts the TOP DEALS sticker where iteration 4's big bot sat)
+  page: { cx: 187.5, cy: 120, unit: 40 },     // iteration 5: the bot rests big at the top centre of its page, above HEY NEHA (Figma 1520:59225's bot); yf-page.js docks it in the corner on scroll
 };
 const view = { ...VIEW.home };
 // room around the ball for hops, the dizzy orbit, Zz and the soft shadows, even
