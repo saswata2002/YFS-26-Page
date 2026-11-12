@@ -601,7 +601,7 @@ function assignRoles(els, wrapD, map) {
 
 // the deck of top picks: the front card flat (Figma 789:12983, 222 × 324 at 71.5, 266), the two behind it as Figma's
 // ghost cards — the nearer one 196 wide tipped +2.67°, 14 px higher, the far one 219 wide tipped −2°, 27 px higher, both
-// softly out of focus and washed (--g) to the ghosts' white-to-#EEF0F4. Drag the front card sideways and it follows the
+// washed (--g) to the ghosts' white-to-#EEF0F4 — sharp, no blur (user, 2026-11-12). Drag the front card sideways and it follows the
 // finger, tilting; let go past 96 px or with a flick and it swings out that side and tucks in at the back of the pile
 // while the others step forward — every card on its own spring (the MOVE spring: stiffness 280.6, damping 27.14),
 // interruptible, carrying the hand's speed. A tap on a card peeking out behind brings the next one forward.
@@ -610,9 +610,9 @@ const deck = (() => {
   // slot k: x, y (of the card's top centre), rotation (deg), scale, blur (px), opacity, ghost wash
   const SLOT = [
     { x: 0, y: 0, r: 0, s: 1, b: 0, o: 1, g: 0 },
-    { x: 6.1, y: -14.2, r: 2.67, s: 0.8845, b: 1.09, o: 1, g: 1 },     // 789:10254 (drawn over the far one)
-    { x: 0, y: -27.2, r: -2, s: 0.9865, b: 1.9, o: 0.8, g: 1 },        // 789:10249
-    { x: 0, y: -27.2, r: -2, s: 0.9865, b: 2.2, o: 0, g: 1 },
+    { x: 6.1, y: -14.2, r: 2.67, s: 0.8845, b: 0, o: 1, g: 1 },        // 789:10254 (drawn over the far one)
+    { x: 0, y: -27.2, r: -2, s: 0.9865, b: 0, o: 0.8, g: 1 },          // 789:10249
+    { x: 0, y: -27.2, r: -2, s: 0.9865, b: 0, o: 0, g: 1 },
   ];
   // the pile leans the way the last card was flicked (the share build's Option 1): a flick to the left mirrors it
   let lean = 1;
@@ -623,10 +623,7 @@ const deck = (() => {
   const paint = () => cards.forEach((c, i) => {
     const s = st[i];
     c.style.transform = `translate3d(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px, 0) rotate(${s.r.toFixed(3)}deg) scale(${s.s.toFixed(4)})`;
-    // (the blur in 0.5 px steps while the card moves — a filter whose radius changes every frame is re-run every frame —
-    // and Figma's exact radius once it has come to rest)
-    const moving = Math.abs(s.b - s.t.b) > 0.01 || Math.abs(s.v.b) > 0.01;
-    const b = moving ? Math.round(s.b * 2) / 2 : Math.round(s.b * 100) / 100; c.style.filter = b > 0.05 ? `blur(${b}px)` : '';
+    c.style.filter = '';   // (the cards behind are sharp: no blur)
     c.style.opacity = s.o.toFixed(3);
     c.style.setProperty('--g', Math.max(0, Math.min(1, s.g)).toFixed(3));
   });
@@ -738,60 +735,52 @@ const refill = (() => {
     el.classList.toggle('is-mid', a < 0.5);
     el.setAttribute('aria-hidden', String(a >= 0.5));
   }) });
-  // the middle card comes in alone; as the page scrolls on, its two neighbours glide out from behind it, tied to the
-  // scroll itself (the 240 px after the carousel's top is 40 px into the screen, through a smoothstep: they start gently
-  // and arrive softly) and followed by a critically damped spring (ω 11, no overshoot), so a flick or an uneven drag still
-  // reads as one calm, continuous move. Both together, from tucked under the middle card (190 px in, 90 %) to their slots;
-  // they fade up over the first 40 % while they're still mostly behind it. Scroll back up and they tuck back in; touch the
-  // carousel and they come out and stay.
-  const SIDE = { from: 190, s0: 0.9, range: 240, w: 11 };
-  const at = (top) => (top - (stage.offsetTop + 40 - (scroller.clientHeight || 812))) / SIDE.range;
-  let sides = [], p = 1, pT = 1, pv = 0, raf2 = 0, locked = true;
-  const ease = (u) => { const x = Math.min(1, Math.max(0, u)); return x * x * (3 - 2 * x); };
-  const paintSides = () => sides.forEach(([c, d]) => {
-    if (p >= 0.9995) { c.style.transform = ''; c.style.opacity = '1'; return; }
-    const q = Math.max(0, p);
-    c.style.transform = `translate3d(${(-d * SIDE.from * (1 - q)).toFixed(2)}px, 0, 0) scale(${(SIDE.s0 + (1 - SIDE.s0) * q).toFixed(4)})`;
-    c.style.opacity = Math.min(1, q / 0.4).toFixed(3);
-  });
-  const settle = () => { if (locked && p === 1) sides = []; };     // (out for good: the cards are the carousel's again)
-  const chase = () => {
-    if (raf2) return;
-    let last = performance.now();
-    const tick = (now) => {
-      const dt = Math.min(0.032, (now - last) / 1000); last = now;
-      for (let h = dt; h > 1e-6; h -= 1 / 240) { const k = Math.min(h, 1 / 240); pv += (SIDE.w * SIDE.w * (pT - p) - 2 * SIDE.w * pv) * k; p += pv * k; }
-      if (Math.abs(pT - p) < 0.0005 && Math.abs(pv) < 0.005) { p = pT; pv = 0; raf2 = 0; paintSides(); settle(); return; }
-      paintSides(); raf2 = requestAnimationFrame(tick);
-    };
-    raf2 = requestAnimationFrame(tick);
-  };
-  const setTarget = (t) => {
-    pT = t;
-    if (reduce.matches) { p = t; pv = 0; paintSides(); settle(); return; }
-    chase();
-  };
-  stage.addEventListener('pointerdown', () => { if (locked) return; locked = true; setTarget(1); });   // (touched before scrolling)
-  const stop = () => { cancelAnimationFrame(raf2); raf2 = 0; sides = []; locked = true; p = pT = 1; pv = 0; };
+  // the reveal: the middle card is solid from the start — it's opaque within 160 ms — and scales up from 86 % to full on
+  // the page's soft settle (expo-out, 1.1 s); once it's solid, its two neighbours slide out from behind it — together,
+  // on one soft spring (stiffness 130, ζ .92: no visible overshoot, there in ≈ 0.55 s) — from completely hidden behind it
+  // (250 px in, at 90 %: inside the middle card's edges, so nothing pokes out) to their slots. Opaque all the way, no fade:
+  // it's the middle card that hides them, so nothing is ever seen through anything. A touch mid-reveal finishes it at once.
+  const SIDE = { from: 250, s0: 0.9, K: 130, Z: 0.92, after: 300 };
+  const springPath = (() => {            // progress 0 → 1 of that spring, sampled every 1/60 s until it's settled
+    const c = 2 * SIDE.Z * Math.sqrt(SIDE.K), out = [0];
+    let x = 1, v = 0;
+    for (let f = 1; f < 120; f++) {
+      for (let k = 0; k < 8; k++) { v += (-SIDE.K * x - c * v) / 480; x += v / 480; }
+      out.push(1 - x);
+      if (Math.abs(x) < 0.0008 && Math.abs(v) < 0.01) break;
+    }
+    out[out.length - 1] = 1;
+    return out;
+  })();
+  let running = [];
+  const finish = () => { running.forEach((a) => { try { a.finish(); } catch {} }); running = []; };
+  const drop = () => { running.forEach((a) => a.cancel()); running = []; };   // (cancelled, not finished: nothing is left showing)
+  stage.addEventListener('pointerdown', finish);   // (touched mid-reveal: everything straight to where it belongs)
   return {
     jump: loop.jump,
-    hide() { stop(); slots.forEach((sl) => { sl.firstElementChild.style.transform = ''; cancelOwn(sl.firstElementChild); }); },   // (back to hidden, to play in again)
+    hide() { drop(); slots.forEach((sl) => { sl.firstElementChild.style.transform = ''; cancelOwn(sl.firstElementChild); }); },   // (back to hidden, to play in again)
     reveal(delay) {
-      // the middle card rises in; its neighbours wait, tucked behind it, for the scroll
-      stop();
+      drop();
+      const d0 = reduce.matches ? 0 : delay, n = springPath.length - 1;
       slots.forEach((s) => {
         const d = Math.round(loop.wrapD(+s.dataset.i)), c = s.firstElementChild;
-        c.style.transform = '';
-        if (d === 0) playIn(c, 'translateY(28px) scale(.97)', delay);
-        else if (Math.abs(d) === 1) { cancelOwn(c); sides.push([c, d]); }
-        else { c.getAnimations().forEach((x) => x.cancel()); held(c); }
+        c.style.transform = ''; cancelOwn(c);
+        if (reduce.matches || Math.abs(d) > 1) { held(c); return; }
+        if (d === 0) {
+          const a = c.animate([{ transform: 'scale(.86)' }, { transform: 'none' }], { duration: REVEAL.ms, delay: d0, easing: REVEAL.ease, fill: 'both' });
+          const b = c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, delay: d0, easing: FADE_IN, fill: 'both' });
+          running.push(a, b);
+          Promise.all([a.finished, b.finished]).then(() => { held(c); a.cancel(); b.cancel(); }, () => {});
+          return;
+        }
+        // (no backwards fill: until it starts it stays hidden by the page's own .rv; it starts once the middle card is solid)
+        const a = c.animate(springPath.map((p, i) => ({ transform: `translate3d(${(-d * SIDE.from * (1 - p)).toFixed(2)}px, 0, 0) scale(${(SIDE.s0 + (1 - SIDE.s0) * p).toFixed(4)})`, opacity: 1, offset: i / n })),
+          { duration: n * (1000 / 60), delay: d0 + SIDE.after, easing: 'linear', fill: 'forwards' });
+        running.push(a);
+        a.finished.then(() => { held(c); a.cancel(); }, () => {});
       });
-      locked = false; p = 0; pv = 0;
-      paintSides();
-      setTarget(ease(at(scroller.scrollTop)));              // (already scrolled part-way: already partly out)
-      if (reduce.matches) { locked = true; setTarget(1); }
     },
-    scrolled(top) { if (!locked) setTarget(ease(at(top))); },
+    scrolled() {},
     go: (i) => loop.go(i),
   };
 })();

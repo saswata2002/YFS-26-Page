@@ -161,7 +161,7 @@
 
 /* ── the deck (1523:61351, 295 wide at 40, 828.2): the front card 5 left of the frame's middle, 39 down ── */
 .d3-deck { left: 0; top: 828.2px; width: 375px; height: 380px; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
-.d3-dk { position: absolute; left: 71.5px; top: 39px; width: 222px; transform-origin: 50% 0; will-change: transform, filter, opacity; cursor: grab; --g: 0; }
+.d3-dk { position: absolute; left: 71.5px; top: 39px; width: 222px; transform-origin: 50% 0; will-change: transform, opacity; cursor: grab; --g: 0; }
 .d3-dk.is-top:active { cursor: grabbing; }
 .d3-dk:not(.is-top) button { pointer-events: none; }
 
