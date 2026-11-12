@@ -528,3 +528,11 @@
 .d3.fy .fy-rf .pr s { font: 400 11px/14px var(--noon); letter-spacing: -0.1px; color: #475067; }
 .d3.fy .fy-rf .pr em { font: 600 11px/14px var(--noon); font-style: normal; letter-spacing: -0.1px; color: #26b57c; }
 .d3.fy .fy-rf .ex { display: block; width: 95px; height: 16px; margin: 0; opacity: 1; }
+
+/* "Redeem Now" without the break: the grey streak (s1) ran past the glow ring on both sides and read as a line cutting
+   through the button, and the hard-light highlight lines (s3 / s4) paint raw on iPhone over the page's scroller — so the
+   streak is gone and the top highlight is a plain white gloss inside the pill's top edge */
+.fy-redeem .s1, .fy-redeem .s3 { display: none; }
+.fy-redeem .s4 { left: 31.93px; top: 7.3px; width: 100.14px; height: 1.6px; mix-blend-mode: normal; -webkit-mask: none; mask: none; border-radius: 1px;
+  background: radial-gradient(closest-side, rgba(255,255,255,.75), rgba(255,255,255,.35) 60%, rgba(255,255,255,0)); }
+.fy-redeem .s4 img { display: none; }
