@@ -30,6 +30,11 @@
 
 /* the reveal: items wait hidden until yf-page.js plays them in */
 .rv { opacity: 0; }
+/* iOS WebKit (Safari, and every Vercel Sim app's WKWebView): once a reveal's animation is released, an element that
+   isn't its own compositing layer can keep the blank image it had at opacity 0 — the sticker ribbons, "Redeem now" and
+   the panel under the coupons stayed invisible while reporting opacity 1. Every reveal target keeps its own layer for
+   good, so WebKit never has to repaint it back into the page */
+.d3 .rv { will-change: transform; }
 @media (prefers-reduced-motion: reduce) { .rv { opacity: 1; } }
 
 /* "Curating for you": centred under the bot (top set by yf-page.js), a soft light sweeping through the letters */
