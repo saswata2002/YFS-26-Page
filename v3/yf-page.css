@@ -409,7 +409,12 @@
 /* the bar's space is always the card's: the whole bar — the red and its line, one piece, fully opaque — starts just
    above the card's top edge and moves straight down into place (--bar 0 → 1, eased out); no fade, no mask of its own,
    and the card never changes size */
-.pc9.dk .bar { flex: none; height: 28px; overflow: hidden; transform: translate3d(0, calc((var(--bar, 1) - 1) * 100%), 0); display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 4.231px; background: #f02021; }
+/* (the bar's frame stays put — a plain rectangle that clips — and only the bar itself, the red and its line as one
+   piece, moves down inside it: every engine clips a moving layer to a still rectangle, where WebKit could let it
+   bleed past a rounded, rescaling card's edge) */
+.pc9.dk .bar { flex: none; height: 28px; overflow: hidden; }
+.pc9.dk .bar .in { height: 100%; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 4.231px; background: #f02021;
+  transform: translateY(calc((var(--bar, 1) - 1) * 100%)); }
 .pc9.dk .bar img { width: 16.01px; height: 16.01px; }
 .pc9.dk .bar b { font: 700 13px/14.81px var(--noon); letter-spacing: -0.1269px; color: #fff; white-space: nowrap; font-feature-settings: "case" 1; font-variant-numeric: tabular-nums; }
 .pc9.dk .main { position: relative; flex: none; margin: 0 8px; width: 214px; height: 285px; border-radius: 8px; background: #fff; }
@@ -448,9 +453,9 @@
 .pc9.rf { width: 222px; height: calc(402px - 63.48px * var(--k)); border-radius: 17px; overflow: hidden;
   box-shadow: 0 9px 22px rgba(122,82,0,.08), 0 1px 3px rgba(92,68,0,.05); }
 .pc9.rf::after { content: ''; position: absolute; inset: 0; border: calc(1px + 0.23px * var(--k)) solid #efe7d2; border-radius: inherit; pointer-events: none; z-index: 5; }
-.pc9.rf .bar { position: absolute; left: 0; right: -2px; top: -1px; height: calc(27px * (1 - var(--k))); display: flex; align-items: center; justify-content: center; overflow: hidden;
-  transform: translate3d(0, calc((var(--rb, 0) - 1) * 100%), 0);   /* (moves down into place from above the card's top edge, one piece, no fade) */
-  border-radius: 12px 12px 0 0; background: #f02021; }
+.pc9.rf .bar { position: absolute; left: 0; right: -2px; top: -1px; height: calc(27px * (1 - var(--k))); overflow: hidden; border-radius: 12px 12px 0 0; }
+.pc9.rf .bar .in { height: 27px; display: flex; align-items: center; justify-content: center; background: #f02021;
+  transform: translateY(calc((var(--rb, 0) - 1) * 100%)); }   /* (moves down into place inside its still frame, one piece, no fade) */
 .pc9.rf .bar b { font-family: 'Google Sans Flex', var(--noon); font-size: 14px; line-height: 14.81px; font-weight: 600; font-style: normal; letter-spacing: -0.1269px; color: #fff; white-space: nowrap;
   font-variation-settings: "GRAD" 0, "ROND" 0, "slnt" -10; font-feature-settings: "case" 1; font-variant-numeric: tabular-nums;
   opacity: calc(1 - var(--k) * 2.2); }
@@ -613,3 +618,6 @@
 .gc.bk .exp { left: 20px; top: 236px; width: 139.5px; height: 21.5px; border-radius: 11px; background: var(--pill); opacity: 1; display: flex; align-items: center; justify-content: center; }
 .gc.bk .exp span { position: static; white-space: pre; font: 500 11px/13px var(--noon); letter-spacing: .9px; color: #1a1a1a; opacity: 1; }
 .gc.bk .exp b { font-weight: 700; }
+
+/* a bar that isn't out isn't drawn at all (yf-page.js .nobar) — no hidden red for a clip to let through */
+.d3-dk.nobar .pc9.dk .bar, .d3-rslot.nobar .pc9.rf .bar { visibility: hidden; }

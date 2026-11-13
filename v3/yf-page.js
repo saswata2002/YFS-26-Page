@@ -90,7 +90,7 @@ const wishBtn = (cls = '') => `<button class="pc-wish ${cls}" type="button" aria
 // the deck's card (1544:62199, 233 wide): the red "Deal ends in" bar, the photo, the rating, +, ♡; name, the red price
 // pill, the offers chip, supermall + the delivery date
 const deckCard = (it, i) => `<div class="d3-dk" data-i="${i}"><div class="pc9 dk rv">
-  <div class="bar"><img src="${G9('ee5e9.svg')}" alt="" draggable="false"><b>Deal ends in ${cd(it.ends)}</b></div>
+  <div class="bar"><span class="in"><img src="${G9('ee5e9.svg')}" alt="" draggable="false"><b>Deal ends in ${cd(it.ends)}</b></span></div>
   <div class="main"><div class="ph"><img src="${SRC(it)}" alt="" draggable="false"></div>
     <span class="rt"><img src="${G9('a64d1.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)}</b></span>
     ${addBtn('39e01.svg')}<button class="pc-wish o" type="button" aria-label="Add to wishlist" aria-pressed="false">${HEART}</button></div>
@@ -105,7 +105,7 @@ const deckCard = (it, i) => `<div class="d3-dk" data-i="${i}"><div class="pc9 dk
 // one to the other as it moves (--k 0 → 1, yf-page.css) — the "Expires in" bar folds away, the rating leaves the photo
 // for the line under the name (where the nudge line was), the type steps down
 const refillCard = (it, i) => `<div class="d3-rslot" data-i="${i}"><div class="pc9 rf rv">
-  <div class="bar"><b>Expires in ${cd(9600 + 600 * i + 10)}</b></div>
+  <div class="bar"><span class="in"><b>Expires in ${cd(9600 + 600 * i + 10)}</b></span></div>
   <div class="main"><div class="ph"><img src="${SRC(it)}" alt="" draggable="false"></div>
     ${addBtn('2ed6e.svg')}${wishBtn()}
     <span class="rt on"><img src="${G9('538c8.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)}</b></span></div>
@@ -793,6 +793,9 @@ const deck = (() => {
     // (iteration 03: the red "Deal ends in" bar is the front card's only — Figma's copies behind have none — so it folds
     // away as a card shrinks into the pile and unfolds as one grows to the front, on the same spring as its scale)
     c.style.setProperty('--bar', (1 - Math.pow(1 - (s.bar || 0), 4)).toFixed(4));   // (ease-out quart: it slides in and settles softly)
+    // (a card with no bar out has no red to draw at all — the cards behind, rescaling every frame as you drag, could
+    // otherwise flash a sliver of their hidden bar through their top edge's clip)
+    c.classList.toggle('nobar', !(s.bar > 0));
   });
   const layer = () => order.forEach((ci, k) => { cards[ci].style.zIndex = String(st[ci].fly && !st[ci].tucked ? 40 : 30 - k); cards[ci].classList.toggle('is-top', k === 0); cards[ci].setAttribute('aria-hidden', String(k !== 0)); });
   const aim = () => order.forEach((ci, k) => {
@@ -1003,7 +1006,7 @@ const refill = (() => {
       const d = Math.abs(loop.wrapD(i)); let v = rb[i] || 0;
       if (landed && d < 0.02 && now - lastPlace > 60) { if (v < 1) { v = Math.min(1, v + dt / 0.5); anim = true; } }
       else if (d >= 0.999) v = 0;
-      rb[i] = v; el.style.setProperty('--rb', (1 - Math.pow(1 - v, 4)).toFixed(4));
+      rb[i] = v; el.style.setProperty('--rb', (1 - Math.pow(1 - v, 4)).toFixed(4)); el.classList.toggle('nobar', !(v > 0));
     });
     rbRaf = anim || now - lastPlace < 160 ? requestAnimationFrame(rbTick) : 0;
     if (!rbRaf) rbLast = 0;
@@ -1047,8 +1050,8 @@ const refill = (() => {
   const drop = () => { running.forEach((a) => a.cancel()); running = []; };   // (cancelled, not finished: nothing is left showing)
   stage.addEventListener('pointerdown', finish);   // (touched mid-reveal: everything straight to where it belongs)
   return {
-    jump: (i) => { landed = false; slots.forEach((sl, k) => { rb[k] = 0; sl.style.setProperty('--rb', '0'); }); loop.jump(i); },
-    hide() { drop(); landed = false; slots.forEach((sl, i) => { rb[i] = 0; sl.style.setProperty('--rb', '0'); sl.firstElementChild.style.transform = ''; cancelOwn(sl.firstElementChild); }); },   // (back to hidden, to play in again)
+    jump: (i) => { landed = false; slots.forEach((sl, k) => { rb[k] = 0; sl.style.setProperty('--rb', '0'); sl.classList.add('nobar'); }); loop.jump(i); },
+    hide() { drop(); landed = false; slots.forEach((sl, i) => { rb[i] = 0; sl.style.setProperty('--rb', '0'); sl.classList.add('nobar'); sl.firstElementChild.style.transform = ''; cancelOwn(sl.firstElementChild); }); },   // (back to hidden, to play in again)
     reveal(delay) {
       drop();
       const d0 = reduce.matches ? 0 : delay, n = springPath.length - 1;
