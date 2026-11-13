@@ -288,12 +288,15 @@ function revealWithBot(items) {
   }
   // what's on screen plays in top to bottom, 70 ms apart — each block no sooner than the bot has risen clear of it
   seq.sort((a, b) => a.y - b.y);
-  const t0 = performance.now(), HALF = 1.2, CLEAR = 10, GAP = 70;
+  // (a block that sits under the bot's resting spot — HEY NEHA, right under it — never gets "cleared": it starts as the
+  // bot comes in to land, within 40 px of its spot, so the page never sits empty while the bot settles; 600 ms at most)
+  const t0 = performance.now(), HALF = 1.2, CLEAR = 10, GAP = 70, NEAR = 40, rest = window.orbi.pageSpot;
   let last = -1e9;
   const tick = () => {
     if (!live || !window.orbi.pageOpen) return;
     const now = performance.now(), v = window.orbi.view, bottom = v.cy + v.unit * HALF + CLEAR;
-    if (seq.length && now - last >= GAP && (seq[0].y > bottom || now - t0 > 1100)) { play(seq.shift()); last = now; }
+    const landing = Math.abs(v.cy - rest.cy) < NEAR && Math.abs(v.cx - rest.cx) < NEAR;
+    if (seq.length && now - last >= GAP && (seq[0].y > bottom || landing || now - t0 > 600)) { play(seq.shift()); last = now; }
     if (seq.length) requestAnimationFrame(tick);
   };
   tick();

@@ -288,12 +288,15 @@ function revealWithBot(items) {
   }
   // what's on screen plays in top to bottom, 70 ms apart — each block no sooner than the bot has risen clear of it
   seq.sort((a, b) => a.y - b.y);
-  const t0 = performance.now(), HALF = 1.2, CLEAR = 10, GAP = 70;
+  // (a block that sits under the bot's resting spot — HEY NEHA, right under it — never gets "cleared": it starts as the
+  // bot comes in to land, within 40 px of its spot, so the page never sits empty while the bot settles; 600 ms at most)
+  const t0 = performance.now(), HALF = 1.2, CLEAR = 10, GAP = 70, NEAR = 40, rest = window.orbi.pageSpot;
   let last = -1e9;
   const tick = () => {
     if (!live || !window.orbi.pageOpen) return;
     const now = performance.now(), v = window.orbi.view, bottom = v.cy + v.unit * HALF + CLEAR;
-    if (seq.length && now - last >= GAP && (seq[0].y > bottom || now - t0 > 1100)) { play(seq.shift()); last = now; }
+    const landing = Math.abs(v.cy - rest.cy) < NEAR && Math.abs(v.cx - rest.cx) < NEAR;
+    if (seq.length && now - last >= GAP && (seq[0].y > bottom || landing || now - t0 > 600)) { play(seq.shift()); last = now; }
     if (seq.length) requestAnimationFrame(tick);
   };
   tick();
@@ -634,6 +637,18 @@ const deck = (() => {
   const slot = (k) => { const q = SLOT[Math.min(k, 3)]; return { ...q, x: lean * q.x, r: lean * q.r }; };
   const KEYS = ['x', 'y', 'r', 's', 'b', 'o', 'g'], K = 280.6, C = 27.14;
   let order = cards.map((_, i) => i), raf = 0, drag = null, fanned = 0;   // (how many cards behind the front one are out)
+  // iteration 02 — the throw tucks the card in behind only once its (rotated) outline is clear of the new front card,
+  // so it never pops from in front to behind while the two overlap; its speed carries straight on through that moment
+  // (one continuous arc: out, round, and back in under the pile, still visible until it lands behind the far card)
+  const W = 222, HGT = () => cards[0].offsetHeight || 324;
+  const extentX = (q, h) => {                                  // the card's left/right edge (its origin is the top centre)
+    const a = q.r * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a), xs = [-W / 2, W / 2].flatMap((x) => [0, h].map((y) => q.x + q.s * (x * c - y * sn)));
+    return [Math.min(...xs), Math.max(...xs)];
+  };
+  const clearOfFront = (i) => {
+    const s = st[i], h = HGT(), [l, r] = extentX(s, h), [fl, fr] = extentX(SLOT[0], h);
+    return s.fly > 0 ? l > fr + 2 : r < fl - 2;
+  };
   const st = cards.map(() => ({ ...SLOT[0], v: { x: 0, y: 0, r: 0, s: 0, b: 0, o: 0, g: 0 }, t: { ...SLOT[0] }, fly: 0 }));
   const paint = () => cards.forEach((c, i) => {
     const s = st[i];
@@ -642,8 +657,11 @@ const deck = (() => {
     c.style.opacity = s.o.toFixed(3);
     c.style.setProperty('--g', Math.max(0, Math.min(1, s.g)).toFixed(3));
   });
-  const layer = () => order.forEach((ci, k) => { cards[ci].style.zIndex = String(st[ci].fly ? 40 : 30 - k); cards[ci].classList.toggle('is-top', k === 0); cards[ci].setAttribute('aria-hidden', String(k !== 0)); });
-  const aim = () => order.forEach((ci, k) => { if (!st[ci].fly) st[ci].t = { ...slot(k <= fanned ? k : 0) }; if (k > fanned) st[ci].t.o = 0; });
+  const layer = () => order.forEach((ci, k) => { cards[ci].style.zIndex = String(st[ci].fly && !st[ci].tucked ? 40 : 30 - k); cards[ci].classList.toggle('is-top', k === 0); cards[ci].setAttribute('aria-hidden', String(k !== 0)); });
+  const aim = () => order.forEach((ci, k) => {
+    const s = st[ci], q = { ...slot(k <= fanned ? k : 0) }; if (k > fanned) q.o = 0;
+    if (s.ret) { s.ret.to = q; s.t.o = q.o; } else if (!s.fly) s.t = q; else if (k > fanned) s.t.o = 0;
+  });
   function run() {
     if (raf) return;
     let last = performance.now();
@@ -652,30 +670,59 @@ const deck = (() => {
       let moving = false;
       st.forEach((s, i) => {
         if (drag && drag.ci === i && drag.axis === 'x') return;
+        if (hinting && hinting.ci === i) {
+          const t = now - hinting.t0;
+          if (learned || drag || order[0] !== i || t >= SLIDE_END) { hinting = null; aim(); }
+          else {
+            const dx = slideAt(t);
+            s.x = dx; s.y = Math.abs(dx) * 0.04; s.r = dx * 0.045; KEYS.forEach((p) => { s.v[p] = 0; });
+            leanIn(dx); moving = true; return;
+          }
+        }
         for (let h = dt; h > 1e-6; h -= 1 / 240) {
           const k = Math.min(h, 1 / 240);
           KEYS.forEach((p) => { const c = p === 'o' || p === 'b' || p === 'g' ? 0.8 : 1; s.v[p] += (K * c * (s.t[p] - s[p]) - C * Math.sqrt(c) * s.v[p]) * k; s[p] += s.v[p] * k; });
         }
-        if (s.fly && Math.abs(s.x) > 185) recycle(i);   // (at the edge of its swing it tucks in behind)
+        // clear of the pile: it goes behind it (no pop — nothing overlaps); at the far end of its swing, once it has
+        // eased to a stop out there, it turns and glides back in under the pile
+        if (s.fly && !s.tucked && (clearOfFront(i) || performance.now() - s.flyT > 700)) { s.tucked = true; layer(); }
+        if (s.fly && s.tucked && ((Math.abs(s.t.x - s.x) < 6 && Math.abs(s.v.x) < 140) || performance.now() - s.flyT > 900)) recycle(i);
+        if (s.ret) {
+          const u = Math.min(1, (now - s.ret.t0) / 220), e = u * u * u * (u * (u * 6 - 15) + 10);
+          KEYS.forEach((p) => { if (p !== 'o') s.t[p] = s.ret.from[p] + (s.ret.to[p] - s.ret.from[p]) * e; });
+          if (u >= 1) { s.t = { ...s.ret.to }; s.ret = null; }
+        }
+        const dest = s.ret ? s.ret.to : s.t;
+        if (s.back && dest.o === 0) {                             // sliding back in under the pile: there until it lands
+          const d = Math.hypot(s.x - dest.x, s.y - dest.y), u = Math.min(1, d / 90);
+          s.o = u * u * (3 - 2 * u); s.v.o = 0;
+          if (d < 0.6 && !s.ret) s.back = false;
+        } else if (s.back && !s.ret) s.back = false;
         const still = KEYS.every((p) => Math.abs(s.t[p] - s[p]) < (p === 's' || p === 'o' || p === 'g' ? 0.0008 : 0.04) && Math.abs(s.v[p]) < 0.05);
         if (still) KEYS.forEach((p) => { s[p] = s.t[p]; s.v[p] = 0; }); else moving = true;
+        if (s.ret || s.back) moving = true;                       // (a card on its way back keeps the loop going)
       });
       paint();
-      raf = moving || drag ? requestAnimationFrame(tick) : 0;
+      raf = moving || drag || hinting ? requestAnimationFrame(tick) : 0;
     };
     raf = requestAnimationFrame(tick);
   }
   // the thrown card swings out to the side, then — behind everything now — slides back into the last slot of the pile,
   // so you watch it go to the end of the stack
   function recycle(i) {
-    const s = st[i]; s.fly = 0;
-    s.v.x *= 0.25; s.t = { ...slot(order.indexOf(i)) };
+    const s = st[i]; s.fly = 0; s.tucked = false; s.back = true;
+    const to = { ...slot(order.indexOf(i)) }; if (order.indexOf(i) > fanned) to.o = 0;
+    // the way back starts gently: its target slides from where it stopped to its slot over 220 ms (smootherstep), so
+    // it eases off the far end of its swing instead of being yanked back by the spring
+    s.ret = { from: { ...s.t, x: s.x, y: s.y, r: s.r, s: s.s }, to, t0: performance.now() };
+    s.t = { ...s.ret.from, o: to.o };
     layer();
   }
   function throwTop(dir, v = 0) {
     const ci = order[0], s = st[ci];
     lean = dir;   // (the pile swings to lean after it)
-    s.fly = dir; s.t = { x: dir * 240, y: s.y + 10, r: dir * 14, s: 0.96, b: 0, o: 1, g: 0 };
+    s.fly = dir; s.flyT = performance.now(); s.back = false; s.tucked = false; s.t = { x: dir * 282, y: s.y + 8, r: dir * 6, s: 0.95, b: 0, o: 1, g: 0 };
+    learned = true; stopHint();
     s.v.x = Math.max(Math.abs(s.v.x), Math.abs(v) * 1000, 900) * dir;
     order = [...order.slice(1), ci];
     aim(); layer(); H('tick'); run();
@@ -683,6 +730,7 @@ const deck = (() => {
   stage.addEventListener('pointerdown', (e) => {
     if (e.button || e.target.closest('button')) return;
     const c = e.target.closest('.d3-dk'); if (!c) return;
+    stopHint();
     const ci = +c.dataset.i;
     if (ci !== order[0]) { throwTop(-1); return; }               // a tap on a card behind brings it forward
     drag = { ci, x: e.clientX, y: e.clientY, x0: st[ci].x, lx: e.clientX, lt: performance.now(), v: 0, axis: null, id: e.pointerId };
@@ -704,17 +752,65 @@ const deck = (() => {
     if (!drag || e.pointerId !== drag.id) return;
     const d = drag; drag = null;
     if (d.axis !== 'x') { run(); return; }
-    const dx = st[d.ci].x;
-    if (Math.abs(dx) > 96 || Math.abs(d.v) > 0.55) throwTop(Math.sign(Math.abs(d.v) > 0.55 ? d.v : dx), d.v);
+    // (thrown once the card is 96 px out, or the finger has travelled 96 px — a swipe that starts while the nudge has
+    // the card off to one side still counts as the swipe it is — or on a flick)
+    const dx = st[d.ci].x, moved = dx - d.x0;
+    if (Math.abs(dx) > 96 || Math.abs(moved) > 96 || Math.abs(d.v) > 0.55) throwTop(Math.sign(Math.abs(d.v) > 0.55 ? d.v : Math.abs(moved) > 96 ? moved : dx), d.v);
     else { aim(); run(); }
   };
   addEventListener('pointerup', end); addEventListener('pointercancel', end);
+
+  // iteration 02 — first-time nudge (FTUX): once the deck has landed and the scroll has come to rest with it on screen,
+  // the front card leans left, then right, then settles — a hand testing the swipe — so you can see it moves. All on the
+  // card's own spring (the MOVE spring), so it eases in and out with no start or stop: pose left (−16 px, −4°, pivoting
+  // low on the card), pose right (+12 px, +3°) 300 ms later, home at 600 ms. Twice at most per arrival (2.4 s apart),
+  // never again once you've swiped the deck; any touch on it stops it. Reduced motion: none.
+  let learned = false, hintT = [], hintRaf = 0, hints = 0;
+  // the nudge is a phantom swipe: the front card slides right as if a thumb were dragging it (46 px, with the drag's
+  // own tilt and lift), back across to the left (38 px), then home — and the cards behind lean in under it exactly as
+  // they do for a real drag, so it reads as "this moves sideways". Each leg eases in and out (in-out cubic): 440 ms
+  // out, a 110 ms hold, 580 ms across, a 110 ms hold, 520 ms home. Twice at most per arrival (2.4 s apart), never
+  // again once you've swiped the deck; any touch on it stops it at once. Reduced motion: none.
+  const SLIDE = [[0, 0], [440, 46], [550, 46], [1130, -38], [1240, -38], [1760, 0]], SLIDE_END = 1760;
+  const io3 = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+  const slideAt = (t) => { for (let i = 1; i < SLIDE.length; i++) if (t <= SLIDE[i][0]) { const [ta, xa] = SLIDE[i - 1], [tb, xb] = SLIDE[i]; return xa + (xb - xa) * io3((t - ta) / (tb - ta)); } return 0; };
+  let hinting = null;
+  // (the pile behind a dragged card: each card a step towards its next slot, as far as the card has gone)
+  const leanIn = (dx) => { const p = Math.min(1, Math.abs(dx) / 180); order.slice(1).forEach((cj, k) => { const A0 = slot(k + 1), B0 = slot(k); st[cj].t = Object.fromEntries(KEYS.map((q) => [q, A0[q] + (B0[q] - A0[q]) * p * 0.5])); if (k + 1 > fanned) st[cj].t.o = 0; }); };
+  function stopHint() {
+    const was = hintT.length || hintRaf || armed;
+    hintT.forEach(clearTimeout); hintT = []; cancelAnimationFrame(hintRaf); hintRaf = 0; armed = false; clearInterval(poll); poll = 0;
+    const ci = order[0], s = st[ci];
+    if (hinting) { hinting = null; if (!drag) aim(); }
+    if (was && s && !s.fly && !drag) { s.t = { ...slot(0) }; run(); }
+  }
+  let lastScroll = 0, armed = false, poll = 0;
+  const check = () => {
+    if (!armed || !live || learned || drag || hints >= 2) return;
+    const r = stage.querySelector('.d3-dk.is-top').getBoundingClientRect(), sr = scroller.getBoundingClientRect();
+    const seen = (Math.min(r.bottom, sr.bottom) - Math.max(r.top, sr.top)) / r.height;
+    if (seen > 0.8 && !raf && performance.now() - lastScroll > 220) { armed = false; clearInterval(poll); poll = 0; play(); }
+  };
+  scroller.addEventListener('scroll', () => { lastScroll = performance.now(); }, { passive: true });
+  function hint(wait = 0) {
+    if (learned || reduce.matches || hints >= 2) return;
+    hintT.push(setTimeout(() => { armed = true; clearInterval(poll); poll = setInterval(check, 300); check(); }, wait));
+  }
+  function play() {
+    hints++;
+    hinting = { ci: order[0], t0: performance.now() };
+    run();
+    if (hints < 2) hintT.push(setTimeout(() => hint(0), SLIDE_END + 2400));
+  }
+
   return {
     next: (dir = 1) => throwTop(dir),
-    reset() { cancelAnimationFrame(raf); raf = 0; drag = null; lean = 1; order = cards.map((_, i) => i); fanned = 0; st.forEach((s) => { s.fly = 0; Object.assign(s, SLOT[0]); KEYS.forEach((p) => { s.v[p] = 0; }); }); aim(); order.forEach((ci, k) => { if (k) st[ci].o = 0; }); layer(); paint(); },
+    hint: () => { hints = 0; hint(0); }, get hints() { return hints; }, get learned() { return learned; }, st, order: () => order,
+    reset() { stopHint(); hints = 0; cancelAnimationFrame(raf); raf = 0; drag = null; lean = 1; order = cards.map((_, i) => i); fanned = 0; st.forEach((s) => { s.fly = 0; Object.assign(s, SLOT[0]); KEYS.forEach((p) => { s.v[p] = 0; }); }); aim(); order.forEach((ci, k) => { if (k) st[ci].o = 0; }); layer(); paint(); },
     // scrolled back away below the screen: the cards behind tuck back under the front one (instantly, it's off screen)
     // and the front one goes back to hidden, so the next scroll down plays the whole entrance again
     hide() {
+      stopHint(); hints = 0;
       fanned = 0;
       order.forEach((ci, k) => { const s0 = st[ci]; if (k && !s0.fly) { Object.assign(s0, { ...slot(0), o: 0 }); KEYS.forEach((p) => { s0.v[p] = 0; }); } });
       aim(); paint();
@@ -724,6 +820,7 @@ const deck = (() => {
     fan(delay) {
       const d = reduce.matches ? 0 : delay, step = reduce.matches ? 0 : 140;
       [1, 2, Infinity].forEach((n, i) => setTimeout(() => { if (!live) return; fanned = Math.max(fanned, n); aim(); run(); }, d + i * step));
+      hint(d + 2 * step + 520);                                   // (the nudge, once the pile has fanned out and landed)
     },
     roles() { cards.forEach((c, i) => { const el = c.firstElementChild; el.dataset.k = i === order[0] ? 'deck' : ''; if (i !== order[0]) { el.getAnimations().forEach((a) => a.cancel()); held(el); } }); },
   };
