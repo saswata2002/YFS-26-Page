@@ -994,18 +994,23 @@ const refill = (() => {
   // the outer edge coming forward (user, 2026-11-12: inverted) — by TILT° at the side, growing
   // with the card's distance from the middle (flat in the middle, so the turn eases in and out as you swipe); each card
   // seen through its own perspective, so the two sides mirror each other
-  const TILT = 12, PERSP = 900, DROP = 50.84;
+  // (iteration 03: one card shape everywhere — the middle card scaled to 181 / 222 at the side, never morphed — so the
+  // side cards sit centred on the middle one: (402 − 402 × 181 / 222) / 2 lower, from the top-centre origin)
+  const TILT = 12, PERSP = 900, DROP = 402 * (1 - 181 / 222) / 2;
   // the "Expires in" bar (--rb, per card): the widget has to have landed first; the middle card's bar wipes in (0.46 s,
   // eased out) once the carousel has come to rest; a card that has gone to the side loses it
-  let landed = false, rbRaf = 0, lastPlace = 0, rbLast = 0, landT = 0;
+  let landed = false, rbRaf = 0, lastPlace = 0, rbLast = 0, landT = 0, touching = false;
   const rb = [];
   const rbTick = (now) => {
     const dt = Math.min(0.05, (now - (rbLast || now)) / 1000); rbLast = now;
     let anim = false;
     slots.forEach((el, i) => {
       const d = Math.abs(loop.wrapD(i)); let v = rb[i] || 0;
-      if (landed && d < 0.02 && now - lastPlace > 60) { if (v < 1) { v = Math.min(1, v + dt / 0.5); anim = true; } }
-      else if (d >= 0.999) v = 0;
+      // (once the card is all but in place — within 3.5 % of a card of the middle — with no finger on the carousel)
+      if (landed && d < 0.035 && !touching) { if (v < 1) { v = Math.min(1, v + dt / 0.5); anim = true; } }
+      // (leaving the middle: the bar goes back up the way it came — the same curve run backwards, the same 0.5 s — as
+      // soon as the card starts to move off; if it springs back to the middle, the bar comes down again)
+      else if (d >= 0.035 && v > 0) { v = Math.max(0, v - dt / 0.5); anim = true; }
       rb[i] = v; el.style.setProperty('--rb', (1 - Math.pow(1 - v, 4)).toFixed(4)); el.classList.toggle('nobar', !(v > 0));
     });
     rbRaf = anim || now - lastPlace < 160 ? requestAnimationFrame(rbTick) : 0;
@@ -1015,10 +1020,10 @@ const refill = (() => {
   const loop = loopCarousel({ stage, count: slots.length, step: PITCH, tapToFocus: true, place: (wrapD) => slots.forEach((el, i) => {
     const d = wrapD(i), a = Math.abs(d), k = Math.min(1, a);
     el.style.transform = `perspective(${PERSP}px) translate3d(${(d * PITCH).toFixed(2)}px, ${(DROP * k).toFixed(2)}px, 0) rotateY(${(-Math.sign(d) * TILT * k).toFixed(3)}deg) scale(${(1 - (1 - SS) * k).toFixed(4)})`;
-    el.style.setProperty('--k', k.toFixed(4));
+    el.style.setProperty('--k', '0');   // (iteration 03: the card keeps one shape — no morph to the small card)
     // (the type morphs in 16 steps — 0.1 px of size each, below what the eye can see — so its glyphs are re-rasterised a
     // handful of times per swipe instead of every frame)
-    el.style.setProperty('--kt', (Math.round(k * 16) / 16).toFixed(4));
+    el.style.setProperty('--kt', '0');
     el.style.opacity = a <= 1 ? '1' : Math.max(0, 2 - a).toFixed(3);
     el.style.zIndex = String(10 - Math.round(a * 3));
     el.style.visibility = a > 1.9 ? 'hidden' : '';
@@ -1049,13 +1054,16 @@ const refill = (() => {
   const finish = () => { running.forEach((a) => { try { a.finish(); } catch {} }); running = []; };
   const drop = () => { running.forEach((a) => a.cancel()); running = []; };   // (cancelled, not finished: nothing is left showing)
   stage.addEventListener('pointerdown', finish);   // (touched mid-reveal: everything straight to where it belongs)
+  stage.addEventListener('pointerdown', () => { touching = true; });
+  const untouch = () => { if (touching) { touching = false; kick(); } };
+  addEventListener('pointerup', untouch); addEventListener('pointercancel', untouch);
   return {
     jump: (i) => { landed = false; slots.forEach((sl, k) => { rb[k] = 0; sl.style.setProperty('--rb', '0'); sl.classList.add('nobar'); }); loop.jump(i); },
     hide() { drop(); landed = false; slots.forEach((sl, i) => { rb[i] = 0; sl.style.setProperty('--rb', '0'); sl.classList.add('nobar'); sl.firstElementChild.style.transform = ''; cancelOwn(sl.firstElementChild); }); },   // (back to hidden, to play in again)
     reveal(delay) {
       drop();
       const d0 = reduce.matches ? 0 : delay, n = springPath.length - 1;
-      clearTimeout(landT); landT = setTimeout(() => { landed = true; kick(); }, d0 + (reduce.matches ? 0 : 120));   // (as the middle card comes in)
+      clearTimeout(landT); landT = setTimeout(() => { landed = true; kick(); }, d0 + (reduce.matches ? 0 : 60));   // (as the middle card comes in)
       slots.forEach((s) => {
         const d = Math.round(loop.wrapD(+s.dataset.i)), c = s.firstElementChild;
         c.style.transform = ''; cancelOwn(c);
