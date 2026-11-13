@@ -862,9 +862,9 @@
 /* (measured against Figma 1573:68634: its price pill is 20 px — 14/20 Bold, 4 px corners — and the list price and
    discount 12/14; the offers chip 22 px with its hairline inside; the tab row 1 px lower; the restock cards' contents
    from the top) */
-.f11 .pc9.dk.px .pr { gap: 4px; }
-.f11 .pc9.dk.px .pr b { height: 20px; padding: 0 4px; border-radius: 4px; font-size: 14px; line-height: 20px; }
-.f11 .pc9.dk.px .pr s, .f11 .pc9.dk.px .pr em { font-size: 12px; line-height: 14px; letter-spacing: -0.12px; }
+.f11 .pc9.dk .pr { gap: 4px; }
+.f11 .pc9.dk .pr b { height: 20px; padding: 0 4px; border-radius: 4px; font-size: 14px; line-height: 20px; }
+.f11 .pc9.dk .pr s, .f11 .pc9.dk .pr em { font-size: 12px; line-height: 14px; letter-spacing: -0.12px; }
 .f11 .pc9.dk .off9 { height: 22px; display: flex; align-items: center; padding: 0 6px; }
 .f11 .tb9 .c { position: relative; top: 1px; }   /* (the box at Figma's 127.5; its type renders 1 px higher than Figma sets it) */
 .pc9.wc2 { justify-content: flex-start; }
@@ -910,3 +910,68 @@
 
 /* (the white sections their own layer: iOS WebKit otherwise never paints their background inside the page's scroller) */
 .f11 .f9-best { will-change: transform; }
+
+/* ════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+   Figma For You 1324:39822, 14 Nov revision (375 × 4836): the deck card's delivery pill again; LETS RESTSOCK's cards
+   with the offers chip and the rolling nudge line; DISCOUNT ZONE and its ticket carousel above "Happy shopping!"
+   ════════════════════════════════════════════════════════════════════════════════════════════════════════════════ */
+.d3.f9.f13 { height: 4836px; }
+.f13 .d3-refill { top: 981.7px; }
+.f13 .f9-best { top: 1614.76px; }
+.f13 .foot12 { top: 4408.51px; }
+
+/* LETS RESTSOCK (For You 1389:16720): 165.5 × 303, the photo 154.5 × 206 at 5.5 (b's at 10.5: its column is centred) */
+.pc9.wc2.w13, .pc9.wc2.w13.vd { height: 303px; justify-content: flex-start; padding: 5.5px 1.5px 4px;
+  box-shadow: inset 0 0 0 1.5px #fff, 0 -4px 8px -1px rgba(0,0,0,.08); }
+.pc9.wc2.w13.vb { padding-top: 10.5px; }
+.pc9.wc2.w13.vd .mw { background: #000; }
+.pc9.wc2.w13 .rt { bottom: 6px; }
+.pc9.wc2.w13 .pc-add { right: 6px; bottom: 6px; }
+.pc9.wc2.w13.vb .pg, .pc9.wc2.w13.vd .pg { gap: 4px; }
+.pc9.wc2.w13 .off9 { height: 22px; display: flex; align-items: center; padding: 0 6px; border: .5px dashed #bbe0de; border-radius: 4px 3px 3px 4px; background: #f6fefb;
+  font: 600 12px/14px var(--noon); letter-spacing: -0.12px; color: #107c50; white-space: nowrap; font-feature-settings: "case" 1; }
+.pc9 .ng.w13 .dk { left: 0.5px; width: 148px; }
+.pc9 .ng.w13 .dk b { font: 400 12px/18px var(--noon); letter-spacing: -0.1px; color: #475067; }
+
+/* DISCOUNT ZONE's tickets (For You 1421:12299): 157.5 × 210 at (108.75, 4241.55); the side ones 155.12 out at 68.18 % */
+.dz13 { left: 0; top: 4241.55px; width: 375px; height: 210px; touch-action: pan-y; z-index: 3; }
+.cp13 { position: absolute; left: 108.75px; top: 0; width: 157.5px; height: 210px; transform-origin: 50% 50%; will-change: transform; -webkit-user-select: none; user-select: none; }
+.cp13 img { position: absolute; display: block; max-width: none; pointer-events: none; }
+.cp13 .bg { left: -0.19%; top: -0.14%; width: 100.38%; height: 100.28%; }
+.cp13.co .bg, .cp13.cr .bg { left: -0.22%; top: -0.17%; width: 100.44%; height: 100.34%; }
+.cp13 .cd { left: 27.59px; top: 27px; width: 102px; height: 65px; }
+.cp13 .ln { left: 6.257px; top: 6.265px; width: 144.98px; height: 197.47px; }
+.cp13.co .ln, .cp13.cr .ln { left: 6.556px; top: 6.556px; width: 144.38px; height: 196.88px; }
+.cp13 .dv { left: 25.06px; top: 102.82px; width: 107.386px; height: 15.511px; }
+.cp13.co .dv, .cp13.cr .dv { left: 15.75px; top: 102.82px; width: 126px; height: 17.5px; }
+.cp13 .tx { position: absolute; left: 15.75px; top: 124.78px; width: 126px; margin: 0; display: flex; flex-direction: column; gap: 1.75px; color: #fff; align-items: center; text-align: center; }
+.cp13 .tx b { font: 700 16.705px/21.477px var(--noon); letter-spacing: -0.167px; }
+.cp13 .tx span { font: 400 14px/21.477px var(--noon); }
+.cp13.co .tx, .cp13.cr .tx { left: 0; top: 141.31px; width: 100%; gap: 1.75px; white-space: nowrap; }
+.cp13.co .tx b, .cp13.cr .tx b { font: 500 17.5px/21px var(--noon); letter-spacing: 0; color: rgba(255,255,255,.73); }
+.cp13.co .tx span, .cp13.cr .tx span { font: 500 17.5px/21px var(--noon); color: rgba(255,255,255,.91); }
+/* (the heading → row gap in this revision: 127.7 in all three sections) */
+.f13 .f9-best .tabs9 { top: 127.7px; }
+.f13 .f9-best .skus { top: 219.7px; }
+.f13 .f9-best.r12 .skus { top: 127.7px; }
+/* (the bar's top corners follow the card's inner curve — 14 − 1.5 — so it never paints over the white edge at the corners) */
+.f11 .pc9.dk .bar { border-radius: 12.5px 12.5px 0 0; }
+.f11 .d3-dk[data-slot="1"] .pc9.dk .bar { border-radius: 10.5px 10.5px 0 0; }
+/* (user, 2026-11-14: "take this full content a bit up" — the whole page 28 px higher, the bot with it (main.js
+   VIEW.page cy 112.15), so the deck's front card ends 29 px above the screen's bottom edge instead of at it) */
+.d3.f9.f13 { margin-top: -38px; }   /* (then 10 px more, same day) */
+/* "See all items": the white shine sweeps across the pill on a loop (user, 2026-11-14) — in from the left, across in
+   1.1 s (in-out), through Figma's spot at the middle of the sweep, out on the right; then 1.4 s of rest */
+.f13 .f5-cta.sb .sh { overflow: hidden; border-radius: 100px; clip-path: inset(3px round 19px); }   /* (inside the black outline) */
+.f13 .f5-cta.sb .sh i { animation: sbShine 2.2s linear infinite; opacity: .55; will-change: transform; }   /* (softer: across in 2 s at 55 %, then 0.2 s of rest, and again) */
+@keyframes sbShine {
+  0% { transform: translateX(-140px) rotate(30deg); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  90.91% { transform: translateX(110px) rotate(30deg); }
+  100% { transform: translateX(110px) rotate(30deg); }
+}
+@media (prefers-reduced-motion: reduce) { .f13 .f5-cta.sb .sh i { animation: none; } }
+/* the price-drop card's "Deal ends in" strip folds away at the side and unfolds as the card reaches the middle, as it
+   did before (user, 2026-11-14) — the rest of the card stays as it is (yf-page.js --km) */
+.f13 .pc9.dk.px .tm { height: calc(28px * (1 - var(--km, 0))); }
+/* BEST DEALS' tabs: the earlier component — one line each, 64 tall, the underline under them */
+.f13 .tb9.tb .c { gap: 4px; }

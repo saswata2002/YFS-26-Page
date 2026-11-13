@@ -34,6 +34,7 @@ const G = (f) => A(`f8/${f}`);                // Figma 1520:59225's exports
 const G9 = (f) => A(`f9/${f}`);
 const G11 = (f) => A(`f11/${f}`);              // Figma 1573:68634's exports
 const G12 = (f) => A(`f12/${f}`);              // Figma For You 1324:39822's exports
+const G13 = (f) => A(`f13/${f}`);              // (its 14 Nov revision)
 const num = (v) => (v % 1 ? v.toFixed(2) : String(v));      // Figma: "16.20", "899" — no thousands comma
 const pct = (it) => (it.off != null ? it.off : Math.floor((1 - it.price / it.was) * 100));
 const DATA = {
@@ -84,25 +85,33 @@ const DATA = {
   ],
   // (Figma 1573:68957: seven tabs — label, icon, width, kind (b: the shorter "active" component Figma uses for the last
   // three), height)
-  tabs: [['Electronics\n& Appliances', '2c213', 94, 'a', 84], ['Beauty\n&Skincare', '74d4b', 101, 'a', 84], ['Electronics', '74d4b', 101, 'a', 84], ['Electronics', '74d4b', 101, 'a', 84], ['Electronics', 'c3176', 101, 'b', 68], ['Electronics', 'c3176', 101, 'b', 68], ['Electronics', 'c3176', 90, 'b', 77.865]],
+  // (user, 2026-11-14: the earlier tab component — five single-line tabs with their own icons, Electronics, Beauty,
+  // Fashion, Home and a second Beauty as fragrances — at their hug widths, 64 tall)
+  tabs: [['Electronics', '6571f', 90, 'b', 64], ['Beauty', 'c0178', 66.129, 'b', 64], ['Fashion', '2b5c1', 70, 'b', 64], ['Home', '3a8ed', 66.129, 'b', 64], ['Beauty', 'c0178', 66.13, 'b', 64]],
 };
 const SRC = (it) => it.src || A(`p/${it.img}.webp`);
 // BEST DEALS: a row per tab — Electronics as Figma dresses it, then the others in the same three slots
 const SLOT9 = [{ tag: 'Best Seller', ex: '3b16e', exw: 2.06 }, { ad: true, ex: '55dab', exw: 3.29 }, { addOn: true, ex: '95048', exw: 2.06 }];
 const ROW9 = (row) => row.map(([name, rating, count, price, usual, was, off, img], i) => ({ src: A(`p/yf/${img}.jpg`), size: 142, name, rating, count, price, usual, was, off, ...SLOT9[i] }));
-DATA.bestTabs = [DATA.best, ...DATA.bestMore.map(ROW9)];
+// (the earlier tabs' rows, live noon.com listings: Fashion, Home, and the second Beauty tab as fragrances)
+DATA.bestOld = [
+  [["Adidas Men's VL Court 3.0 Low Top Sneakers", 4.5, 104, 209.7, 229, 379, 44, 'best2_0'], ['CASIO Unisex Vintage Digital Watch A168WA-1WDF', 4.2, 118, 98, 109, 165, 40, 'best2_1'], ['Calvin Klein Jeans Full Rim Injected Sunglasses', 4.3, 3, 200, 219, 550, 63, 'best2_2']],
+  [['Philips Bagless PowerPro Compact Vacuum Cleaner 1800W', 4.7, '4.7K', 300, 329, 525, 42, 'best3_0'], ['dyson V8 Cyclone Cordless Vacuum Cleaner', 4.5, 854, 799, 879, 1699, 52, 'best3_1'], ['Karcher SC 3 EasyFix Electric Steam Cleaner 1900W', 4.2, 306, 551.31, 599, 1399, 60, 'best3_2']],
+  [['Lattafa Khamrah Unisex Eau De Parfum 100ml', 4.4, '10.0K', 79, 89, 129, 38, 'best4_0'], ['Rasasi Hawas Perfume for Men EDP 100ml', 4.0, '4.2K', 57.5, 64, 207, 72, 'best4_1'], ['Dior Sauvage EDP For Men 100ml', 4.3, '2.5K', 516, 559, 679, 24, 'best4_2']],
+];
+DATA.bestTabs = [DATA.best, ROW9(DATA.bestMore[0]), ...DATA.bestOld.map(ROW9)];
 DATA.pdrop = DATA.refill.map((it, i) => {
   const lower = Math.max(1, Math.round(it.price * 0.14)), usual = +(it.price + lower).toFixed(2);   // (its drop: ~14% under its usual price)
   return { ...it, r2: it.rating, usual, was: it.was, off: pct(it), lower };
 });
 // the grid (Figma 1562:66964): no rating chips, the four cards at their new x / y
-// LET'S RESTOCK (Figma For You 1381:5348): four cards — a: the red price pill; b / d: "Best price"; c: the locked price —
-// each with its size and unit price, and the black "lower than last buy" pill
+// LET'S RESTOCK (Figma For You 1389:16720): a: the red price pill + the offers chip; b / d: "Best price" with the usual
+// and list price; c: the locked price + the offers chip — each with the rolling nudge line
 DATA.grid = [
-  { v: 'a', x: 15.3, y: 2350.6, src: A('p/yf/grid0.jpg'), rating: 4.6, price: 10, was: 22, off: 54, qty: '24 × 500ml', unit: `${D}0.83/L`, lower: 2 },        // Masafi Pure Low Sodium Water
-  { v: 'b', x: 192.8, y: 2349.8, src: A('p/yf/grid1.jpg'), rating: 4.6, price: 15.9, was: 30.73, off: 48, qty: '4 × 1L', unit: `${D}3.98/L`, lower: 3 },     // Almarai Long Life Milk
-  { v: 'c', x: 16.7, y: 2664.6, src: A('p/yf/grid2.jpg'), rating: 4.9, price: 25.85, was: 44.09, off: 41, qty: '2 × 400ml', unit: `${D}3.23/100ml`, lower: 4 }, // Dettol Skincare Handwash
-  { v: 'd', x: 194.2, y: 2664.1, src: A('p/yf/grid3.jpg'), rating: 4.6, price: 40.35, was: 82.6, off: 51, qty: '4.8L', unit: `${D}8.41/L`, lower: 6 },       // Persil Power Gel Blue
+  { v: 'a', x: 15.26, y: 2351.33, src: A('p/yf/grid0.jpg'), rating: 4.6, price: 10, was: 22, off: 54, usual: 11, save: 2, lower: 2 },          // Masafi Pure Low Sodium Water
+  { v: 'b', x: 192.76, y: 2350.53, src: A('p/yf/grid1.jpg'), rating: 4.6, price: 15.9, usual: 17.5, was: 30.73, off: 48, lower: 3 },        // Almarai Long Life Milk
+  { v: 'c', x: 16.69, y: 2666.32, src: A('p/yf/grid2.jpg'), rating: 4.9, price: 25.85, was: 44.09, off: 41, save: 3, lower: 4 },           // Dettol Skincare Handwash
+  { v: 'd', x: 194.19, y: 2665.89, src: A('p/yf/grid3.jpg'), rating: 4.6, price: 40.35, usual: 44.4, was: 82.6, off: 51, lower: 6 },         // Persil Power Gel Blue
 ];
 // CHRISTMAS LOVE and DIAPERS DON'T LIE (Figma 1383:3534 / 1389:6298): a row of three, live noon.com listings
 DATA.xmas = [['TAPIT Christmas Tree Artificial Snow Flocked Pine Tree', 5.0, 3, 176.95, 189, 239, 25, 'xm0'], ['MODI 3x2M Warm White Curtain String Lights', 4.5, 10, 37, 42, 65, 43, 'xm1'], ['50 Pcs Christmas Balls Ornaments Tree Decoration', 4.0, 1, 49.99, 54, 99.99, 50, 'xm2']];
@@ -137,7 +146,7 @@ const deckCard = (it, i) => `<div class="d3-dk" data-i="${i}"><div class="pc9 dk
     <p class="nm">${it.name}</p>
     <div class="pr"><b><i>${D}</i> ${num(it.price)}</b><s>${num(it.was)}</s><em>${pct(it)}%</em></div>
     <span class="off9">Save ${D}${it.save} with offers</span>
-    <div class="sh"><span class="sm"><img class="a" src="${G9('b06a7.svg')}" alt="" draggable="false"><img class="b" src="${G9('98244.svg')}" alt="supermall" draggable="false"></span><b>${it.ship}</b></div>
+    ${ETA11}
   </div>
 </div></div>`;
 // the basics carousel's card (middle 1544:62296, 222 × 402; the sides 1544:62269 / 62332, 181 × 276): it morphs from
@@ -304,6 +313,34 @@ const gridCard12 = (it, i) => `<div class="d3-abs pc9 wc2 w12 v${it.v} rv" data-
   <div class="dt"><div class="pg">${PRICE12[it.v](it)}<span class="qt"><b>${it.qty}</b><i class="ln"></i><b>${it.unit}</b></span></div>
     <span class="lb12"><img src="${G12('6ca23.svg')}" alt="" draggable="false"><b>${D}${it.lower} lower than last buy</b></span></div>
 </div>`;
+const W13_NUDGE = (it) => strip('wc w13', [['../f13/37a89.svg', `${D}${it.lower} lower than last buy`, 'dk'], ['f5983.svg', 'Free delivery'], ['1cc12.svg', 'Selling out fast'], ['0ce6d.svg', '5k+ units sold'], ['9549f.svg', '#2 Bestseller'], ['3222a.svg', 'Lowest price in 30 days'], ['../f13/37a89.svg', `${D}${it.lower} lower than last buy`, 'dk']],
+  [-0.5, 48, 88, 128, 168, 208, 248]);
+const PRICE13 = {
+  a: (it) => `<div class="pr"><b class="rp"><i>${D}</i> ${num(it.price)}</b><s>${num(it.was)}</s><em>${it.off}%</em></div><span class="off9">Save ${D}${it.save} with offers</span>`,
+  c: (it) => `<div class="pr"><b class="lp"><span class="lq"><img src="${G11('58638.svg')}" alt="" draggable="false"></span><span><i>${D}</i> ${num(it.price)}</span></b><s>${num(it.was)}</s><em>${it.off}%</em></div><span class="off9">Save ${D}${it.save} with offers</span>`,
+  b: (it) => `<div class="p1"><b><i>${D}</i>${num(it.price)}</b><span class="bp"><img src="${G9('a94c6.svg')}" alt="" draggable="false">Best price</span></div><div class="p2"><b><i>${D}</i>${num(it.usual)}</b><s><i>${D}</i><u>${num(it.was)}</u></s><em>${it.off}%</em></div>`,
+};
+PRICE13.d = PRICE13.b;
+const gridCard13 = (it, i) => `<div class="d3-abs pc9 wc2 w13 v${it.v} rv" data-k="wc${i}" style="left:${it.x}px;top:${it.y}px">
+  <div class="mw"><div class="main"><div class="ph"><img src="${it.src}" alt="" draggable="false"></div>
+    <span class="rt"><img src="${G9('10bd8.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)}</b></span>
+    ${addBtn('39e01.svg')}<button class="pc-wish o" type="button" aria-label="Add to wishlist" aria-pressed="false">${HEART}</button></div></div>
+  <div class="dt"><div class="pg">${PRICE13[it.v](it)}</div>${W13_NUDGE(it)}</div>
+</div>`;
+// DISCOUNT ZONE (For You 1421:12299, "Image + Timer based carousel"): three bank-offer tickets on one loop — the blue
+// ENBD one (157.5 × 210) in the middle, the red and orange ones 155.12 to each side at 68.18 %; each ticket is drawn
+// once at the middle size (the side ones are Figma's 107.4 × 143.2 tickets × 1.4667) and simply scales. It moves on
+// by itself every 3.2 s while it's on screen and untouched
+const CP13 = [
+  { c: 'cb', bg: 'cc8f9', line: '9288b', div: '16b1f', img: '11d43.png', t: '10% cashback', s: 'on all products with your ENBD Card' },
+  { c: 'co', bg: '6295c', line: '353e1', div: 'ee94d', t: '10% off up to', s: `${D} 100` },
+  { c: 'cr', bg: '41e91', line: '395ba', div: '5b29a', t: '10% off up to', s: `${D} 100` },
+];
+const coupon13 = (c, i) => `<div class="cp13 ${c.c}" data-i="${i}" role="group" aria-label="${c.t} ${c.s.replace(D, 'AED')}">
+  <img class="bg" src="${G13(c.bg + '.svg')}" alt="" draggable="false">${c.img ? `<img class="cd" src="${G13(c.img)}" alt="" draggable="false">` : ''}
+  <img class="ln" src="${G13(c.line + '.svg')}" alt="" draggable="false"><img class="dv" src="${G13(c.div + '.svg')}" alt="" draggable="false">
+  <p class="tx"><b>${c.t}</b><span>${c.s}</span></p>
+</div>`;
 const t11 = (k, [x, y, ow, oh, tw], ih, word, sub, shape, [sw, sh], [rot, skew], inset, [txw, txh]) => `<div class="d3-abs t11 rv" data-k="${k}" style="left:${x}px;top:${y}px;width:${ow}px;height:${oh}px">
   <div class="t11r0" style="width:${tw}px"><div class="t11tt"><div class="t11r1" style="height:${ih}px"><div class="t11r1i"><div class="t11col">
     <b class="wd11" data-t="${word}"><span>${word}</span></b>
@@ -317,29 +354,31 @@ const t11 = (k, [x, y, ow, oh, tw], ih, word, sub, shape, [sw, sh], [rot, skew],
 const scroller = document.createElement('div');
 scroller.className = 'yf-scroll d3-scroll';
 scroller.setAttribute('data-no-drag', '');
-scroller.innerHTML = `<div class="d3 f9 f10 f11 f12" data-node-id="1324:39822">
+scroller.innerHTML = `<div class="d3 f9 f10 f11 f12 f13" data-node-id="1324:39822">
   <img class="d3-abs f9-bg rv" data-k="bg" src="${G11('b682b.svg')}" alt="" draggable="false">
-  ${t11('h', [0, 178, 375, 111.695, 375], 108.795, 'HEY NEHA', 'HERE ARE 5 DEALS JUST FOR YOU', '7015b.svg', [318.647, 71.569], [-3.04, 0.06], '-15.56% -1.63% -15.61% -1.66%', [272.726, 34.552])}
+  ${t11('h', [-0.247, 178, 375.494, 111.695, 375], 107.579, 'HEY NEHA', '5 TOP DEALS, PICKED FOR YOU!', '../f13/3531a.svg', [303.648, 70.353], [-3.15, -0.17], '-15.74% -1.75% -15.79% -1.78%', [257.742, 33.859])}
   <div class="d3-abs d3-deck rv" data-k="deck" data-no-drag aria-roledescription="carousel" aria-label="Top picks">${DATA.deck.map(deckCard).join('')}</div>
-  ${t11('p', [27.253, 854, 320.494, 111.446, 320], 104.207, 'PRICE DROPS', 'ON YOUR WISHLISTED ITEMS', '0425a.svg', [282.649, 68.651], [-3.33, -0.51], '-16% -1.94% -16.05% -1.97%', [236.765, 32.888])}
+  ${t11('p', [-0.247, 854, 375.494, 111.695, 375], 104.207, 'PRICE DROPS', 'ON YOUR WISHLISTED ITEMS', '0425a.svg', [282.649, 68.651], [-3.33, -0.51], '-16% -1.94% -16.05% -1.97%', [236.765, 32.888])}
   <div class="d3-abs d3-refill" data-k="refill" data-no-drag aria-roledescription="carousel" aria-label="Price drops on your wishlisted items">${DATA.pdrop.map(pxCard).join('')}</div>
-  <button class="d3-abs f5-cta sb c12 rv" data-k="ca" type="button" style="top:1506.13px"><span class="sh" aria-hidden="true"><i class="s1"></i><i class="s2"></i></span><b>See all items</b></button>
+  <button class="d3-abs f5-cta sb c12 rv" data-k="ca" type="button" style="top:1506.38px"><span class="sh" aria-hidden="true"><i class="s1"></i><i class="s2"></i></span><b>See all items</b></button>
   <div class="d3-abs f9-best" data-node-id="1360:4943">
-    ${t11('b', [27.253, 0, 320.494, 111.446, 320], 108.582, 'BEST DEALS', 'STRAIGHT FROM YOUR FAVOURITES', 'bf1ee.svg', [336.645, 73.028], [-2.91, 0.32], '-15.35% -1.5% -15.4% -1.53%', [290.707, 35.385])}
+    ${t11('b', [-0.247, 0, 375.494, 111.695, 375], 108.582, 'BEST DEALS', 'STRAIGHT FROM YOUR FAVOURITES', 'bf1ee.svg', [336.645, 73.028], [-2.91, 0.32], '-15.35% -1.5% -15.4% -1.53%', [290.707, 35.385])}
     <div class="tabs9 rv" data-k="btabs" role="tablist" aria-label="Categories">${DATA.tabs.map(([a, ic, w, kind, h], i) => `<button class="tb9 t${kind}${i === 0 ? ' on' : ''}" type="button" role="tab" aria-selected="${i === 0}" style="width:${w}px;height:${h}px"><span class="c"><img src="${G9(ic + '.svg')}" alt="" draggable="false"><span class="l">${a}</span></span></button>`).join('')}<i class="ul" aria-hidden="true"></i></div>
     <div class="skus rv" data-k="bsku">${DATA.best.map(skuCard).join('')}</div>
   </div>
-  ${t11('g', [27.253, 2222, 320.494, 111.446, 320], 108.906, 'LETS RESTSOCK', 'YOUR ESSENTIALS AT ALL TIME LOW', '685bd.svg', [340.645, 73.353], [-2.89, 0.37], '-15.31% -1.47% -15.35% -1.5%', [294.703, 35.569])}
-  <div class="d3-abs g9w">${DATA.grid.map(gridCard12).join('')}</div>
-  <button class="d3-abs f5-cta sb c12 rv" data-k="cb" type="button" style="top:2991.34px"><span class="sh" aria-hidden="true"><i class="s1"></i><i class="s2"></i></span><b>See all items</b></button>
-  <div class="d3-abs f9-best r12" style="top:3099.7px" data-node-id="1383:3534">
-    ${t11('x', [27.253, 0, 320.494, 111.446, 320], 100.722, 'CHRISTMAS LOVE', 'FOR YOU &amp; YOUR HOME', '../f12/22008.svg', [239.652, 65.165], [-3.8, -1.32], '-16.55% -2.43% -16.6% -2.47%', [193.811, 30.9])}
+  ${t11('g', [-0.247, 2222.46, 375.494, 111.695, 375], 108.906, 'LETS RESTSOCK', 'YOUR ESSENTIALS AT ALL TIME LOW', '685bd.svg', [340.645, 73.353], [-2.89, 0.37], '-15.31% -1.47% -15.35% -1.5%', [294.703, 35.569])}
+  <div class="d3-abs g9w">${DATA.grid.map(gridCard13).join('')}</div>
+  <button class="d3-abs f5-cta sb c12 rv" data-k="cb" type="button" style="top:3006.08px"><span class="sh" aria-hidden="true"><i class="s1"></i><i class="s2"></i></span><b>See all items</b></button>
+  <div class="d3-abs f9-best r12" style="top:3114.46px" data-node-id="1383:3534">
+    ${t11('x', [-0.247, 0, 375.494, 111.695, 375], 100.722, 'CHRISTMAS LOVE', 'FOR YOU &amp; YOUR HOME', '../f12/22008.svg', [239.652, 65.165], [-3.8, -1.32], '-16.55% -2.43% -16.6% -2.47%', [193.811, 30.9])}
     <div class="skus rv" data-k="xsku">${ROW9(DATA.xmas).map(skuCard).join('')}</div>
   </div>
-  <div class="d3-abs f9-best r12" style="top:3599.2px" data-node-id="1389:6298">
-    ${t11('dp', [27.253, 0, 320.494, 111.446, 320], 110.77, 'DIAPERS DON’T LIE', 'AND NEITHER DO OUR CRAZY DEALS 😍', '../f12/4b7b3.svg', [363.644, 75.217], [-2.75, 0.67], '-15.05% -1.33% -15.1% -1.36%', [317.678, 36.633])}
+  <div class="d3-abs f9-best r12" style="top:3614.16px" data-node-id="1389:6298">
+    ${t11('dp', [-0.247, 0, 375.494, 111.695, 375], 110.77, 'DIAPERS DON’T LIE', 'AND NEITHER DO OUR CRAZY DEALS 😍', '../f12/4b7b3.svg', [363.644, 75.217], [-2.75, 0.67], '-15.05% -1.33% -15.1% -1.36%', [317.678, 36.633])}
     <div class="skus rv" data-k="dsku">${ROW9(DATA.diapers).map(skuCard).join('')}</div>
   </div>
+  ${t11('dz', [-0.247, 4113.85, 375.494, 111.695, 375], 105.229, 'DISCOUNT ZONE', 'GRAB THEM TILL THEY LAST', '../f13/94ab1.svg', [274.649, 68.002], [-3.41, -0.65], '-16.1% -2.02% -16.15% -2.05%', [228.773, 32.518])}
+  <div class="d3-abs dz13 rv" data-k="dzc" data-no-drag aria-roledescription="carousel" aria-label="Discount zone">${CP13.map(coupon13).join('')}</div>
   <div class="d3-abs foot12 rv" data-k="end" data-node-id="1394:11173">
     <img class="pd" src="${G12('738b5.png')}" alt="" draggable="false"><p>Happy shopping!</p>
   </div>
@@ -380,7 +419,8 @@ const BEATS = {
   ca: [1000, 'translateY(16px)', 'cta1', 0], cb: [1960, 'translateY(16px)', 'cta2', 0],
   x: [2000, 'translateY(14px) scale(.96)', 'xmas', 0], xsku: [2060, 'translateY(16px)', 'xmas', 120],
   dp: [2100, 'translateY(14px) scale(.96)', 'diap', 0], dsku: [2160, 'translateY(16px)', 'diap', 120],
-  end: [2200, 'translateY(20px)', 'end', 0],
+  dz: [2200, 'translateY(14px) scale(.96)', 'dzone', 0], dzc: [2260, 'translateY(16px)', 'dzone', 120],
+  end: [2400, 'translateY(20px)', 'end', 0],
 };
 let live = false, lazyIO = null, hideIO = null;
 // a revealed block's end state is written inline and its animations released once they land: iOS WebKit drops the pixels
@@ -395,12 +435,28 @@ function playIn(el, from, delay, o = {}) {
   const b = el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: o.fadeMs || REVEAL.fadeMs, easing: REVEAL.fade, delay: d, fill: 'both' });
   Promise.all([a.finished, b.finished]).then(() => { held(el); a.cancel(); b.cancel(); }, () => {});
 }
+// a card's details (name, price, offers chip, delivery pill) rise in one after another once the card itself is nearly
+// in: 8 px, expo-out 520 ms, 60 ms apart — no fill afterwards, so nothing is left holding a layer (user, 2026-11-14)
+function detailsIn(card, delay) {
+  if (!card || reduce.matches) return;
+  const els = card.classList.contains('px') ? [...card.querySelectorAll('.dts > .nm0, .dt.a > *')] : [...card.querySelectorAll(':scope > .dt > *')];
+  els.forEach((el, i) => el.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
+    { duration: 520, delay: delay + i * 60, easing: REVEAL.ease, fill: 'backwards' }));
+}
 function playBeat(el, delay) {
   const k = el.dataset.k, b = BEATS[k];
   if (k === 'refill') { refill.reveal(delay); return; }
+  if (k === 'dzc') { held(el); zone.reveal(delay); return; }
+  // a row of products (BEST DEALS, CHRISTMAS LOVE, DIAPERS DON'T LIE): the cards rise in one after another, left to
+  // right, 70 ms apart — not the row as one block
+  if (k === 'bsku' || k === 'xsku' || k === 'dsku') {
+    held(el);
+    [...el.querySelectorAll('.sku9')].forEach((c, i) => playIn(c, 'translateY(20px)', delay + i * 70, { ms: 900, fadeMs: 360 }));
+    return;
+  }
   if (k === 'end') tick(delay + 200);              // (the green check plays as "You're all caught up" glides in)
   playIn(el, b[1], delay);
-  if (k === 'deck') deck.fan(delay + 380);   // (once the deck is mostly in: the cards behind slide up out from under the front one)
+  if (k === 'deck') { deck.fan(delay + 380); detailsIn($('.d3-dk.is-top .pc9'), delay + 240); }   // (once the deck is mostly in: the cards behind slide up out from under the front one)
 }
 // the product names end the way Figma ends them: two lines, cut at the last character that fits, then "…" (the web's
 // line clamp only cuts at a whole word — "(16+kg)…" where Figma has "(16+kg) S…"). Measured once the fonts are in, on a
@@ -486,27 +542,28 @@ function revealWithBot(items) {
     (seen <= 0 ? below : seq).push(g);
   });
   lazyIO && lazyIO.disconnect(); lazyIO = null; hideIO && hideIO.disconnect(); hideIO = null;
-  if (below.length) {
-    const shown = new Set();
-    lazyIO = new IntersectionObserver((ents) => ents.forEach((e) => {
-      const g = below.find((x) => x.anchor === e.target); if (!g) return;
-      if (e.isIntersecting && !shown.has(g)) {
-        shown.add(g);
-        if (g.name === 'deck') { deck.roles(); playBeat($('.d3-deck'), 0); } else play(g);
-      }
-    }), { root: scroller, threshold: 0.1, rootMargin: '0px 0px -6% 0px' });   // (a touch inside the edge, so the glide is seen)
-    // (gone: not one pixel of it left on screen, below the bottom edge — the user scrolled back up past all of it)
-    // (watched by the group's topmost piece: the last of it to leave through the bottom when scrolling up)
-    below.forEach((g) => { g.top = g.name === 'deck' || g.name === 'refill' ? g.anchor : g.els.map(([el]) => boxOf(el)).reduce((a, b) => (b.getBoundingClientRect().top < a.getBoundingClientRect().top ? b : a)); });
-    hideIO = new IntersectionObserver((ents) => ents.forEach((e) => {
-      const g = below.find((x) => x.top === e.target); if (!g) return;
-      if (!e.isIntersecting && shown.has(g) && belowView(e)) {
-        shown.delete(g);
-        if (g.name === 'deck') { deck.hide(); cancelOwn($('.d3-deck')); } else if (g.name === 'refill') refill.hide(); else g.els.forEach(([el]) => cancelOwn(el));
-      }
-    }), { root: scroller, threshold: 0 });
-    below.forEach((g) => { lazyIO.observe(g.anchor); hideIO.observe(g.top); });
-  }
+  // (user, 2026-11-14: "the reveal should happen all the time when I land") every widget plays in as it comes into view
+  // and hides again once not one pixel of it is left on screen — through the top or the bottom — so landing on it again,
+  // from either direction, plays it again. What's on the first fold counts as shown from the start (it plays in below)
+  const shown = new Set(seq), vis = new Map(), watched = [...below, ...seq];
+  watched.forEach((g) => { g.boxes = [...new Set([g.anchor, ...g.els.map(([el]) => boxOf(el))])]; });
+  const hideGroup = (g) => {
+    if (g.name === 'deck') { deck.hide(); cancelOwn($('.d3-deck')); }
+    else if (g.name === 'refill') refill.hide();
+    else { if (g.name === 'dzone') zone.hide(); g.els.forEach(([el]) => cancelOwn(el)); }
+  };
+  lazyIO = new IntersectionObserver((ents) => ents.forEach((e) => {
+    const g = watched.find((x) => x.anchor === e.target); if (!g) return;
+    if (e.isIntersecting && !shown.has(g)) {
+      shown.add(g);
+      if (g.name === 'deck') { deck.roles(); playBeat($('.d3-deck'), 0); } else play(g);
+    }
+  }), { root: scroller, threshold: 0.1, rootMargin: '0px 0px -6% 0px' });   // (a touch inside the edge, so the reveal is seen)
+  hideIO = new IntersectionObserver((ents) => {
+    ents.forEach((e) => vis.set(e.target, e.isIntersecting));
+    watched.forEach((g) => { if (shown.has(g) && g.boxes.every((b) => vis.get(b) === false)) { shown.delete(g); hideGroup(g); } });
+  }, { root: scroller, threshold: 0 });
+  watched.forEach((g) => { lazyIO.observe(g.anchor); g.boxes.forEach((b) => hideIO.observe(b)); });
   // what's on screen plays in top to bottom, 70 ms apart — each block no sooner than the bot has risen clear of it
   seq.sort((a, b) => a.y - b.y);
   // (a block that sits under the bot's resting spot — HEY NEHA, right under it — never gets "cleared": it starts as the
@@ -526,7 +583,7 @@ function reset() {
   live = false; lazyIO && lazyIO.disconnect(); lazyIO = null; hideIO && hideIO.disconnect(); hideIO = null; dock.reset();
   page.querySelectorAll('.rv').forEach(cancelOwn);
   scroller.scrollTop = 0; onScroll();
-  coupons.jump(0); deck.reset(); refill.jump(0); nudges.stop();
+  coupons.jump(0); deck.reset(); refill.jump(0); zone.reset(); nudges.stop();
   page.querySelectorAll('.gc.is-collected').forEach((c) => c.classList.remove('is-collected'));
   { const t = $('.f9-best .tabs9'), bs = [...t.querySelectorAll('.tb9')], ul = t.querySelector('.ul');   // (the tabs back to the first)
     bs.forEach((b, i) => { b.classList.toggle('on', !i); b.setAttribute('aria-selected', String(!i)); });
@@ -1180,7 +1237,7 @@ const refill = (() => {
   const TILT = 0, PERSP = 900, DROP = 32;   // (Figma 1573:68742: flat — the side cards' tops 32 px below the middle one's)
   // the green "lower than usual" bar is part of every card — the middle one and the ones at the side alike: always
   // down, never revealed or hidden on its own
-  let landed = false, rbRaf = 0, lastPlace = 0, rbLast = 0, landT = 0, touching = false;
+  let landed = false, rbRaf = 0, lastPlace = 0, rbLast = 0, landT = 0, touching = false, played = false;
   const rb = [], ex = [];
   const rbTick = () => {
     slots.forEach((el) => { el.style.setProperty('--rb', '1'); el.classList.remove('nobar'); });
@@ -1189,8 +1246,14 @@ const refill = (() => {
   const kick = () => { if (!rbRaf) rbRaf = requestAnimationFrame(rbTick); };   // (iteration 03: Figma's side cards sit 50.84 px lower than the middle one's top)
   const loop = loopCarousel({ stage, count: slots.length, step: PITCH, tapToFocus: true, place: (wrapD) => slots.forEach((el, i) => {
     const d = wrapD(i), a = Math.abs(d), k = Math.min(1, a);
-    el.style.transform = `perspective(${PERSP}px) translate3d(${(d * PITCH).toFixed(2)}px, ${(DROP * k).toFixed(2)}px, 0) rotateY(${(-Math.sign(d) * TILT * k).toFixed(3)}deg) scale(${(1 - (1 - SS) * k).toFixed(4)})`;
-    el.style.setProperty('--k', k.toFixed(3));   // (the middle card's details ↔ the side card's, as it moves)
+    // (flat — TILT 0 — so a plain 2D move: a perspective()/rotateY() transform puts the card in a 3D layer, and there its
+    // rounded photo frame stops painting the photo once the reveal's animation is released — the side cards lost their photos)
+    el.style.transform = TILT ? `perspective(${PERSP}px) translate3d(${(d * PITCH).toFixed(2)}px, ${(DROP * k).toFixed(2)}px, 0) rotateY(${(-Math.sign(d) * TILT * k).toFixed(3)}deg) scale(${(1 - (1 - SS) * k).toFixed(4)})`
+      : `translate(${(d * PITCH).toFixed(2)}px, ${(DROP * k).toFixed(2)}px) scale(${(1 - (1 - SS) * k).toFixed(4)})`;
+    // (user, 2026-11-14: a card's content never changes as it moves — the side cards show the middle card's bar, timer
+    // and details, just smaller; no morph)
+    el.style.setProperty('--k', '0');
+    el.style.setProperty('--km', k.toFixed(3));   // (…except the "Deal ends in" strip: it still folds away at the side and unfolds in the middle, as before)
     // (the type morphs in 16 steps — 0.1 px of size each, below what the eye can see — so its glyphs are re-rasterised a
     // handful of times per swipe instead of every frame)
     el.style.setProperty('--kt', '0');
@@ -1228,24 +1291,29 @@ const refill = (() => {
   const untouch = () => { if (touching) { touching = false; kick(); } };
   addEventListener('pointerup', untouch); addEventListener('pointercancel', untouch);
   return {
-    jump: (i) => { kick(); landed = false; slots.forEach((sl, k) => { rb[k] = 0; ex[k] = null; sl.style.setProperty('--rb', '1'); }); loop.jump(i); },
-    hide() { kick(); drop(); landed = false; slots.forEach((sl, i) => { rb[i] = 0; ex[i] = null; sl.style.setProperty('--rb', '1'); sl.firstElementChild.style.transform = ''; cancelOwn(sl.firstElementChild); }); },   // (back to hidden, to play in again)
-    reveal(delay) {
-      drop();
+    jump: (i) => { kick(); landed = false; played = false; slots.forEach((sl, k) => { rb[k] = 0; ex[k] = null; sl.style.setProperty('--rb', '1'); }); loop.jump(i); },
+    hide() { drop(); played = false; slots.forEach((sl) => { const c = sl.firstElementChild; c.style.transform = ''; cancelOwn(c); }); },   // (off screen: back to hidden, to play in again)
+    // (user, 2026-11-14: "when I scroll the content shouldn't change" — the row is simply there: no scale-up of the middle
+    // card, no side cards gliding out from behind it as it scrolls in, nothing hidden again when it scrolls away)
+    // the reveal (user, 2026-11-14), every time the row scrolls into view: the middle card is there at full
+    // opacity and scales up from 80 % on the page's soft settle (expo-out, 1.1 s); once it's nearly full size its two
+    // neighbours slide out from behind it on the slow critically damped spring (SIDE) — hidden behind it until then, no
+    // fade anywhere; once it's wholly off screen it's hidden again (hide), to play again next time. A touch mid-reveal finishes it
+    reveal(delay = 0) {
+      if (played) return; played = true;
+      drop(); clearTimeout(landT); landed = true; kick();
       const d0 = reduce.matches ? 0 : delay, n = springPath.length - 1;
-      clearTimeout(landT); landT = setTimeout(() => { landed = true; kick(); }, d0 + (reduce.matches ? 0 : 60));   // (as the middle card comes in)
       slots.forEach((s) => {
         const d = Math.round(loop.wrapD(+s.dataset.i)), c = s.firstElementChild;
         c.style.transform = ''; cancelOwn(c);
         if (reduce.matches || Math.abs(d) > 1) { held(c); return; }
         if (d === 0) {
-          const a = c.animate([{ transform: 'scale(.86)' }, { transform: 'none' }], { duration: REVEAL.ms, delay: d0, easing: REVEAL.ease, fill: 'both' });
-          const b = c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, delay: d0, easing: FADE_IN, fill: 'both' });
-          running.push(a, b);
-          Promise.all([a.finished, b.finished]).then(() => { held(c); a.cancel(); b.cancel(); }, () => {});
+          held(c);
+          const a = c.animate([{ transform: 'scale(.8)' }, { transform: 'none' }], { duration: REVEAL.ms, delay: d0, easing: REVEAL.ease, fill: 'both' });
+          running.push(a); a.finished.then(() => a.cancel(), () => {});
           return;
         }
-        // (no backwards fill: until it starts it stays hidden by the page's own .rv; it starts once the middle card is solid)
+        // (no backwards fill: until it starts it stays hidden by the page's own .rv, then it's straight behind the middle card)
         const a = c.animate(springPath.map((p, i) => ({ transform: `translate3d(${(-d * SIDE.from * (1 - p)).toFixed(2)}px, 0, 0) scale(${(SIDE.s0 + (1 - SIDE.s0) * p).toFixed(4)})`, opacity: 1, offset: i / n })),
           { duration: n * (1000 / 60), delay: d0 + SIDE.after, easing: 'linear', fill: 'forwards' });
         running.push(a);
@@ -1255,6 +1323,50 @@ const refill = (() => {
     scrolled() {},
     go: (i) => loop.go(i),
   };
+})();
+
+// DISCOUNT ZONE's tickets: the loop (the same spring and swipe as the price drops), the side ones at 68.18 %, faded out
+// past the sides so the wrap never shows; a tap on a side ticket brings it forward; every 3.2 s on to the next while the
+// row is on screen and nobody's touching it
+const zone = (() => {
+  const stage = $('.dz13'); if (!stage) return { reset() {} };
+  const els = [...stage.querySelectorAll('.cp13')], STEP = 155.12, SS = 107.386 / 157.5;
+  const loop = loopCarousel({ stage, count: els.length, step: STEP, tapToFocus: true, place: (wrapD) => els.forEach((el, i) => {
+    const d = wrapD(i), a = Math.abs(d), k = Math.min(1, a);
+    // (user, 2026-11-14: no fade — a ticket simply slides off the screen. Past the side slots it travels 200 px a step
+    // instead of 155, so at the wrap point, 1.5 steps out, it's already fully off the edge: −14 / 389 px)
+    const x = a <= 1 ? d * STEP : Math.sign(d) * (STEP + (a - 1) * 200);
+    el.style.transform = `translate3d(${x.toFixed(2)}px, 0, 0) scale(${(1 - (1 - SS) * k).toFixed(4)})`;
+    el.style.opacity = '1';
+    el.style.zIndex = String(10 - Math.round(a * 3));
+    el.classList.toggle('is-mid', a < 0.5); el.setAttribute('aria-hidden', String(a >= 0.5));
+  }) });
+  let t = 0, seen = false, touching = false;
+  const next = () => { if (seen && !touching && !document.hidden && live) loop.go(loop.at + 1); };
+  const start = () => { clearInterval(t); if (!reduce.matches) t = setInterval(next, 3200); };
+  new IntersectionObserver((es) => es.forEach((e) => { seen = e.isIntersecting; }), { root: scroller, threshold: 0.6 }).observe(stage);
+  stage.addEventListener('pointerdown', () => { touching = true; start(); });
+  addEventListener('pointerup', () => { touching = false; }); addEventListener('pointercancel', () => { touching = false; });
+  loop.jump(0); start();
+  // the reveal, every time the row comes into view — as the price drops: the middle ticket at full opacity scales up from
+  // 80 %, then the two side tickets slide out from behind it (from its centre, where it covers them); no fade
+  let anims = [];
+  const finish = () => { anims.forEach((a) => { try { a.finish(); } catch {} }); anims = []; };
+  stage.addEventListener('pointerdown', finish);
+  const reveal = (delay = 0) => {
+    finish(); if (reduce.matches) return;
+    const d0 = delay;
+    els.forEach((el) => {
+      const d = Math.round(loop.wrapD(+el.dataset.i)), T = el.style.transform;
+      if (Math.abs(d) > 1) return;
+      const a = d === 0
+        ? el.animate([{ transform: `${T} scale(.8)` }, { transform: T }], { duration: REVEAL.ms, delay: d0, easing: REVEAL.ease, fill: 'backwards' })
+        : el.animate([{ transform: `translate3d(0, 0, 0) scale(${(SS * 0.9).toFixed(4)})` }, { transform: T }], { duration: 900, delay: d0 + 380, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'backwards' });
+      anims.push(a); a.finished.then(() => { anims = anims.filter((x) => x !== a); }, () => {});
+    });
+    start();                                                     // (the auto-advance counts from the reveal)
+  };
+  return { reset() { finish(); loop.jump(0); start(); }, reveal, hide() { finish(); }, go: (i) => loop.go(i), get at() { return loop.at; } };
 })();
 
 // the nudge line on every card rolls on to the next one every 2.6 s (in-out, 520 ms) while the page is up; from the last
@@ -1340,4 +1452,4 @@ $$('img').forEach((im) => { if (im.decode) im.decode().catch(() => {}); });
 (() => { const f = sheet.querySelector('.yf-mini'); const set = () => f && f.classList.toggle('on', scroller.scrollTop > 6); scroller.addEventListener('scroll', set, { passive: true }); set(); })();
 coupons.jump(0); deck.reset(); refill.jump(0);
 (function ink() { if (window.orbi) window.orbi.statusInk(0); else requestAnimationFrame(ink); })();   // (a light page: dark status-bar content)
-window.yfPage = { reveal, reset, scroller, coupons, deck, refill };
+window.yfPage = { reveal, reset, scroller, coupons, deck, refill, zone };

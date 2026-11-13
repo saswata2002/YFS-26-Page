@@ -1,0 +1,19 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="107.744" height="143.54" viewBox="0 0 107.744 143.54" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="Vector">
+<use xlink:href="#stroke0_0_5" fill="black"/>
+<use xlink:href="#stroke0_0_5" fill="url(#paint0_radial_0_5)"/>
+<path d="M100.406 143.361H7.33807C7.33807 139.405 4.13437 136.202 0.178977 136.202V7.33807C4.13437 7.33807 7.33807 4.13438 7.33807 0.178977H100.406C100.406 4.13438 103.61 7.33807 107.565 7.33807V136.202C103.61 136.202 100.406 139.405 100.406 143.361Z" stroke-width="0.357955" stroke="url(#paint1_linear_0_5)"/>
+</g>
+<defs>
+<radialGradient id="paint0_radial_0_5" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(-10.7 -45.0898) rotate(60.1966) scale(211.83 129.09)">
+<stop offset="0.0781534" stop-color="#FDF69B"/>
+<stop offset="0.346154" stop-color="#DE9000"/>
+<stop offset="0.8" stop-opacity="0.3"/>
+</radialGradient>
+<linearGradient id="paint1_linear_0_5" x1="53.8608" y1="-6.95286" x2="53.8608" y2="169.786" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FDF69B"/>
+<stop offset="0.490385" stop-color="#DE9000"/>
+</linearGradient>
+<path id="stroke0_0_5" d="M100.406 143.361H7.33807C7.33807 139.405 4.13437 136.202 0.178977 136.202V7.33807C4.13437 7.33807 7.33807 4.13438 7.33807 0.178977H100.406C100.406 4.13438 103.61 7.33807 107.565 7.33807V136.202C103.61 136.202 100.406 139.405 100.406 143.361Z"/>
+</defs>
+</svg>

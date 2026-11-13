@@ -147,7 +147,8 @@ scene.add(rim);
 // ~5× fewer pixels than a full-screen WebGL layer over a scrolling page.
 const VIEW = {
   home: { cx: 327, cy: 681.5, unit: 30 },        // 1068:81084 — 80×80 FAB at (287, 644)
-  page: { cx: 187.35, cy: 140.15, unit: 36.15 },   // (Figma 1573:68634: Orbi's body, 72.3 across, centred at 187.35, 140.15)   // (Figma 1562:64150 draws the bot 10 px left of 1544:61922's spot)   // iteration 03: where Figma 1544:61922 draws the bot (4 px right of centre)     // iteration 5: the bot rests big at the top centre of its page, above HEY NEHA (Figma 1520:59225's bot); yf-page.js docks it in the corner on scroll
+  page: { cx: 187.35, cy: 102.15, unit: 36.15 },   // (user, 2026-11-14: the whole first fold 38 px up — yf-page.css .f13 margin)
+  // (was cy 140.15)   // (Figma 1573:68634: Orbi's body, 72.3 across, centred at 187.35, 140.15)   // (Figma 1562:64150 draws the bot 10 px left of 1544:61922's spot)   // iteration 03: where Figma 1544:61922 draws the bot (4 px right of centre)     // iteration 5: the bot rests big at the top centre of its page, above HEY NEHA (Figma 1520:59225's bot); yf-page.js docks it in the corner on scroll
 };
 const view = { ...VIEW.home };
 // room around the ball for hops, the dizzy orbit, Zz and the soft shadows, even
