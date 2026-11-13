@@ -1000,18 +1000,26 @@ const refill = (() => {
   // the "Expires in" bar (--rb, per card): the widget has to have landed first; the middle card's bar wipes in (0.46 s,
   // eased out) once the carousel has come to rest; a card that has gone to the side loses it
   let landed = false, rbRaf = 0, lastPlace = 0, rbLast = 0, landT = 0, touching = false;
-  const rb = [];
+  const rb = [], ex = [];
   const rbTick = (now) => {
     const dt = Math.min(0.05, (now - (rbLast || now)) / 1000); rbLast = now;
     let anim = false;
     slots.forEach((el, i) => {
-      const d = Math.abs(loop.wrapD(i)); let v = rb[i] || 0;
-      // (once the card is all but in place — within 3.5 % of a card of the middle — with no finger on the carousel)
-      if (landed && d < 0.035 && !touching) { if (v < 1) { v = Math.min(1, v + dt / 0.5); anim = true; } }
-      // (leaving the middle: the bar goes back up the way it came — the same curve run backwards, the same 0.5 s — as
-      // soon as the card starts to move off; if it springs back to the middle, the bar comes down again)
-      else if (d >= 0.035 && v > 0) { v = Math.max(0, v - dt / 0.5); anim = true; }
-      rb[i] = v; el.style.setProperty('--rb', (1 - Math.pow(1 - v, 4)).toFixed(4)); el.classList.toggle('nobar', !(v > 0));
+      const d = Math.abs(loop.wrapD(i)); let v = rb[i] || 0, e;
+      // in: once the card is all but in place (within 3.5 % of a card of the middle) with no finger on the carousel
+      if (landed && d < 0.035 && !touching && !(ex[i] && d >= 0.01)) {
+        if (ex[i]) { v = 1 - Math.pow(1 - ex[i].e, 0.25); ex[i] = null; }   // (back to the middle mid-exit: down again from where it is)
+        if (v < 1) { v = Math.min(1, v + dt / 0.5); anim = true; }
+        e = 1 - Math.pow(1 - v, 4);
+      } else if (d >= 0.01 && (v > 0 || ex[i])) {
+        // out: the moment the card starts to move off the middle (1 % of a card), the bar goes back up — from where it
+        // is, on its own ease-in-out (0.45 s), so it lifts off gently and glides away out of sight
+        if (!ex[i]) { const e0 = 1 - Math.pow(1 - v, 4); ex[i] = { t0: now, e0, e: e0 }; }
+        const u = Math.min(1, (now - ex[i].t0) / 450), io = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+        e = ex[i].e = ex[i].e0 * (1 - io);
+        if (u >= 1) { v = 0; e = 0; ex[i] = null; } else { v = 1; anim = true; }
+      } else e = 1 - Math.pow(1 - v, 4);
+      rb[i] = v; el.style.setProperty('--rb', e.toFixed(4)); el.classList.toggle('nobar', !(e > 0));
     });
     rbRaf = anim || now - lastPlace < 160 ? requestAnimationFrame(rbTick) : 0;
     if (!rbRaf) rbLast = 0;
@@ -1058,8 +1066,8 @@ const refill = (() => {
   const untouch = () => { if (touching) { touching = false; kick(); } };
   addEventListener('pointerup', untouch); addEventListener('pointercancel', untouch);
   return {
-    jump: (i) => { landed = false; slots.forEach((sl, k) => { rb[k] = 0; sl.style.setProperty('--rb', '0'); sl.classList.add('nobar'); }); loop.jump(i); },
-    hide() { drop(); landed = false; slots.forEach((sl, i) => { rb[i] = 0; sl.style.setProperty('--rb', '0'); sl.classList.add('nobar'); sl.firstElementChild.style.transform = ''; cancelOwn(sl.firstElementChild); }); },   // (back to hidden, to play in again)
+    jump: (i) => { landed = false; slots.forEach((sl, k) => { rb[k] = 0; ex[k] = null; sl.style.setProperty('--rb', '0'); sl.classList.add('nobar'); }); loop.jump(i); },
+    hide() { drop(); landed = false; slots.forEach((sl, i) => { rb[i] = 0; ex[i] = null; sl.style.setProperty('--rb', '0'); sl.classList.add('nobar'); sl.firstElementChild.style.transform = ''; cancelOwn(sl.firstElementChild); }); },   // (back to hidden, to play in again)
     reveal(delay) {
       drop();
       const d0 = reduce.matches ? 0 : delay, n = springPath.length - 1;
