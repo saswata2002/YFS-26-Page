@@ -862,9 +862,51 @@
 /* (measured against Figma 1573:68634: its price pill is 20 px — 14/20 Bold, 4 px corners — and the list price and
    discount 12/14; the offers chip 22 px with its hairline inside; the tab row 1 px lower; the restock cards' contents
    from the top) */
-.f11 .pc9.dk .pr { gap: 4px; }
-.f11 .pc9.dk .pr b { height: 20px; padding: 0 4px; border-radius: 4px; font-size: 14px; line-height: 20px; }
-.f11 .pc9.dk .pr s, .f11 .pc9.dk .pr em { font-size: 12px; line-height: 14px; letter-spacing: -0.12px; }
+.f11 .pc9.dk.px .pr { gap: 4px; }
+.f11 .pc9.dk.px .pr b { height: 20px; padding: 0 4px; border-radius: 4px; font-size: 14px; line-height: 20px; }
+.f11 .pc9.dk.px .pr s, .f11 .pc9.dk.px .pr em { font-size: 12px; line-height: 14px; letter-spacing: -0.12px; }
 .f11 .pc9.dk .off9 { height: 22px; display: flex; align-items: center; padding: 0 6px; }
 .f11 .tb9 .c { position: relative; top: 1px; }   /* (the box at Figma's 127.5; its type renders 1 px higher than Figma sets it) */
 .pc9.wc2 { justify-content: flex-start; }
+
+/* ════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+   Figma For You 1324:39822 (375 × 4431): HEY NEHA + the deck → PRICE DROPS + "See all items" → BEST DEALS →
+   LETS RESTSOCK + "See all items" → CHRISTMAS LOVE → DIAPERS DON'T LIE → "Happy shopping!"
+   ════════════════════════════════════════════════════════════════════════════════════════════════════════════════ */
+.d3.f9.f12 { height: 4431px; }
+.f12 .d3-dk { left: 71.5px; }
+.f12 .d3-refill { top: 981.4px; }
+.f12 .f9-best { top: 1614.5px; }
+
+/* the price-drop card's bar: "Price dropped by ₫ N" in the middle, "₫ N lower than usual" at the side */
+.pc9.dk.px .bar .bt { position: relative; display: block; }
+.pc9.dk.px .bar .b1 { display: block; opacity: calc(1 - var(--k, 0) * 2); }
+.pc9.dk.px .bar .b2 { position: absolute; left: 50%; top: 0; transform: translateX(-50%); opacity: calc(var(--k, 0) * 2 - 1); }
+
+/* "See all items" (For You 1395:28776): the yellow pill, 168 × 44, at x 103.4 */
+.f5-cta.sb.c12 { left: 103.4px; }
+
+/* LETS RESTSOCK's cards (For You 1381:5349 …): 165.5 × 302, the lift above them; the size and unit price; the black
+   "lower than last buy" pill */
+.pc9.wc2.w12 { height: 302px; justify-content: flex-start; box-shadow: inset 0 0 0 1.5px #fff, 0 -4px 8px -1px rgba(0,0,0,.08); }
+.pc9.wc2.w12.vd { height: 303px; }
+.pc9.wc2.w12 .rt { bottom: 6px; }
+.pc9.wc2.w12 .pc-add { right: 6px; bottom: 6px; }
+.pc9.wc2.w12 .qt { height: 18px; display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 4px; background: #f9f9fb; }
+.pc9.wc2.w12 .qt b { font: 500 12px/14px var(--noon); letter-spacing: -0.12px; color: #343d54; white-space: nowrap; }
+.pc9.wc2.w12 .qt .ln { flex: none; width: 1px; height: 11px; border-radius: 1px; background: #d0d4dd; }
+.pc9.wc2.w12 .lb12 { height: 21px; width: 100%; display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 4px; background: #000; overflow: hidden; }
+.pc9.wc2.w12 .lb12 img { flex: none; width: 14px; height: 14px; }
+.pc9.wc2.w12 .lb12 b { font: 500 12px/14px var(--noon); letter-spacing: -0.12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* CHRISTMAS LOVE / DIAPERS DON'T LIE (For You 1383:3534 / 1389:6298): BEST DEALS' white fade, the heading, three products */
+.f9-best.r12 { height: 459.4px; }
+.f9-best.r12 .skus { top: 127.47px; padding-top: 0; }
+
+/* the foot (For You 1394:11173): "Happy shopping!" under the podium of products */
+.foot12 { left: 0; top: 4003.51px; width: 375px; height: 427.49px; pointer-events: none; z-index: 2; }
+.foot12 .pd { position: absolute; left: -25.95px; top: 0; width: 427.493px; height: 427.493px; max-width: none; object-fit: cover; z-index: 1; }
+.foot12 p { position: absolute; left: 187.88px; top: 144.73px; margin: 0; transform: translateX(-50%); white-space: nowrap; font: 700 20.677px/28.948px var(--noon); color: #c4c1c5; }
+
+/* (the white sections their own layer: iOS WebKit otherwise never paints their background inside the page's scroller) */
+.f11 .f9-best { will-change: transform; }
