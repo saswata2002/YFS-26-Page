@@ -526,13 +526,15 @@ scroller.addEventListener('scroll', onScroll, { passive: true });
 // once you start scrolling it glides up into the top-right corner at its small size, and comes back to the centre when
 // you scroll back to the top (hysteresis: out past 40 px, back under 12 px) — iteration 4's dock
 const dock = (() => {
-  // the bot's dock, mapped to the scroll: over the first 320 px of scroll it glides from its spot at the top centre to
-  // the top-right corner — level with the ✕ (both centred at y 85) — shrinking as it goes, on a smootherstep of the
-  // scroll position (slow off the top, slow into the corner). It follows that position through a critically damped
-  // spring (ω 14, no overshoot), so a flick never throws it across and it eases into place; scroll back up and it
-  // retraces the same path, landing exactly on its spot at the top
-  const CORNER = { cx: 336, cy: 85, unit: 17 }, D = 320, W = 14;
-  let on = false, cur = 0, vel = 0, goal = 0, raf = 0, last = 0;
+  // the bot's dock: the moment you start scrolling (past 6 px) it glides from its spot at the top centre into the top-
+  // right corner — level with the ✕ (both centred at y 85) — shrinking as it goes; scroll back near the top (under
+  // 24 px) and it glides home. Each glide is its own critically damped spring on the move's progress (ω 10, ζ 1: it
+  // eases off from rest, travels and settles with no overshoot, ≈ 0.6 s), interruptible either way — not tied to the
+  // scroll position
+  // (the spring follows a softened goal — the goal itself eased in on a first-order lag, ω 9 — so the glide starts with
+  // no jolt: it accelerates out of rest, travels, and settles, ≈ 0.75 s)
+  const CORNER = { cx: 336, cy: 85, unit: 17 }, W = 11, W1 = 9;
+  let on = false, cur = 0, vel = 0, goal = 0, soft = 0, raf = 0, last = 0, prevTop = 0;
   const place = () => {
     const A = window.orbi.pageSpot, e = cur;
     window.orbi.stage({ cx: A.cx + (CORNER.cx - A.cx) * e, cy: A.cy + (CORNER.cy - A.cy) * e, unit: A.unit + (CORNER.unit - A.unit) * e }, { snap: true });
@@ -545,19 +547,24 @@ const dock = (() => {
     raf = 0;
     if (!live || curating || !window.orbi || !window.orbi.pageOpen) return;
     const dt = Math.min(0.032, (now - last) / 1000); last = now;
-    for (let h = dt; h > 1e-6; h -= 1 / 240) { const k = Math.min(h, 1 / 240); vel += (W * W * (goal - cur) - 2 * W * vel) * k; cur += vel * k; }
-    if (Math.abs(goal - cur) < 0.0004 && Math.abs(vel) < 0.003) { cur = goal; vel = 0; }
-    if (goal === 0 && cur <= 0.0004) { cur = 0; vel = 0; if (on) home(); return; }
+    for (let h = dt; h > 1e-6; h -= 1 / 240) { const k = Math.min(h, 1 / 240); soft += (goal - soft) * (1 - Math.exp(-W1 * k)); vel += (W * W * (soft - cur) - 2 * W * vel) * k; cur += vel * k; }
+    if (Math.abs(goal - cur) < 0.0005 && Math.abs(goal - soft) < 0.0005 && Math.abs(vel) < 0.004) { cur = soft = goal; vel = 0; }
+    if (goal === 0 && cur === 0) { if (on) home(); return; }
     on = true; place();
     if (cur !== goal || vel) raf = requestAnimationFrame(step);
   };
   return {
     update(top) {
       if (!live || curating || !window.orbi || !window.orbi.pageOpen) return;
-      const u = Math.max(0, Math.min(1, top / D)); goal = u * u * u * (u * (u * 6 - 15) + 10);
-      if (!raf && (goal !== cur || vel)) { last = performance.now(); raf = requestAnimationFrame(step); }
+      // (out once you've scrolled past 6 px; home again only while scrolling back up, from 24 px — so it lands as the
+      // page reaches the top)
+      const up = top < prevTop; prevTop = top;
+      const want = goal ? !(up && top < 24) && top > 0 : top > 6;
+      if ((want ? 1 : 0) === goal) return;
+      goal = want ? 1 : 0;
+      if (!raf) { last = performance.now(); raf = requestAnimationFrame(step); }
     },
-    reset() { cancelAnimationFrame(raf); raf = 0; on = false; cur = vel = goal = 0; },
+    reset() { cancelAnimationFrame(raf); raf = 0; on = false; cur = vel = goal = soft = 0; prevTop = 0; },
   };
 })();
 // the top feather (Figma's "yf-mini", 132 tall): always there, so the page scrolls away under the status bar and the ✕
@@ -763,7 +770,7 @@ const deck = (() => {
   const KEYS = ['x', 'y', 'r', 's', 'b', 'o', 'g'], K = 280.6, C = 27.14;
   let order = cards.map((_, i) => i), raf = 0, drag = null, fanned = 0;   // (how many cards behind the front one are out)
   let barLive = false, fanT = 0, fanPoll = 0, barT = 0;                  // (the bar shows once the deck has landed on the page)
-  const BAR_S = 0.36;                                          // (its unfold, s)
+  const BAR_S = 0.5;                                           // (its slide down, s)
   // iteration 02 — the throw tucks the card in behind only once its (rotated) outline is clear of the new front card,
   // so it never pops from in front to behind while the two overlap; its speed carries straight on through that moment
   // (one continuous arc: out, round, and back in under the pile, still visible until it lands behind the far card)
@@ -785,7 +792,7 @@ const deck = (() => {
     c.style.setProperty('--g', Math.max(0, Math.min(1, s.g)).toFixed(3));
     // (iteration 03: the red "Deal ends in" bar is the front card's only — Figma's copies behind have none — so it folds
     // away as a card shrinks into the pile and unfolds as one grows to the front, on the same spring as its scale)
-    c.style.setProperty('--bar', (1 - Math.pow(1 - (s.bar || 0), 3)).toFixed(3));   // (ease-out: it unfolds, then settles)
+    c.style.setProperty('--bar', (1 - Math.pow(1 - (s.bar || 0), 4)).toFixed(4));   // (ease-out quart: it slides in and settles softly)
   });
   const layer = () => order.forEach((ci, k) => { cards[ci].style.zIndex = String(st[ci].fly && !st[ci].tucked ? 40 : 30 - k); cards[ci].classList.toggle('is-top', k === 0); cards[ci].setAttribute('aria-hidden', String(k !== 0)); });
   const aim = () => order.forEach((ci, k) => {
@@ -994,9 +1001,9 @@ const refill = (() => {
     let anim = false;
     slots.forEach((el, i) => {
       const d = Math.abs(loop.wrapD(i)); let v = rb[i] || 0;
-      if (landed && d < 0.02 && now - lastPlace > 60) { if (v < 1) { v = Math.min(1, v + dt / 0.36); anim = true; } }
+      if (landed && d < 0.02 && now - lastPlace > 60) { if (v < 1) { v = Math.min(1, v + dt / 0.5); anim = true; } }
       else if (d >= 0.999) v = 0;
-      rb[i] = v; el.style.setProperty('--rb', (1 - Math.pow(1 - v, 3)).toFixed(3));
+      rb[i] = v; el.style.setProperty('--rb', (1 - Math.pow(1 - v, 4)).toFixed(4));
     });
     rbRaf = anim || now - lastPlace < 160 ? requestAnimationFrame(rbTick) : 0;
     if (!rbRaf) rbLast = 0;

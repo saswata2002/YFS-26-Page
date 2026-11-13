@@ -406,10 +406,10 @@
 /* the card: white, a 1.5 px white line, 14 px corners, Figma's soft lift above it */
 .pc9.dk { width: 233px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; border: 1.5px solid #fff; border-radius: 14px; overflow: hidden;
   box-shadow: 0 -4px 8px -1px rgba(0,0,0,.08); }
-/* the bar's space is always the card's: the red wipes down into it from the top edge (--bar 0 → 1, eased out) and the
-   line under it drifts down 6 px and fades in behind the wipe, so the card never changes size */
-.pc9.dk .bar { flex: none; height: 28px; overflow: hidden; clip-path: inset(0 0 calc((1 - var(--bar, 1)) * 100%) 0); display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 4.231px; background: #f02021; }
-.pc9.dk .bar img, .pc9.dk .bar b { opacity: calc((var(--bar, 1) - 0.35) * 1.54); transform: translateY(calc((1 - var(--bar, 1)) * -6px)); }
+/* the bar's space is always the card's: the whole bar — the red and its line, one piece — starts hidden 12 px above
+   its place and drops down into it as it fades in (--bar 0 → 1, eased out), so the card never changes size and nothing
+   inside the bar moves or fades on its own */
+.pc9.dk .bar { flex: none; height: 28px; overflow: hidden; transform: translate3d(0, calc((var(--bar, 1) - 1) * 12px), 0); opacity: min(1, calc(var(--bar, 1) * 1.4)); display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 4.231px; background: #f02021; }
 .pc9.dk .bar img { width: 16.01px; height: 16.01px; }
 .pc9.dk .bar b { font: 700 13px/14.81px var(--noon); letter-spacing: -0.1269px; color: #fff; white-space: nowrap; font-feature-settings: "case" 1; font-variant-numeric: tabular-nums; }
 .pc9.dk .main { position: relative; flex: none; margin: 0 8px; width: 214px; height: 285px; border-radius: 8px; background: #fff; }
@@ -449,11 +449,11 @@
   box-shadow: 0 9px 22px rgba(122,82,0,.08), 0 1px 3px rgba(92,68,0,.05); }
 .pc9.rf::after { content: ''; position: absolute; inset: 0; border: calc(1px + 0.23px * var(--k)) solid #efe7d2; border-radius: inherit; pointer-events: none; z-index: 5; }
 .pc9.rf .bar { position: absolute; left: 0; right: -2px; top: -1px; height: calc(27px * (1 - var(--k))); display: flex; align-items: center; justify-content: center; overflow: hidden;
-  clip-path: inset(0 0 calc((1 - var(--rb, 0)) * 100%) 0);
+  transform: translate3d(0, calc((var(--rb, 0) - 1) * 12px), 0); opacity: min(1, calc(var(--rb, 0) * 1.4));   /* (drops 12 px into place as it fades in, one piece) */
   border-radius: 12px 12px 0 0; background: #f02021; }
 .pc9.rf .bar b { font-family: 'Google Sans Flex', var(--noon); font-size: 14px; line-height: 14.81px; font-weight: 600; font-style: normal; letter-spacing: -0.1269px; color: #fff; white-space: nowrap;
   font-variation-settings: "GRAD" 0, "ROND" 0, "slnt" -10; font-feature-settings: "case" 1; font-variant-numeric: tabular-nums;
-  opacity: min(calc(1 - var(--k) * 2.2), calc((var(--rb, 0) - 0.35) * 1.54)); transform: translateY(calc((1 - var(--rb, 0)) * -6px)); }
+  opacity: calc(1 - var(--k) * 2.2); }
 .pc9.rf .main { left: calc(10px + 1.04px * var(--k)); top: calc(35px - 23.96px * var(--k)); width: calc(204px - 4.07px * var(--k)); height: calc(218px - 46.29px * var(--k));
   border-radius: calc(12px + 0.27px * var(--k)); background: #fff; }
 .pc9.rf .main::after { background: rgba(0,40,136,.03); }
