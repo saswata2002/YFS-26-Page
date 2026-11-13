@@ -1,23 +1,13 @@
 {
   "redirects": [
     {
-      "source": "/v2/",
-      "destination": "/",
+      "source": "/v4/",
+      "destination": "/v2/",
       "permanent": false
     },
     {
-      "source": "/v2/:path*",
-      "destination": "/",
-      "permanent": false
-    },
-    {
-      "source": "/v3/",
-      "destination": "/",
-      "permanent": false
-    },
-    {
-      "source": "/v3/:path*",
-      "destination": "/",
+      "source": "/v4/:path*",
+      "destination": "/v2/:path*",
       "permanent": false
     },
     {

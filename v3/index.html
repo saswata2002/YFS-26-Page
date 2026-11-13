@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html data-variant="4" lang="en">
+<html data-variant="3" lang="en">
 <head>
 <meta charset="UTF-8" />
 <!-- a 375-wide layout on every phone (the Figma frame's width): the browser scales it to fill the screen exactly — Android phones are 360–412 wide -->
 <meta name="viewport" content="width=375, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#dcf0ff" />
 <script>/* Android: a few GPU-heavy effects get cheaper equivalents (styles.css .is-android) */ if (/Android/i.test(navigator.userAgent)) document.documentElement.classList.add('is-android');</script>
-<title>noon — Home Page · Option 4</title>
+<title>noon — Home Page · Option 3</title>
 <link rel="icon" href="data:," />
 <!-- the GitFlow Home (home-app/, built from noon-app-skill): its styles first, this page's on top -->
 <link rel="stylesheet" href="/home-app/assets/index-UqrQm6OA.css" />
@@ -87,7 +87,8 @@
 <script type="module" src="yf-page.js"></script>
 <nav class="vswitch" id="vswitch" aria-label="Design variations">
   <button class="vswitch__b" data-v="1" aria-pressed="false">1</button>
-  <button class="vswitch__b" data-v="4" aria-pressed="true">4</button>
+  <button class="vswitch__b" data-v="2" aria-pressed="false">2</button>
+  <button class="vswitch__b" data-v="3" aria-pressed="true">3</button>
   <i class="vswitch__sep" aria-hidden="true"></i>
   <button class="vswitch__b vswitch__reset vswitch__tip" id="vreset" data-tip="Reset" aria-label="Reset the flow — start again from the top"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 10a6.5 6.5 0 1 0 1.9-4.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3.8 2.8v3.4h3.4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <button class="vswitch__b vswitch__spec vswitch__tip" id="vspec" data-tip="Spec Sheet" aria-label="Spec Sheet — motion spec for this iteration"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 5h5M3 10h9M3 15h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="10" y="3.5" width="7" height="3" rx="1.5" fill="currentColor"/><rect x="14" y="13.5" width="3" height="3" rx="1.5" fill="currentColor"/></svg></button>
