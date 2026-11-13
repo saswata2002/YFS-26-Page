@@ -32,6 +32,7 @@ const G = (f) => A(`f8/${f}`);                // Figma 1520:59225's exports
 // last-bought cards in a 2 × 2 grid — and "SEE ALL →"; "BEST DEALS, STRAIGHT FROM YOUR FAVS" with its category tabs
 // and a row of products.
 const G9 = (f) => A(`f9/${f}`);
+const G11 = (f) => A(`f11/${f}`);              // Figma 1573:68634's exports
 const num = (v) => (v % 1 ? v.toFixed(2) : String(v));      // Figma: "16.20", "899" — no thousands comma
 const pct = (it) => (it.off != null ? it.off : Math.floor((1 - it.price / it.was) * 100));
 const DATA = {
@@ -41,36 +42,67 @@ const DATA = {
     { t1b: '20% extra off', t1: `up to ${D}100`, t2: 'with Emirates Islamic cards', card: 'ei', tier: 'Platinum', code: 'EIB20', h0: '#3c60ca', h1: '#7ba6e4', strip: '#b3dbff', pill: '#d4dcec' },
     { t1b: '10% off', t1: `up to ${D}100`, t2: 'when you pay with tabby', card: 'tabby', code: 'TABBY10', h0: '#2b8871', h1: '#5fcaa4', strip: '#a5efcb', pill: '#cee9d7' },
   ],
+  // (live noon.com/uae-en listings, 13 Nov 2026: name, price, was, rating; photos in f/p/yf)
   deck: [
-    { src: G9('39ec9.png'), name: 'Apple MacBook Pro 16-inch,\nM4 Pro chip, 24GB RAM,\n512GB SSD, Space Black', price: 846, was: 1399, off: 60, rating: 4.5, save: 20, ship: 'Thu, 13 Nov', ends: 3 * 3600 + 20 * 60 + 10 },
-    { src: G9('00ff6.png'), name: 'Apple Airpods Pro 2 Wireless Earbuds with MagSafe Charging Case', price: 899, was: 1399, off: 33, rating: 4.3, save: 25, ship: 'Thu, 13 Nov', ends: 2 * 3600 + 48 * 60 + 5 },
-    { src: A('fy/df9f1.png'), name: 'Ninja Crispi 4 in 1 Air Fryer Cooking System 4.2L & 3.1 L Glass', price: 899, was: 1399, off: 33, rating: 4.3, save: 30, ship: 'Fri, 14 Nov', ends: 5 * 3600 + 2 * 60 + 44 },
-    { img: 'deck1', name: 'Samsung Galaxy S26 Ultra Dual SIM Cobalt Violet 12GB RAM 256GB 5G', price: 3349, was: 5099, rating: 4.6, save: 50, ship: 'Thu, 13 Nov', ends: 1 * 3600 + 15 * 60 + 30 },
-    { img: 'deck2', name: 'Hisense 7Kg Front Loading Washing Machine, 1200RPM, Steam Wash', price: 749, was: 999, rating: 4.4, save: 15, ship: 'Sat, 15 Nov', ends: 4 * 3600 + 40 * 60 + 12 },
-    { img: 'deck3', name: 'Hawkins Futura 5L Hard Anodised Deep Kadhai with Steel Lid', price: 67, was: 204, rating: 4.5, save: 5, ship: 'Thu, 13 Nov', ends: 6 * 3600 + 5 * 60 + 9 },
-    { img: 'deck4', name: 'FUJIFILM Instax Mini EVO Hybrid Instant Camera, Gentle Rose', price: 779, was: 999, rating: 4.2, save: 20, ship: 'Fri, 14 Nov', ends: 3 * 3600 + 58 * 60 + 41 },
+    { src: A('p/yf/deck0.jpg'), name: 'Apple MacBook Pro 16-inch,\nM4 Pro chip, 24GB RAM,\n512GB SSD, Space Black', price: 8789, was: 15019, off: 41, rating: 4.5, save: 100, ship: 'Thu, 13 Nov', ends: 3 * 3600 + 20 * 60 + 10 },
+    { src: A('p/yf/deck1.jpg'), name: 'Apple AirPods Pro 3 Wireless Earbuds, Active Noise Cancellation, USB-C', price: 729, was: 949, off: 23, rating: 4.5, save: 25, ship: 'Thu, 13 Nov', ends: 2 * 3600 + 48 * 60 + 5 },
+    { src: A('p/yf/deck2.jpg'), name: 'Ninja Crispi 4-in-1 Portable Glass Air Fryer, 1.4L & 3.8L Glass Containers', price: 549, was: 699, off: 21, rating: 4.9, save: 30, ship: 'Fri, 14 Nov', ends: 5 * 3600 + 2 * 60 + 44 },
+    { src: A('p/yf/deck3.jpg'), name: 'Samsung Galaxy S26 Ultra Dual SIM Black 12GB RAM 256GB 5G', price: 3349, was: 5099, off: 34, rating: 4.7, save: 50, ship: 'Thu, 13 Nov', ends: 1 * 3600 + 15 * 60 + 30 },
+    { src: A('p/yf/deck4.jpg'), name: 'Samsung 7 Kg Front Load Washing Machine, Digital Inverter, Quick Wash', price: 1095, was: 1499, off: 26, rating: 3.7, save: 15, ship: 'Sat, 15 Nov', ends: 4 * 3600 + 40 * 60 + 12 },
+    { src: A('p/yf/deck5.jpg'), name: 'Hawkins Ceramic 2.5L NonStick Deep Kadhai with Glass Lid, Grey', price: 100, was: 242, off: 58, rating: 4.5, save: 5, ship: 'Thu, 13 Nov', ends: 6 * 3600 + 5 * 60 + 9 },
+    { src: A('p/yf/deck6.jpg'), name: 'FUJIFILM Instax Mini EVO Hybrid Instant Camera, Gentle Rose', price: 747.45, was: 999, off: 25, rating: 4.6, save: 20, ship: 'Fri, 14 Nov', ends: 3 * 3600 + 58 * 60 + 41 },
   ],
   refill: [    // index 0 is the middle card, 1 to its right, the last to its left
-    { src: G9('4716a.png'), name: 'Pampers Ultimate Comfort Pants Diapers Size 6 (16+kg) Super Saving Pack', price: 44.89, was: 74.01, off: 39, rating: 4.7, prev: 65 },
-    { src: G9('2e34c.png'), name: 'MTR Dosa Mix, 200g', price: 2.7, was: 5.67, off: 52, rating: 2.0, prev: 4 },
-    { src: A('fy/5e392.png'), name: 'Fine Facial Tissue 200 Sheets 2 Ply Pack of 10 White', price: 39.28, was: 59, off: 33, rating: 4.3, prev: 49 },
-    { img: 'refill1', name: 'Persil Power Gel Liquid Laundry Detergent Deep Clean 4.8L', price: 41.7, was: 82.6, rating: 4.5, prev: 55 },
-    { src: A('fy/d1e4f.png'), name: 'Fine Kitchen Towel 60 Sheets 3 Ply Pack of 12 Rolls White 26.5x21cm', price: 30.7, was: 39.19, off: 22, rating: 4.3, prev: 36 },
-    { img: 'refill3', name: 'Fairy Lavender Dishwashing Liquid, 3X Grease Cutting Power', price: 12.9, was: 18.34, rating: 4.6, prev: 16 },
-    { src: A('fy/c7a58.png'), name: 'Nescafe Classic Coffee Jar 190grams Single', price: 30.7, was: 39.19, off: 22, rating: 4.3, prev: 38 },
-    { src: G9('c4463.png'), name: 'Gerber Organic NutriPuffs Raspberry & Banana, 35g', price: 16.2, was: 27.27, off: 41, rating: 4.3, prev: 21 },
+    { src: A('p/yf/pd0.jpg'), name: 'Pampers Ultimate Comfort Pants Diapers Size 6 16+kg, 54 Count', price: 66.35, was: 190, off: 65, rating: 4.7, count: 88, prev: 79 },
+    { src: A('p/yf/pd1.jpg'), name: 'MTR Dosa Mix 200grams', price: 2.7, was: 5.67, off: 52, rating: 2.0, count: 4, prev: 4 },
+    { src: A('p/yf/pd2.jpg'), name: 'Fine Facial Tissue Boxes, 5 Packs of 200 Sheets x 2 Ply White', price: 21.25, was: 34.27, off: 37, rating: 4.3, count: 51, prev: 26 },
+    { src: A('p/yf/pd3.jpg'), name: 'Persil Power Gel Liquid Laundry Detergent Deep Clean Lavender 4.8L', price: 39.75, was: 77, off: 48, rating: 4.7, count: 369, prev: 48 },
+    { src: A('p/yf/pd4.jpg'), name: 'Fine Kitchen Super Towel Pro, 8 Rolls 60 Sheets x 3 Ply White', price: 19.55, was: 32.7, off: 40, rating: 4.8, count: 38, prev: 24 },
+    { src: A('p/yf/pd5.jpg'), name: 'Fairy Plus Lemon Dishwashing Liquid Soap, Pack of 2 600ml', price: 15.99, was: 23.73, off: 32, rating: 4.8, count: 364, prev: 19 },
+    { src: A('p/yf/pd6.jpg'), name: 'Nescafe Classic Coffee Jar 190grams Single', price: 29.2, was: 36.19, off: 19, rating: 4.5, count: 240, prev: 34 },
+    { src: A('p/yf/pd7.jpg'), name: 'Gerber Puffs Vanilla Baby Snack 1.48 Oz', price: 21.5, was: 29.25, off: 26, rating: 4.8, count: 37, prev: 26 },
   ],
   // "TIME TO RESTOCK" (1544:62382 …): the grid's four last-bought cards, at their Figma x / y
   grid: [[16.1, 2236], [194.1, 2236], [194.1, 2541], [17.1, 2541]].map(([x, y]) => ({ x, y, src: G9('f4887.png'), last: 'Last bought on 18 Nov', price: 75, was: 129, off: 44, rating: 4.7, qty: '500ml', unit: `${D}2.35/ml`, lower: 20 })),
   // "BEST DEALS, STRAIGHT FROM YOUR FAVS" (1544:62505): the row of products under the tabs
   best: [
-    { src: G9('00ff6.png'), size: 122, name: 'Apple Airpods Pro 2 Wireless Earbuds', tag: 'Best Seller', ex: '3b16e', exw: 2.06 },
-    { src: G9('1a4eb.png'), size: 142, name: 'Whirlpool 7 kg Magic Clean ', ad: true, ex: '55dab', exw: 3.29 },
-    { src: G9('6648e.png'), size: 122, name: 'MAYNOS Suction Phone Case Mount', addOn: true, ex: '95048', exw: 2.06 },
+    { src: A('p/yf/best0.jpg'), size: 142, name: 'Apple AirPods 4 ANC Wireless Earbuds', tag: 'Best Seller', ex: '3b16e', exw: 2.06, rating: 4.5, count: '29.7K', price: 500, usual: 579, was: 789, off: 36 },
+    { src: A('p/yf/best1.jpg'), size: 142, name: 'SUPER GENERAL 7 KG Front Load Washing Machine', ad: true, ex: '55dab', exw: 3.29, rating: 3.9, count: 508, price: 739, usual: 799, was: 899, off: 17 },
+    { src: A('p/yf/best2.jpg'), size: 142, name: 'CHIYLE 4Pcs Suction Phone Case Mount', addOn: true, ex: '95048', exw: 2.06, rating: 4.1, count: 20, price: 18.4, usual: 19.5, was: 19.99, off: 7 },
   ],
-  tabs: [['Electronics', '& Appliances', 94], ['Beauty', '&Skincare', 101], ['Electronics', '', 101], ['Electronics', '', 101], ['Electronics', '', 101], ['Electronics', '', 101], ['Electronics', '', 90]],
+  // the other tabs' rows (Beauty, Fashion, Home, and the second Beauty tab as fragrances)
+  // BEST DEALS' other rows (noon.com/uae-en, 13 Nov 2026): Beauty & Skincare, then a row for each "Electronics" tab —
+  // phones, laptops, wearables, TVs, gaming. [name, rating, reviews, price, usual, was, off, photo]
+  bestMore: [
+    [['LA ROCHE-POSAY Retinol B3 Anti-Aging Face Serum 30ml', 4.5, '1.4K', 132.6, 145, 221, 40, 'best1_0'], ['CeraVe Moisturizing Cream with Hyaluronic Acid 454g', 4.4, '8.1K', 72, 79, 128, 43, 'best1_1'], ["L'OREAL PARIS Pro XXL Extension Mascara", 4.4, '1.5K', 45.95, 49, 79.27, 42, 'best1_2']],
+    [['Samsung Galaxy A56 5G Dual SIM Awesome Graphite 8GB RAM 256GB', 4.5, '15.8K', 1266, 1349, 1649, 23, 'bt2_0'], ['Samsung Galaxy A17 Dual SIM 4G Black 4GB RAM 128GB', 4.4, '4.4K', 599, 619, 634, 5, 'bt2_1'], ['Samsung Galaxy S26 Ultra Dual SIM Black 12GB RAM 256GB 5G', 4.7, '18.3K', 3349, 3599, 5099, 34, 'deck3']],
+    [['ASUS Vivobook 14 Copilot+ PC Laptop, 14-Inch Display', 5.0, 1, 2593, 2799, 5499, 52, 'bt3_0'], ['Lenovo Renewed ThinkPad T470 14-Inch Full HD Laptop', 3.9, 637, 699, 749, 1400, 50, 'bt3_1'], ['Acer Aspire Lite Laptop, 15.6 Inch Full HD Display', 4.8, 9, 2299, 2449, 3499, 34, 'bt3_2']],
+    [['Apple Watch Series 11 GPS 42mm Rose Gold Aluminium', 4.7, '3.6K', 1204, 1299, 1599, 24, 'bt4_0'], ['Apple Watch Series 12 GPS 46mm Space Grey Aluminium', 4.6, 182, 1694, 1749, 1794, 5, 'bt4_1'], ['Apple AirPods Pro 3 Wireless Earbuds, Active Noise Cancellation', 4.5, '29.7K', 729, 789, 949, 23, 'deck1']],
+    [['Hisense 55E85S 55-inch 4K Hi-QLED MiniLED Smart TV', 4.2, 46, 1799, 1949, 2999, 40, 'bt5_0'], ['Samsung 55 Inch Crystal UHD 4K TV U8000F', 4.3, 135, 1227, 1329, 2399, 48, 'bt5_1'], ['TCL 50 Inch QLED HDR 10 Google TV', 4.3, 789, 899, 969, 1249, 28, 'bt5_2']],
+    [['Sony PlayStation 5 Console (Disc Version) With Controller', 4.4, '9.5K', 2099, 2249, 3999, 47, 'bt6_0'], ['Sony PlayStation 5 Slim Console Digital Edition', 4.5, '3.3K', 2449, 2549, 2679, 8, 'bt6_1'], ['Sony PlayStation 5 Digital Edition Console With Controller', 4.2, '1.2K', 2399, 2549, 3299, 27, 'bt6_2']],
+  ],
+  // (Figma 1573:68957: seven tabs — label, icon, width, kind (b: the shorter "active" component Figma uses for the last
+  // three), height)
+  tabs: [['Electronics\n& Appliances', '2c213', 94, 'a', 84], ['Beauty\n&Skincare', '74d4b', 101, 'a', 84], ['Electronics', '74d4b', 101, 'a', 84], ['Electronics', '74d4b', 101, 'a', 84], ['Electronics', 'c3176', 101, 'b', 68], ['Electronics', 'c3176', 101, 'b', 68], ['Electronics', 'c3176', 90, 'b', 77.865]],
 };
 const SRC = (it) => it.src || A(`p/${it.img}.webp`);
+// BEST DEALS: a row per tab — Electronics as Figma dresses it, then the others in the same three slots
+const SLOT9 = [{ tag: 'Best Seller', ex: '3b16e', exw: 2.06 }, { ad: true, ex: '55dab', exw: 3.29 }, { addOn: true, ex: '95048', exw: 2.06 }];
+DATA.bestTabs = [DATA.best, ...DATA.bestMore.map((row) => row.map(([name, rating, count, price, usual, was, off, img], i) => ({ src: A(`p/yf/${img}.jpg`), size: 142, name, rating, count, price, usual, was, off, ...SLOT9[i] })))];
+DATA.pdrop = DATA.refill.map((it, i) => {
+  const lower = Math.max(1, Math.round(it.price * 0.14)), usual = +(it.price + lower).toFixed(2);   // (its drop: ~14% under its usual price)
+  return { ...it, r2: it.rating, usual, was: it.was, off: pct(it), lower };
+});
+// the grid (Figma 1562:66964): no rating chips, the four cards at their new x / y
+// LET'S RESTOCK (Figma 1573:69188): four cards in Figma's four dressings — a: the pink "Deal ends in" strip with the red
+// price pill and the offers chip; b: the black "Mega Deal" strip with "Best price"; c: the grey "Deal ends in" strip with the
+// locked price; d: plain, with "Best price"
+DATA.grid = [
+  { v: 'a', x: 15.2, y: 2280.5, src: A('p/yf/grid0.jpg'), rating: 4.6, price: 10, was: 22, off: 54, save: 2, lower: 2, ends: 2 * 3600 + 40 * 60 + 23 },       // Masafi Pure Low Sodium Water 24 × 500ml
+  { v: 'b', x: 192.7, y: 2279.7, src: A('p/yf/grid1.jpg'), rating: 4.6, price: 15.9, usual: 17.5, was: 30.73, off: 48, lower: 3 },                          // Almarai Long Life Milk 4 × 1L
+  { v: 'c', x: 16.7, y: 2613.5, src: A('p/yf/grid2.jpg'), rating: 4.9, price: 25.85, was: 44.09, off: 41, save: 3, lower: 4, ends: 1 * 3600 + 52 * 60 + 9 },  // Dettol Skincare Handwash 2 × 400ml
+  { v: 'd', x: 194.2, y: 2613.1, src: A('p/yf/grid3.jpg'), rating: 4.6, price: 40.35, usual: 44.4, was: 82.6, off: 51, lower: 6 },                           // Persil Power Gel Blue 4.8L
+];
 
 // ─── markup ──────────────────────────────────────────────────────────────────────────────────────────────────
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -78,6 +110,8 @@ const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 
 const HEART = '<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M16 6.54545C16 4.58735 14.3677 3 12.3542 3C10.8487 3 9.55633 3.88737 9 5.1536C8.44367 3.88737 7.15131 3 5.64583 3C3.6323 3 2 4.58735 2 6.54545C2 12.2344 9 16 9 16C9 16 16 12.2344 16 6.54545Z" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const hms = (s) => [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((v) => String(v).padStart(2, '0'));
 const cd = (s) => `<span data-cd="${s}">${hms(s).join(':')}</span>`;   // (a live countdown: yf-page.js ticks every [data-cd] each second)
+const hmw = (s) => `${Math.floor(s / 3600)}h ${String(Math.floor(s / 60) % 60).padStart(2, '0')}m ${String(s % 60).padStart(2, '0')}s`;
+const cdw = (s) => `<span data-cd="${s}" data-cdf="w">${hmw(s)}</span>`;   // ("2h 40m 23s", Figma's "Deal timer in card")
 // the nudge strips ("Nudges - PLP"): each line at Figma's own offset in its strip; the strip rolls one line every 2.6 s
 // (the first again at the end, so it loops). `tops` rides on the strip for the ticker
 const strip = (cls, lines, tops) => `<span class="ng ${cls}" aria-label="${lines[0][1]}"><span class="run" data-tops="${tops.join(',')}">${lines.map(([ic, t, k], i) => `<span class="${k || ''}" style="top:${tops[i]}px"><img src="${G9(ic)}" alt="" draggable="false"><b>${t}</b></span>`).join('')}</span></span>`;
@@ -87,6 +121,7 @@ const W_NUDGE = (it) => strip('wc', [['08708.svg', `${D}${it.lower} lower than l
   [0.4, 48, 88, 128, 168, 208, 248]);
 const addBtn = (plus, cls = '') => `<button class="pc-add ${cls}" type="button" aria-label="Add to cart" aria-pressed="false"><img class="pl" src="${G9(plus)}" alt="" draggable="false"><span class="ok">${CHECK}</span></button>`;
 const wishBtn = (cls = '') => `<button class="pc-wish ${cls}" type="button" aria-label="Add to wishlist" aria-pressed="false">${HEART}</button>`;
+const ETA11 = `<span class="eta11" aria-label="Get in 1 Hr 15 Min"><span class="w"><span class="q"><img src="${G11('f8975.svg')}" alt="" draggable="false"><b>Get in <em>1 Hr 15 Min</em></b><img class="ar" src="${G11('c4a05.svg')}" alt="" draggable="false"></span><span class="sh"></span></span></span>`;
 // the deck's card (1544:62199, 233 wide): the red "Deal ends in" bar, the photo, the rating, +, ♡; name, the red price
 // pill, the offers chip, supermall + the delivery date
 const deckCard = (it, i) => `<div class="d3-dk" data-i="${i}"><div class="pc9 dk rv">
@@ -98,8 +133,9 @@ const deckCard = (it, i) => `<div class="d3-dk" data-i="${i}"><div class="pc9 dk
     <p class="nm">${it.name}</p>
     <div class="pr"><b><i>${D}</i> ${num(it.price)}</b><s>${num(it.was)}</s><em>${pct(it)}%</em></div>
     <span class="off9">Save ${D}${it.save} with offers</span>
-    <div class="sh"><span class="sm"><img class="a" src="${G9('b06a7.svg')}" alt="" draggable="false"><img class="b" src="${G9('98244.svg')}" alt="supermall" draggable="false"></span><b>${it.ship}</b></div>
+    ${ETA11}
   </div>
+  <i class="gw" aria-hidden="true"></i>
 </div></div>`;
 // the basics carousel's card (middle 1544:62296, 222 × 402; the sides 1544:62269 / 62332, 181 × 276): it morphs from
 // one to the other as it moves (--k 0 → 1, yf-page.css) — the "Expires in" bar folds away, the rating leaves the photo
@@ -119,9 +155,9 @@ const refillCard = (it, i) => `<div class="d3-rslot" data-i="${i}"><div class="p
 // "TIME TO RESTOCK"'s card (1544:62382, 166 × 295)
 const gridCard = (it, i) => `<div class="d3-abs pc9 wc rv" data-k="wc${i}" style="left:${it.x}px;top:${it.y}px">
   <div class="main"><div class="ph"><img src="${it.src}" alt="" draggable="false"></div>
-    <span class="rt"><img src="${G9('538c8.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)}</b></span>
+    ${it.rating ? `<span class="rt"><img src="${G9('538c8.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)}</b></span>` : ''}
     <span class="lb">${it.last}</span></div>
-  <b class="p1"><i>${D}</i>${it.price}</b><s class="p2"><i>${D}</i>${it.was}</s><em class="p3">${it.off}%</em>
+  <span class="prs"><b class="p1"><i>${D}</i>${num(it.price)}</b><s class="p2"><i>${D}</i>${num(it.was)}</s><em class="p3">${it.off}%</em></span>
   ${addBtn('2ed6e.svg')}
   <span class="qt"><b>${it.qty}</b><img src="${G9('7ae0d.svg')}" alt="" draggable="false"><b>${it.unit}</b></span>
   ${W_NUDGE(it)}
@@ -134,9 +170,9 @@ const skuCard = (it) => `<div class="pc9 sku9">
     ${it.tag ? `<span class="tg">${it.tag}</span>` : ''}${it.ad ? '<span class="adt">Ad</span>' : ''}</div>
   <div class="dt">
     <p class="nm">${it.name}</p>
-    <span class="rt"><img src="${G9('10bd8.svg')}" alt="" draggable="false"><b>4.3 </b><i>(128)</i></span>
-    <div class="p1"><b><i>${D}</i>109</b><span class="bp"><img src="${G9('a94c6.svg')}" alt="" draggable="false">Best price</span></div>
-    <div class="p2"><b><i>${D}</i>129</b><s><i>${D}</i><u>299</u></s><em>33%</em></div>
+    <span class="rt"><img src="${G9('10bd8.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)} </b><i>(${it.count})</i></span>
+    <div class="p1"><b><i>${D}</i>${num(it.price)}</b><span class="bp"><img src="${G9('a94c6.svg')}" alt="" draggable="false">Best price</span></div>
+    <div class="p2"><b><i>${D}</i>${num(it.usual)}</b><s><i>${D}</i><u>${num(it.was)}</u></s><em>${it.off}%</em></div>
     <img class="ex" src="${G9(it.ex + '.svg')}" alt="express" draggable="false" style="width:${(97 * (1 - it.exw / 100)).toFixed(2)}px">
   </div>
 </div>`;
@@ -185,33 +221,102 @@ const coupon = (c, i) => (c.kind === 'one'
   ${backOf(c)}
 </div></div>`);
 
+// (Figma 1562:64150) a heading frame: 305 × 95.17, tipped −2° about its centre (cx, cy); the word centred at Figma's
+// local x 152.46, top 23.09; its stickers [box, art, tilt] in the same local space. It reveals as one piece
+const fh9 = (k, cx, cy, word, stickers = '') => `<div class="d3-abs fh9 rv" data-k="${k}" style="left:${(cx - 152.5).toFixed(2)}px;top:${(cy - 47.58).toFixed(2)}px"><div class="in"><b class="wd9" data-t="${word}"><span>${word}</span></b>${stickers}</div></div>`;
+const stk = (src, [l, t, w, h], [iw, ih, tf], d = 0) => `<span class="d3-abs f5-dec hb" style="left:${l}px;top:${t}px;width:${w}px;height:${h}px${d ? `;animation-delay:${d}s` : ''}"><i class="t" style="width:${iw}px;height:${ih}px;transform:${tf}"><img src="${G9(src)}" alt="" draggable="false"></i></span>`;
+// the ribbon: w × h centred at (cx, cy), tipped −2°, its line tipped back 0.26°
+const rib9 = (k, cx, cy, w, h, text) => `<div class="d3-abs rb9 rv" data-k="${k}" style="left:${(cx - w / 2).toFixed(2)}px;top:${(cy - h / 2).toFixed(2)}px;width:${w}px;height:${h}px"><div class="in"><b>${text}</b></div></div>`;
+// the price-drop card (1562:65211, 222 × 423.4): the green "₫ 12 lower than usual" bar (it comes down as the card
+// lands, like the deck's), the photo with the rating, +, ♡; the name, its rating, the price with "Best price", the usual
+// and list price, the nudge line and the express-today badge
+const PD_NUDGE = () => strip('pdn', [['3222a.svg', 'Lowest price in 30 days'], ['f5983.svg', 'Free delivery'], ['1cc12.svg', 'Selling out fast'], ['0ce6d.svg', '5k+ units sold'], ['9549f.svg', '#2 Bestseller'], ['3222a.svg', 'Lowest price in 30 days']], [0, 48, 88, 128, 168, 208]);
+const pdCard = (it, i) => `<div class="d3-rslot" data-i="${i}"><div class="pc9 rf pd rv">
+  <div class="bar"><span class="in"><b><i>${D}</i> ${it.lower} lower than usual</b></span></div>
+  <div class="main"><div class="ph"><img src="${SRC(it)}" alt="" draggable="false"></div>
+    ${addBtn('2ed6e.svg')}${wishBtn()}
+    <span class="rt on"><img src="${G9('538c8.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)}</b></span></div>
+  <div class="dt">
+    <p class="nm">${it.name}</p>
+    <span class="rt2"><img src="${G9('10bd8.svg')}" alt="" draggable="false"><b>${it.r2.toFixed(1)} </b><i>(${it.count})</i></span>
+    <div class="p1"><b><i>${D}</i>${num(it.price)}</b><span class="bp"><img src="${G9('a94c6.svg')}" alt="" draggable="false">Best price</span></div>
+    <div class="p2"><b><i>${D}</i>${num(it.usual)}</b><s><i>${D}</i><u>${num(it.was)}</u></s><em>${it.off}%</em></div>
+    ${PD_NUDGE()}
+    <img class="eta" src="${G9('1de85.svg')}" alt="express · Today" draggable="false">
+  </div>
+</div></div>`;
+
+const pxCard = (it, i) => `<div class="d3-rslot" data-i="${i}"><div class="pc9 dk px rv">
+  <div class="bar"><span class="in"><img src="${G11('33482.svg')}" alt="" draggable="false"><b><i>${D}</i> ${it.lower} lower than usual</b></span></div>
+  <div class="mw"><div class="main"><div class="ph"><img src="${SRC(it)}" alt="" draggable="false"></div>
+    <span class="rt"><img src="${G9('a64d1.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)}</b></span>
+    ${addBtn('39e01.svg')}<button class="pc-wish o" type="button" aria-label="Add to wishlist" aria-pressed="false">${HEART}</button></div>
+    <div class="tm"><span><span class="lk"><img src="${G11('2fa0e.svg')}" alt="" draggable="false"></span><b>Deal ends in <em>${cdw(9623 + 437 * i)}</em></b></span></div></div>
+  <div class="dts">
+    <p class="nm nm0">${it.name}</p>
+    <div class="dt a">
+      <div class="pr"><b><i>${D}</i> ${num(it.price)}</b><s>${num(it.was)}</s><em>${pct(it)}%</em></div>
+      <span class="off9">Save ${D}${Math.max(2, Math.round(it.price * 0.05))} with offers</span>
+      ${ETA11}
+    </div>
+    <div class="dt b" aria-hidden="true">
+      <div class="p1"><b><i>${D}</i>${num(it.price)}</b><span class="bp"><img src="${G9('a94c6.svg')}" alt="" draggable="false">Best price</span></div>
+      <div class="p2"><b><i>${D}</i>${num(it.usual)}</b><s><i>${D}</i><u>${num(it.was)}</u></s><em>${it.off}%</em></div>
+      ${PD_NUDGE()}
+      <img class="ex11" src="${G11('65cb2.svg')}" alt="express · Today" draggable="false">
+    </div>
+  </div>
+</div></div>`;
+
+const STRIP11 = {
+  a: (it) => `<div class="tm"><span class="lk"><img src="${G11('2fa0e.svg')}" alt="" draggable="false"></span><b>Deal ends in <em>${cdw(it.ends)}</em></b></div>`,
+  b: () => '<div class="tm"><b>Mega Deal</b></div>',
+  c: (it) => `<div class="tm"><span class="lk"><img src="${G11('7bec9.svg')}" alt="" draggable="false"></span><b>Deal ends in <em>${cdw(it.ends)}</em></b></div>`,
+  d: () => '',
+};
+const PRICE11 = {
+  a: (it) => `<div class="pr"><b class="rp"><i>${D}</i> ${num(it.price)}</b><s>${num(it.was)}</s><em>${it.off}%</em></div><span class="sv">Save ${D}${it.save} extra with offers</span>`,
+  c: (it) => `<div class="pr"><b class="lp"><span class="lq"><img src="${G11('58638.svg')}" alt="" draggable="false"></span><span><i>${D}</i> ${num(it.price)}</span></b><s>${num(it.was)}</s><em>${it.off}%</em></div><span class="sv">Save ${D}${it.save} extra with offers</span>`,
+  b: (it) => `<div class="p1"><b><i>${D}</i>${num(it.price)}</b><span class="bp"><img src="${G9('a94c6.svg')}" alt="" draggable="false">Best price</span></div><div class="p2"><b><i>${D}</i>${num(it.usual)}</b><s><i>${D}</i><u>${num(it.was)}</u></s><em>${it.off}%</em></div>`,
+};
+PRICE11.d = PRICE11.b;
+const gridCard11 = (it, i) => `<div class="d3-abs pc9 wc2 v${it.v} rv" data-k="wc${i}" style="left:${it.x}px;top:${it.y}px">
+  <div class="mw"><div class="main"><div class="ph"><img src="${it.src}" alt="" draggable="false"></div>
+    <span class="rt"><img src="${G9('10bd8.svg')}" alt="" draggable="false"><b>${it.rating.toFixed(1)}</b></span>
+    ${addBtn('39e01.svg')}<button class="pc-wish o" type="button" aria-label="Add to wishlist" aria-pressed="false">${HEART}</button></div>
+    ${STRIP11[it.v](it)}</div>
+  <div class="dt"><div class="pg">${PRICE11[it.v](it)}</div>${W_NUDGE(it)}</div>
+</div>`;
+
+const t11 = (k, [x, y, ow, oh, tw], ih, word, sub, shape, [sw, sh], [rot, skew], inset, [txw, txh]) => `<div class="d3-abs t11 rv" data-k="${k}" style="left:${x}px;top:${y}px;width:${ow}px;height:${oh}px">
+  <div class="t11r0" style="width:${tw}px"><div class="t11tt"><div class="t11r1" style="height:${ih}px"><div class="t11r1i"><div class="t11col">
+    <b class="wd11" data-t="${word}"><span>${word}</span></b>
+    <div class="t11sw" style="width:${sw}px;height:${sh}px"><div class="t11sw2"><div class="t11sp">
+      <div class="t11shp"><div class="t11shi" style="transform:rotate(${rot}deg) skewX(${skew}deg)"><span class="t11si" style="inset:${inset}"><img src="${G11(shape)}" alt="" draggable="false"></span></div></div>
+      <div class="t11tx" style="width:${txw}px;height:${txh}px"><p>${sub}</p></div>
+    </div></div></div>
+  </div></div></div></div></div>
+</div>`;
+
 const scroller = document.createElement('div');
 scroller.className = 'yf-scroll d3-scroll';
 scroller.setAttribute('data-no-drag', '');
-scroller.innerHTML = `<div class="d3 f9" data-node-id="1544:61922">
-  <img class="d3-abs f9-bg rv" data-k="bg" src="${G9('5c7e9.svg')}" alt="" draggable="false">
-  <img class="d3-abs f9-sun rv" data-k="sun" src="${G9('c61f0.svg')}" alt="" draggable="false">
-  ${heading9('h', '', [['HEY', 'a', 137.95, 204.6, -3, ' style="line-height:45.611px"'], ['NEHA,', 'g n1', 237.8, 197.65, -3, ' style="line-height:48px"']], 'hn', [160, 80])}
-  <div class="d3-abs f9-subw rv" data-k="hs"><p class="f9-sub" style="left:191.7px;top:16.75px">YOUR YELLOW FRIDAY GOT BETTER</p></div>
-  <div class="d3-abs d3-coupons" data-no-drag aria-roledescription="carousel" aria-label="Coupons">${[...DATA.coupons, ...DATA.coupons].map(coupon).join('')}</div>
-  ${heading9('t', rib('eb163.svg', 57.23, 659.96, 249.97, 74.95), [['TOP DEALS,', 'a', 187.3, 670.35, -1.64, ' style="line-height:45.611px"'], ['PICKED JUST FOR YOU', 'c', 179.95, 705.25, -0.37, ' style="font-size:21px;line-height:20px"']], 'td', [630, 110])}
-  ${dec('tx', G9('7709b.svg'), [-5.63, 666.38, 35.254, 47.099], [30.374, 43.874, 'scaleY(-1) rotate(173.34deg)'], 'hb')}
-  ${dec('tx', G9('d8127.svg'), [326.79, 649.01, 57.054, 67.936], [40.087, 57.904, 'rotate(19.41deg)'], 'hb', -0.9)}
-  <div class="d3-abs d3-deck" data-no-drag aria-roledescription="carousel" aria-label="Top deals">${DATA.deck.map(deckCard).join('')}</div>
-  <img class="d3-abs f9-wave" src="${G9('63203.svg')}" alt="" draggable="false">
-  ${heading9('r', rib('986ac.svg', 88.84, 1380.98, 192.13, 74.68), [['LET’S', 'a', 91.75, 1393.05, -3, ' style="line-height:45.611px"'], ['RESTOCK,', 'wb', 235.45, 1382.65, -3, ' style="line-height:48px"'], ['AT LOW PRICES', 'c', 184.35, 1424.25, -2.5, ' style="font-size:21px;line-height:20px"']], 'rs', [1345, 115])}
-  <div class="d3-abs d3-refill" data-k="refill" data-no-drag aria-roledescription="carousel" aria-label="Restock at low prices">${DATA.refill.map(refillCard).join('')}</div>
-  <button class="d3-abs f5-cta sb rv" data-k="cta" type="button"><i class="sh"><i class="s1"></i><i class="s2"></i></i><b>See all basics</b></button>
-  ${heading9('w', rib('ede65.svg', -7.353, -8.043, 355.06, 87.675, [186.1, 2155, 342, 70, -2.07]), [['TIME TO', 'a', 92.9, 2130.55, -3, ' style="line-height:38px"'], ['RESTOCK,', 'g n2', 264.4, 2120.05, -3, ' style="line-height:40px"'], ['YOUR ESSENTIAL AT ALL TIME LOW', 'c', 185.35, 2164.2, -3.24]], 'wt', [2085, 120])}
-  ${DATA.grid.map(gridCard).join('')}
-  <img class="d3-abs f9-arc rv" data-k="warc" src="${G9('2a32c.svg')}" alt="" draggable="false">
-  <button class="d3-abs f5-cta sa rv" data-k="wcta" type="button"><b>SEE ALL  →</b></button>
-  <div class="d3-abs f9-best" data-node-id="1544:62490">
-    ${heading9('b', rib('329c8.svg', 33.14, 24.52, 309.07, 87.08), [['BEST', 'a', 131.25, 45.45, -3, ' style="line-height:38px"'], ['DEALS,', 'a d6', 242.85, 38.5, -3, ' style="line-height:40px"'], ['STRAIGHT FROM YOUR FAVS', 'c', 185.2, 77.6, -2.5]], 'bd', [0, 100])}
-    ${dec('bx', G9('05228.svg'), [313.87, 42.99, 40.204, 37.419], [36, 34.727, 'rotate(-8deg)'], 'hb')}
-    ${dec('bx', G9('1984d.svg'), [9.87, 24, 26, 26], [26, 26], 'sp')}
-    <div class="tabs9 rv" data-k="btabs" role="tablist" aria-label="Categories">${DATA.tabs.map(([a, b, w], i) => `<button class="tb9${i === 0 ? ' on' : ''}" type="button" role="tab" aria-selected="${i === 0}" style="width:${w}px"><img src="${G9(i === 0 ? '2c213.svg' : i < 4 ? '74d4b.svg' : 'c3176.svg')}" alt="" draggable="false"><span>${a}${b ? `<br>${b}` : ''}</span></button>`).join('')}<i class="ul" aria-hidden="true"></i></div>
+scroller.innerHTML = `<div class="d3 f9 f10 f11" data-node-id="1573:68634">
+  <img class="d3-abs f9-bg rv" data-k="bg" src="${G11('b682b.svg')}" alt="" draggable="false">
+  ${t11('h', [0, 178, 375, 111.695, 375], 108.795, 'HEY NEHA', 'HERE ARE 5 DEALS JUST FOR YOU', '7015b.svg', [318.647, 71.569], [-3.04, 0.06], '-15.56% -1.63% -15.61% -1.66%', [272.726, 34.552])}
+  <div class="d3-abs d3-deck rv" data-k="deck" data-no-drag aria-roledescription="carousel" aria-label="Top picks">${DATA.deck.map(deckCard).join('')}</div>
+  ${t11('p', [27.253, 860.7, 320.494, 111.446, 320], 104.207, 'PRICE DROPS', 'ON YOUR WISHLISTED ITEMS', '0425a.svg', [282.649, 68.651], [-3.33, -0.51], '-16% -1.94% -16.05% -1.97%', [236.765, 32.888])}
+  <div class="d3-abs d3-refill" data-k="refill" data-no-drag aria-roledescription="carousel" aria-label="Price drops on your wishlisted items">${DATA.pdrop.map(pxCard).join('')}</div>
+  <div class="d3-abs f9-best" data-node-id="1573:68949">
+    ${t11('b', [27.253, 0, 320.494, 111.446, 320], 108.582, 'BEST DEALS', 'STRAIGHT FROM YOUR FAVOURITES', 'bf1ee.svg', [336.645, 73.028], [-2.91, 0.32], '-15.35% -1.5% -15.4% -1.53%', [290.707, 35.385])}
+    <div class="tabs9 rv" data-k="btabs" role="tablist" aria-label="Categories">${DATA.tabs.map(([a, ic, w, kind, h], i) => `<button class="tb9 t${kind}${i === 0 ? ' on' : ''}" type="button" role="tab" aria-selected="${i === 0}" style="width:${w}px;height:${h}px"><span class="c"><img src="${G9(ic + '.svg')}" alt="" draggable="false"><span class="l">${a}</span></span></button>`).join('')}<i class="ul" aria-hidden="true"></i></div>
     <div class="skus rv" data-k="bsku">${DATA.best.map(skuCard).join('')}</div>
+  </div>
+  ${t11('g', [27.253, 2151.9, 320.494, 111.446, 320], 108.906, 'LETS RESTSOCK', 'YOUR ESSENTIALS AT ALL TIME LOW', '685bd.svg', [340.645, 73.353], [-2.89, 0.37], '-15.31% -1.47% -15.35% -1.5%', [294.703, 35.569])}
+  <div class="d3-abs g9w">${DATA.grid.map(gridCard11).join('')}</div>
+  <div class="d3-abs f5-end rv" data-k="end" data-node-id="1573:69690">
+    <svg class="ck" viewBox="0 0 44 44" aria-hidden="true"><circle class="bg" cx="22" cy="22" r="22" fill="#E6F6EE"/><path class="mk" d="M14.5 22.5L19.5 27.5L29.5 17" pathLength="1" fill="none" stroke="#0F8857" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><p class="t">You're all caught up</p><p class="s">Fresh picks land here every morning</p>
+    <button class="top" type="button"><img src="${G('d7473.svg')}" alt="" draggable="false">Back to top</button>
   </div>
 </div>`;
 sheet.appendChild(scroller);
@@ -237,22 +342,19 @@ const $ = (s) => page.querySelector(s), $$ = (s) => [...page.querySelectorAll(s)
 // card rises and the cards behind it fan out from under it (deck.fan); the carousel's middle card rises (its neighbours
 // glide out with the scroll, refill.reveal); the arc and "See all basics"; the feed's end last
 const BEATS = {
-  bg: [0, 'scale(1.04)', 'bg', 0], sun: [0, 'translateY(24px)', 'bg', 0],
-  h: [0, 'translateY(14px) scale(.96)', 'hey', 0], hs: [140, 'translateY(10px)', 'hey', 140],
-  cp1: [300, 'translateY(30px) scale(.96)', 'coupons', 0], cp0: [470, 'translateX(46px) scale(.94)', 'coupons', 170], cp2: [470, 'translateX(-46px) scale(.94)', 'coupons', 170],
-  t: [640, 'translateY(14px) scale(.96)', 'top', 0], tx: [840, 'scale(.4)', 'top', 200],
-  deck: [940, 'translateY(56px) scale(.96)', 'deck', 0],
-  r: [1100, 'translateY(14px) scale(.96)', 'restock', 0],
-  refill: [1280, null, 'refill', 0],
-  cta: [1440, 'translateY(16px) scale(.97)', 'cta', 0],
-  w: [1560, 'translateY(14px) scale(.96)', 'grid', 0],
-  wc0: [1620, 'translateY(20px)', 'grid1', 0], wc1: [1680, 'translateY(20px)', 'grid1', 60],
-  wc3: [1740, 'translateY(20px)', 'grid2', 0], wc2: [1800, 'translateY(20px)', 'grid2', 60],
-  warc: [1860, 'translateY(10px)', 'wcta', 0], wcta: [1860, 'translateY(16px) scale(.97)', 'wcta', 60],
-  b: [1920, 'translateY(14px) scale(.96)', 'best', 0], bx: [2120, 'scale(.4)', 'best', 200],
-  btabs: [2000, 'translateY(12px)', 'best', 100], bsku: [2060, 'translateY(16px)', 'best', 180],
+  bg: [0, 'scale(1.04)', 'bg', 0],
+  h: [0, 'translateY(14px) scale(.96)', 'hey', 0],
+  deck: [300, 'translateY(40px)', 'deck', 0],
+  p: [640, 'translateY(14px) scale(.96)', 'price', 0], ps: [760, 'translateY(10px) scale(.97)', 'price', 120],
+  refill: [900, null, 'refill', 0],
+  b: [1100, 'translateY(14px) scale(.96)', 'best', 0], bs: [1220, 'translateY(10px) scale(.97)', 'best', 120], bx: [1320, 'scale(.4)', 'best', 220],
+  btabs: [1200, 'translateY(12px)', 'best', 100], bsku: [1260, 'translateY(16px)', 'best', 180],
+  g: [1400, 'translateY(14px) scale(.96)', 'grid', 0], gs: [1520, 'translateY(10px) scale(.97)', 'grid', 120],
+  wc0: [1620, 'translateY(24px)', 'grid1', 0], wc1: [1730, 'translateY(24px)', 'grid1', 110],
+  wc2: [1840, 'translateY(24px)', 'grid2', 0], wc3: [1950, 'translateY(24px)', 'grid2', 110],
+  end: [1900, 'translateY(20px)', 'end', 0],
 };
-let live = false, lazyIO = null;
+let live = false, lazyIO = null, hideIO = null;
 // a revealed block's end state is written inline and its animations released once they land: iOS WebKit drops the pixels
 // of a layer held by a filled animation once it has scrolled out of the page's scroller, and never repaints it on the way
 // back (the block stays blank until something else touches it). `held` = there, no animation; cancelOwn = back to hidden
@@ -270,7 +372,7 @@ function playBeat(el, delay) {
   if (k === 'refill') { refill.reveal(delay); return; }
   if (k === 'end') tick(delay + 200);              // (the green check plays as "You're all caught up" glides in)
   playIn(el, b[1], delay);
-  if (k === 'deck') deck.fan(delay + 480);   // (once the front card is mostly in, so the ones behind never show through it)
+  if (k === 'deck') deck.fan(delay + 380);   // (once the deck is mostly in: the cards behind slide up out from under the front one)
 }
 // the product names end the way Figma ends them: two lines, cut at the last character that fits, then "…" (the web's
 // line clamp only cuts at a whole word — "(16+kg)…" where Figma has "(16+kg) S…"). Measured once the fonts are in, on a
@@ -278,14 +380,17 @@ function playBeat(el, delay) {
 let namesFit = false;
 function fitNames() {
   if (namesFit) return;
-  const go = () => {
-    if (namesFit) return;
+  const go = () => { if (!namesFit) { fitNamesIn(page); namesFit = true; } };
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(go);
+}
+function fitNamesIn(root) {
+  {
     const probe = document.createElement('p');
     probe.style.cssText = 'position:absolute;left:-9999px;top:0;margin:0;visibility:hidden;display:block';
     page.appendChild(probe);
-    const SPEC = { dk: [210, 14.809, 20.096, -0.0899], rf: [198, 14, 20, -0.1], sku9: [126, 14, 18, -0.14] };   // (as the front / middle card lays it out)
-    $$('.pc9 .nm').forEach((el) => {
-      const full = el.dataset.full || el.textContent, kind = ['dk', 'rf', 'sku9'].find((k) => el.closest('.pc9').classList.contains(k));
+    const SPEC = { dk: [210, 14.809, 20.096, -0.0899], pd: [204, 14, 18, -0.14], rf: [198, 14, 20, -0.1], sku9: [126, 14, 18, -0.14] };   // (as the front / middle card lays it out)
+    root.querySelectorAll('.pc9 .nm').forEach((el) => {
+      const full = el.dataset.full || el.textContent, kind = ['dk', 'pd', 'rf', 'sku9'].find((k) => el.closest('.pc9').classList.contains(k));
       const [w, fs, lh, ls] = SPEC[kind];
       el.dataset.full = full; el.title = full;
       probe.style.whiteSpace = kind === 'dk' ? 'pre-line' : 'normal'; probe.style.width = `${w}px`; probe.style.font = `500 ${fs}px/${lh}px ${getComputedStyle(el).fontFamily}`; probe.style.letterSpacing = `${ls}px`;
@@ -296,9 +401,7 @@ function fitNames() {
       el.textContent = full.slice(0, lo).trimEnd() + '…';
     });
     probe.remove();
-    namesFit = true;
-  };
-  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(go);
+  }
 }
 // the feed's end, "You're all caught up": the green disc pops in on a lively spring (a reward beat — 0.5 → 1.1 → 0.97 →
 // 1, 560 ms) and the tick draws itself on over it, short stroke then long (360 ms in-out, from 220 ms in, the stroke's
@@ -350,20 +453,27 @@ function revealWithBot(items) {
     const seen = Math.min(VH, g.y + g.h) - Math.max(0, g.y);
     (seen <= 0 ? below : seq).push(g);
   });
-  lazyIO && lazyIO.disconnect(); lazyIO = null;
+  lazyIO && lazyIO.disconnect(); lazyIO = null; hideIO && hideIO.disconnect(); hideIO = null;
   if (below.length) {
     const shown = new Set();
     lazyIO = new IntersectionObserver((ents) => ents.forEach((e) => {
       const g = below.find((x) => x.anchor === e.target); if (!g) return;
       if (e.isIntersecting && !shown.has(g)) {
         shown.add(g);
-        if (g.name === 'deck') { deck.roles(); playBeat($('.d3-dk.is-top .pc'), 0); } else play(g);
-      } else if (!e.isIntersecting && shown.has(g) && belowView(e)) {
-        shown.delete(g);
-        if (g.name === 'deck') deck.hide(); else if (g.name === 'refill') refill.hide(); else g.els.forEach(([el]) => cancelOwn(el));
+        if (g.name === 'deck') { deck.roles(); playBeat($('.d3-deck'), 0); } else play(g);
       }
     }), { root: scroller, threshold: 0.1, rootMargin: '0px 0px -6% 0px' });   // (a touch inside the edge, so the glide is seen)
-    below.forEach((g) => lazyIO.observe(g.anchor));
+    // (gone: not one pixel of it left on screen, below the bottom edge — the user scrolled back up past all of it)
+    // (watched by the group's topmost piece: the last of it to leave through the bottom when scrolling up)
+    below.forEach((g) => { g.top = g.name === 'deck' || g.name === 'refill' ? g.anchor : g.els.map(([el]) => boxOf(el)).reduce((a, b) => (b.getBoundingClientRect().top < a.getBoundingClientRect().top ? b : a)); });
+    hideIO = new IntersectionObserver((ents) => ents.forEach((e) => {
+      const g = below.find((x) => x.top === e.target); if (!g) return;
+      if (!e.isIntersecting && shown.has(g) && belowView(e)) {
+        shown.delete(g);
+        if (g.name === 'deck') { deck.hide(); cancelOwn($('.d3-deck')); } else if (g.name === 'refill') refill.hide(); else g.els.forEach(([el]) => cancelOwn(el));
+      }
+    }), { root: scroller, threshold: 0 });
+    below.forEach((g) => { lazyIO.observe(g.anchor); hideIO.observe(g.top); });
   }
   // what's on screen plays in top to bottom, 70 ms apart — each block no sooner than the bot has risen clear of it
   seq.sort((a, b) => a.y - b.y);
@@ -381,14 +491,14 @@ function revealWithBot(items) {
   tick();
 }
 function reset() {
-  live = false; lazyIO && lazyIO.disconnect(); lazyIO = null; dock.reset();
+  live = false; lazyIO && lazyIO.disconnect(); lazyIO = null; hideIO && hideIO.disconnect(); hideIO = null; dock.reset();
   page.querySelectorAll('.rv').forEach(cancelOwn);
   scroller.scrollTop = 0; onScroll();
   coupons.jump(0); deck.reset(); refill.jump(0); nudges.stop();
   page.querySelectorAll('.gc.is-collected').forEach((c) => c.classList.remove('is-collected'));
   { const t = $('.f9-best .tabs9'), bs = [...t.querySelectorAll('.tb9')], ul = t.querySelector('.ul');   // (the tabs back to the first)
     bs.forEach((b, i) => { b.classList.toggle('on', !i); b.setAttribute('aria-selected', String(!i)); });
-    ul.style.transform = `translate3d(${bs[0].offsetLeft}px,0,0)`; ul.style.width = `${bs[0].offsetWidth}px`; t.scrollLeft = 0; $('.f9-best .skus').scrollLeft = 0; }
+    ul.style.transform = `translate3d(${bs[0].offsetLeft}px,0,0)`; ul.style.width = `${bs[0].offsetWidth}px`; t.scrollLeft = 0; $('.f9-best .skus').scrollLeft = 0; bestRow.reset(); }
   page.querySelectorAll('.pc-add.is-on, .pc-wish.is-on').forEach((b) => { b.classList.remove('is-on'); b.setAttribute('aria-pressed', 'false'); });
 }
 
@@ -468,32 +578,74 @@ page.addEventListener('pointerdown', (e) => {
   const up = () => { b.classList.remove('is-press'); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); b.removeEventListener('pointerleave', up); };
   addEventListener('pointerup', up); addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
 });
-$('.f5-cta.sb').addEventListener('click', () => { H('tap'); bot.cheer(); bot.hop(1.2); });
-$('.f5-cta.sa').addEventListener('click', () => { H('tap'); bot.cheer(); bot.hop(1.2); });
+$('.f5-cta.sb')?.addEventListener('click', () => { H('tap'); bot.cheer(); bot.hop(1.2); });
+$('.f5-cta.sa')?.addEventListener('click', () => { H('tap'); bot.cheer(); bot.hop(1.2); });
+// "Back to top": the page glides back up (an ease-out on its own clock, interruptible by a touch), the bot comes back
+// to the centre as it arrives
+$('.f5-end .top').addEventListener('click', () => {
+  H('tap');
+  const from = scroller.scrollTop; if (from <= 0) return;
+  if (reduce.matches) { scroller.scrollTop = 0; return; }
+  const ms = Math.min(900, 420 + from * 0.18), t0 = performance.now();
+  let stop = false; const halt = () => { stop = true; };
+  scroller.addEventListener('touchstart', halt, { once: true, passive: true }); scroller.addEventListener('wheel', halt, { once: true, passive: true });
+  const step = (now) => {
+    if (stop) return;
+    const u = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - u, 3);
+    scroller.scrollTop = from * (1 - e);
+    if (u < 1) requestAnimationFrame(step); else { scroller.removeEventListener('touchstart', halt); scroller.removeEventListener('wheel', halt); }
+  };
+  requestAnimationFrame(step);
+});
+
 // (the One ticket's code pill is part of the middle coupon: a tap on it copies the code, as a tap anywhere on it does)
 // "BEST DEALS"' tabs: the black underline slides to the tapped one (the MOVE spring), its label goes black; the row of
-// products re-deals (a soft stagger in)
-(() => {
-  const tabs = $('.f9-best .tabs9'), btns = [...tabs.querySelectorAll('.tb9')], ul = tabs.querySelector('.ul');
+// BEST DEALS' tabs: the underline glides to the tab; the row swaps to that tab's products
+const bestRow = (() => {
+  const tabs = $('.f9-best .tabs9'), btns = [...tabs.querySelectorAll('.tb9')], ul = tabs.querySelector('.ul'), row = $('.f9-best .skus');
+  const MOVE = 'linear(0, 0.0703, 0.2268, 0.4093, 0.5803, 0.7206, 0.8248, 0.8962, 0.9419, 0.9693, 0.9848, 0.9929, 0.9969, 0.9988, 0.9996, 1)';
+  let cur = 0, tok = 0, swapT = 0;
   const put = (b, anim) => {
     const x = b.offsetLeft, w = b.offsetWidth;
     if (anim && !reduce.matches) {
       const cs = getComputedStyle(ul);
-      ul.animate([{ transform: cs.transform, width: cs.width }, { transform: `translate3d(${x}px,0,0)`, width: `${w}px` }],
-        { duration: 544, easing: 'linear(0, 0.0703, 0.2268, 0.4093, 0.5803, 0.7206, 0.8248, 0.8962, 0.9419, 0.9693, 0.9848, 0.9929, 0.9969, 0.9988, 0.9996, 1)' });
+      ul.animate([{ transform: cs.transform, width: cs.width }, { transform: `translate3d(${x}px,0,0)`, width: `${w}px` }], { duration: 544, easing: MOVE });
     }
     ul.style.transform = `translate3d(${x}px,0,0)`; ul.style.width = `${w}px`;
   };
+  const fill = (i) => { row.innerHTML = DATA.bestTabs[i].map(skuCard).join(''); fitNamesIn(row); row.scrollLeft = 0; };
+  const swap = (i, dir) => {
+    const t = ++tok; clearTimeout(swapT); cur = i;
+    if (reduce.matches) { fill(i); return; }
+    const old = [...row.children], vis = old.filter((c) => c.offsetLeft - row.scrollLeft < row.clientWidth);
+    vis.forEach((c, k) => {
+      const cs = getComputedStyle(c), o = cs.opacity, tf = cs.transform === 'none' ? 'none' : cs.transform;
+      c.getAnimations().forEach((a) => a.cancel());
+      c.animate([{ opacity: o, transform: tf }, { opacity: 0, transform: `translate3d(${-dir * 14}px,0,0)` }], { duration: 140, delay: k * 25, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'forwards' });
+    });
+    swapT = setTimeout(() => {
+      if (t !== tok) return;
+      fill(i);
+      [...row.children].forEach((c, k) => {
+        c.animate([{ transform: `translate3d(${dir * 28}px,0,0)` }, { transform: 'none' }], { duration: 544, delay: k * 55, easing: MOVE, fill: 'backwards' });
+        c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay: k * 55, easing: FADE_IN, fill: 'backwards' });
+      });
+    }, 140 + 25 * Math.max(0, vis.length - 1));
+  };
   requestAnimationFrame(() => put(btns[0], false));
+  // (the other tabs' photos, ahead of time, so a swap never waits on a picture)
+  setTimeout(() => DATA.bestTabs.slice(1).flat().forEach((it) => { const im = new Image(); im.src = it.src; }), 2500);
   tabs.addEventListener('click', (e) => {
     const b = e.target.closest('.tb9'); if (!b || b.classList.contains('on')) return;
+    const i = btns.indexOf(b), dir = i > cur ? 1 : -1;
     btns.forEach((t) => { const on = t === b; t.classList.toggle('on', on); t.setAttribute('aria-selected', String(on)); });
     put(b, true); H('tick');
     const r = b.offsetLeft + b.offsetWidth - tabs.clientWidth + 12, l = b.offsetLeft - 12;
     if (r > tabs.scrollLeft) tabs.scrollTo({ left: r, behavior: reduce.matches ? 'auto' : 'smooth' });
     else if (l < tabs.scrollLeft) tabs.scrollTo({ left: l, behavior: reduce.matches ? 'auto' : 'smooth' });
-    if (!reduce.matches) $$('.f9-best .pc9.sku9').forEach((c, i) => c.animate([{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: 60 * i, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'backwards' }));
+    swap(i, dir);
   });
+  return { reset() { tok++; clearTimeout(swapT); if (cur) { cur = 0; fill(0); } } };
 })();
 // the live countdowns: every [data-cd] (h:m:s) and the One ticket's tiles tick once a second while the page is up
 const clocks = (() => {
@@ -501,7 +653,7 @@ const clocks = (() => {
   const tiles = $$('[data-cdt]').map((el) => ({ el, s: +el.dataset.cdt, b: ['h', 'm', 's'].map((k) => el.querySelector(`[data-cdp="${k}"]`)) }));
   let t = 0;
   const tick = () => {
-    els.forEach((c) => { c.s = Math.max(0, c.s - 1); c.el.textContent = hms(c.s).join(':'); });
+    els.forEach((c) => { c.s = Math.max(0, c.s - 1); c.el.textContent = c.el.dataset.cdf === 'w' ? hmw(c.s) : hms(c.s).join(':'); });
     tiles.forEach((c) => { c.s = Math.max(0, c.s - 1); hms(c.s).forEach((v, i) => { if (c.b[i].textContent !== v) c.b[i].textContent = v; }); });
   };
   return { start() { clearInterval(t); t = setInterval(() => { if (!document.hidden) tick(); }, 1000); }, stop() { clearInterval(t); } };
@@ -690,7 +842,9 @@ function m3d(q, w, h) {
 // coming in from the edge. Swipe them round (the carousel spring); a tap on a side one brings it forward; a tap on the
 // middle one, or "Redeem now", copies its code.
 const coupons = (() => {
-  const stage = $('.d3-coupons'), slots = [...stage.querySelectorAll('.d3-cslot')], N = slots.length;
+  const stage = $('.d3-coupons');
+  if (!stage) return { jump() {}, collect() {}, roles() {} };   // (Figma 1562:64150 has no coupons)
+  const slots = [...stage.querySelectorAll('.d3-cslot')], N = slots.length;
   // iteration 03 (the stage at y 280): the One ticket flat at Figma's (88, 284.7), 196 × 275; a bank coupon (180 × 276)
   // flat on the same centre; either side, the coupon turned away — the quad of Figma's side PNGs (1544:62360 / 62361,
   // fitted to their edges: the near edge 195 tall at x 57.1 / 317.4, the far edge 138 tall off the screen's edge)
@@ -760,9 +914,9 @@ const deck = (() => {
   // slot k: x, y (of the card's top centre), rotation (deg), scale, blur (px), opacity, ghost wash
   const SLOT = [
     { x: 0, y: 0, r: 0, s: 1, b: 0, o: 1, g: 0 },
-    { x: -0.55, y: -13, r: 0, s: 0.8708, b: 0, o: 1, g: 0 },           // 1544:62139 (drawn over the far one)
-    { x: -0.14, y: -26, r: 0, s: 0.7456, b: 0, o: 1, g: 0 },           // 1544:62079
-    { x: -0.14, y: -26, r: 0, s: 0.7456, b: 0, o: 0, g: 0 },
+    { x: -0.5, y: -11, r: 0, s: 194 / 233, b: 0, o: 1, g: 1 },         // 1573:68689 (#E3E3E3, drawn over the far one)
+    { x: 0, y: -20, r: 0, s: 165 / 233, b: 0, o: 1, g: 1 },            // 1573:68688 (#EBEBEB)
+    { x: 0, y: -20, r: 0, s: 165 / 233, b: 0, o: 0, g: 1 },
   ];
   // the pile leans the way the last card was flicked (the share build's Option 1): a flick to the left mirrors it
   let lean = 1;
@@ -797,9 +951,10 @@ const deck = (() => {
     // otherwise flash a sliver of their hidden bar through their top edge's clip)
     c.classList.toggle('nobar', !(s.bar > 0));
   });
-  const layer = () => order.forEach((ci, k) => { cards[ci].style.zIndex = String(st[ci].fly && !st[ci].tucked ? 40 : 30 - k); cards[ci].classList.toggle('is-top', k === 0); cards[ci].setAttribute('aria-hidden', String(k !== 0)); });
+  const layer = () => order.forEach((ci, k) => { cards[ci].dataset.slot = String(Math.min(k, 3)); cards[ci].style.zIndex = String(st[ci].fly && !st[ci].tucked ? 40 : 30 - k); cards[ci].classList.toggle('is-top', k === 0); cards[ci].setAttribute('aria-hidden', String(k !== 0)); });
   const aim = () => order.forEach((ci, k) => {
-    const s = st[ci], q = { ...slot(k <= fanned ? k : 0) }; if (k > fanned) q.o = 0;
+    const s = st[ci], q = { ...slot(k <= fanned ? k : 0) }; if (k > fanned) q.o = k <= 2 ? 1 : 0;   // (the two behind wait under the front card, solid)
+    if (k) q.g = 1;   // (a card behind the front one is always a grey plate; it turns into the card as it comes forward)
     if (s.ret) { s.ret.to = q; s.t.o = q.o; } else if (!s.fly) s.t = q; else if (k > fanned) s.t.o = 0;
   });
   function run() {
@@ -824,7 +979,8 @@ const deck = (() => {
         }
         for (let h = dt; h > 1e-6; h -= 1 / 240) {
           const k = Math.min(h, 1 / 240);
-          KEYS.forEach((p) => { const c = p === 'o' || p === 'b' || p === 'g' ? 0.8 : 1; s.v[p] += (K * c * (s.t[p] - s[p]) - C * Math.sqrt(c) * s.v[p]) * k; s[p] += s.v[p] * k; });
+          const kk = s.soft ? 150 : K, cc = s.soft ? 23.27 : C;   // (the fan's own softer spring: stiffness 150, ζ .95)
+          KEYS.forEach((p) => { const c = p === 'o' || p === 'b' || p === 'g' ? 0.8 : 1; s.v[p] += (kk * c * (s.t[p] - s[p]) - cc * Math.sqrt(c) * s.v[p]) * k; s[p] += s.v[p] * k; });
         }
         // out of the frame — its whole tilted outline past the screen's edge (the card's centre is at x 183): to the back
         // of the pile, unseen
@@ -841,7 +997,7 @@ const deck = (() => {
           if (d < 0.6 && !s.ret) s.back = false;
         } else if (s.back && !s.ret) s.back = false;
         const still = KEYS.every((p) => Math.abs(s.t[p] - s[p]) < (p === 's' || p === 'o' || p === 'g' ? 0.0008 : 0.04) && Math.abs(s.v[p]) < 0.05);
-        if (still) KEYS.forEach((p) => { s[p] = s.t[p]; s.v[p] = 0; }); else moving = true;
+        if (still) { KEYS.forEach((p) => { s[p] = s.t[p]; s.v[p] = 0; }); s.soft = false; } else moving = true;
         if (s.ret || s.back) moving = true;                       // (a card on its way back keeps the loop going)
       });
       paint();
@@ -948,37 +1104,31 @@ const deck = (() => {
   return {
     next: (dir = 1) => throwTop(dir),
     hint: () => { hints = 0; hint(0); }, get hints() { return hints; }, get learned() { return learned; }, st, order: () => order,
-    reset() { stopHint(); hints = 0; clearTimeout(fanT); clearTimeout(barT); clearInterval(fanPoll); fanPoll = 0; cancelAnimationFrame(raf); raf = 0; drag = null; lean = 1; order = cards.map((_, i) => i); fanned = 0; barLive = false; st.forEach((s) => { s.fly = 0; s.bar = 0; s.ret = null; s.back = false; Object.assign(s, SLOT[0]); KEYS.forEach((p) => { s.v[p] = 0; }); }); aim(); order.forEach((ci, k) => { if (k) st[ci].o = 0; }); layer(); paint(); },
+    reset() { stopHint(); hints = 0; clearTimeout(fanT); clearTimeout(barT); clearInterval(fanPoll); fanPoll = 0; cancelAnimationFrame(raf); raf = 0; drag = null; lean = 1; order = cards.map((_, i) => i); fanned = 0; barLive = true; st.forEach((s) => { s.fly = 0; s.bar = 0; s.ret = null; s.back = false; Object.assign(s, SLOT[0]); KEYS.forEach((p) => { s.v[p] = 0; }); }); st[order[0]].bar = 1; aim(); order.forEach((ci, k) => { if (k) { st[ci].o = k <= 2 ? 1 : 0; st[ci].g = 1; } }); layer(); paint(); },
     // scrolled back away below the screen: the cards behind tuck back under the front one (instantly, it's off screen)
     // and the front one goes back to hidden, so the next scroll down plays the whole entrance again
     hide() {
       stopHint(); hints = 0; clearTimeout(fanT); clearTimeout(barT); clearInterval(fanPoll); fanPoll = 0;
-      fanned = 0; barLive = false; st.forEach((s0) => { s0.bar = 0; });
-      order.forEach((ci, k) => { const s0 = st[ci]; if (k && !s0.fly) { Object.assign(s0, { ...slot(0), o: 0 }); KEYS.forEach((p) => { s0.v[p] = 0; }); } });
+      fanned = 0; barLive = true; st.forEach((s0) => { s0.bar = 0; }); st[order[0]].bar = 1;   // (the front card keeps its bar: no reveal)
+      order.forEach((ci, k) => { const s0 = st[ci]; if (k && !s0.fly) { Object.assign(s0, { ...slot(0), o: k <= 2 ? 1 : 0, g: 1 }); s0.soft = false; KEYS.forEach((p) => { s0.v[p] = 0; }); } });
       aim(); paint();
       cards.forEach((c) => cancelOwn(c.firstElementChild));
     },
     // the reveal: the front card lands first; then the cards behind it come out from under it one at a time
     fan(delay) {
-      const d = reduce.matches ? 0 : delay, step = reduce.matches ? 0 : 140;
+      const d = reduce.matches ? 0 : delay, step = reduce.matches ? 0 : 90;
       clearTimeout(fanT); clearInterval(fanPoll); clearTimeout(barT);
-      // (the red bar comes in as the front card lands — ~120 ms after it starts rising — not with the fan)
-      barT = setTimeout(() => { if (!live) return; barLive = true; run(); }, Math.max(0, d - 360));
-      const go = () => {
-        clearInterval(fanPoll); fanPoll = 0; scroller.removeEventListener('scroll', check);
-        [1, 2, Infinity].forEach((n, i) => setTimeout(() => { if (!live) return; fanned = Math.max(fanned, n); aim(); run(); }, i * step));
-        hint(2 * step + 520);                                     // (the nudge, once the pile has fanned out and landed)
-      };
-      // (started scrolling, and the deck's front card at least a fifth on screen)
-      const check = () => {
+      [1, 2, Infinity].forEach((n, i) => setTimeout(() => {
         if (!live) return;
-        const r = stage.querySelector('.d3-dk.is-top').getBoundingClientRect(), sr = scroller.getBoundingClientRect();
-        const seen = (Math.min(r.bottom, sr.bottom) - Math.max(r.top, sr.top)) / r.height;
-        if (scroller.scrollTop > 8 && seen >= 0.2) go();
-      };
-      fanT = setTimeout(() => { if (!live) return; scroller.addEventListener('scroll', check, { passive: true }); fanPoll = setInterval(check, 200); check(); }, d);
+        order.forEach((ci, k) => { if (k > fanned && k <= n && k <= 2) st[ci].soft = true; });   // (they glide out, softly)
+        fanned = Math.max(fanned, n); aim(); run();
+      }, d + i * step));
+      // (the front card's red bar is already there — it doesn't reveal; after a swipe the new front card's bar comes down)
+      barLive = true; if (!st[order[0]].bar) st[order[0]].bar = 1;
+      hint(d + step + 1100);                                      // (the nudge, after that)
     },
-    roles() { cards.forEach((c, i) => { const el = c.firstElementChild; el.dataset.k = i === order[0] ? 'deck' : ''; if (i !== order[0]) { el.getAnimations().forEach((a) => a.cancel()); held(el); } }); },
+    // (the deck rises in as one piece — its stage carries the reveal — so every card inside is simply there)
+    roles() { cards.forEach((c) => { const el = c.firstElementChild; el.getAnimations().forEach((a) => a.cancel()); held(el); }); },
   };
 })();
 
@@ -989,46 +1139,27 @@ const deck = (() => {
 // a tap on a side card brings it forward.
 const refill = (() => {
   const stage = $('.d3-refill'), slots = [...stage.querySelectorAll('.d3-rslot')];
-  const PITCH = 225.5, SS = 181 / 222;
+  const PITCH = 241.4, SS = 209.8 / 233;   // (Figma 1573:68742: the side cards' centres 241.4 from the middle one's, at 90.04 %)
   // the side cards turn slightly in 3D, away from the middle — their inner edge (next to the middle card) going back,
   // the outer edge coming forward (user, 2026-11-12: inverted) — by TILT° at the side, growing
   // with the card's distance from the middle (flat in the middle, so the turn eases in and out as you swipe); each card
   // seen through its own perspective, so the two sides mirror each other
   // (iteration 03: one card shape everywhere — the middle card scaled to 181 / 222 at the side, never morphed — so the
   // side cards sit centred on the middle one: (402 − 402 × 181 / 222) / 2 lower, from the top-centre origin)
-  const TILT = 12, PERSP = 900, DROP = 402 * (1 - 181 / 222) / 2;
-  // the "Expires in" bar (--rb, per card): the widget has to have landed first; the middle card's bar wipes in (0.46 s,
-  // eased out) once the carousel has come to rest; a card that has gone to the side loses it
+  const TILT = 0, PERSP = 900, DROP = 32;   // (Figma 1573:68742: flat — the side cards' tops 32 px below the middle one's)
+  // the green "lower than usual" bar is part of every card — the middle one and the ones at the side alike: always
+  // down, never revealed or hidden on its own
   let landed = false, rbRaf = 0, lastPlace = 0, rbLast = 0, landT = 0, touching = false;
   const rb = [], ex = [];
-  const rbTick = (now) => {
-    const dt = Math.min(0.05, (now - (rbLast || now)) / 1000); rbLast = now;
-    let anim = false;
-    slots.forEach((el, i) => {
-      const d = Math.abs(loop.wrapD(i)); let v = rb[i] || 0, e;
-      // in: once the card is all but in place (within 3.5 % of a card of the middle) with no finger on the carousel
-      if (landed && d < 0.035 && !touching && !(ex[i] && d >= 0.01)) {
-        if (ex[i]) { v = 1 - Math.pow(1 - ex[i].e, 0.25); ex[i] = null; }   // (back to the middle mid-exit: down again from where it is)
-        if (v < 1) { v = Math.min(1, v + dt / 0.5); anim = true; }
-        e = 1 - Math.pow(1 - v, 4);
-      } else if (d >= 0.01 && (v > 0 || ex[i])) {
-        // out: the moment the card starts to move off the middle (1 % of a card), the bar goes back up — from where it
-        // is, on its own ease-in-out (0.45 s), so it lifts off gently and glides away out of sight
-        if (!ex[i]) { const e0 = 1 - Math.pow(1 - v, 4); ex[i] = { t0: now, e0, e: e0 }; }
-        const u = Math.min(1, (now - ex[i].t0) / 450), io = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-        e = ex[i].e = ex[i].e0 * (1 - io);
-        if (u >= 1) { v = 0; e = 0; ex[i] = null; } else { v = 1; anim = true; }
-      } else e = 1 - Math.pow(1 - v, 4);
-      rb[i] = v; el.style.setProperty('--rb', e.toFixed(4)); el.classList.toggle('nobar', !(e > 0));
-    });
-    rbRaf = anim || now - lastPlace < 160 ? requestAnimationFrame(rbTick) : 0;
-    if (!rbRaf) rbLast = 0;
+  const rbTick = () => {
+    slots.forEach((el) => { el.style.setProperty('--rb', '1'); el.classList.remove('nobar'); });
+    rbRaf = 0;
   };
   const kick = () => { if (!rbRaf) rbRaf = requestAnimationFrame(rbTick); };   // (iteration 03: Figma's side cards sit 50.84 px lower than the middle one's top)
   const loop = loopCarousel({ stage, count: slots.length, step: PITCH, tapToFocus: true, place: (wrapD) => slots.forEach((el, i) => {
     const d = wrapD(i), a = Math.abs(d), k = Math.min(1, a);
     el.style.transform = `perspective(${PERSP}px) translate3d(${(d * PITCH).toFixed(2)}px, ${(DROP * k).toFixed(2)}px, 0) rotateY(${(-Math.sign(d) * TILT * k).toFixed(3)}deg) scale(${(1 - (1 - SS) * k).toFixed(4)})`;
-    el.style.setProperty('--k', '0');   // (iteration 03: the card keeps one shape — no morph to the small card)
+    el.style.setProperty('--k', k.toFixed(3));   // (the middle card's details ↔ the side card's, as it moves)
     // (the type morphs in 16 steps — 0.1 px of size each, below what the eye can see — so its glyphs are re-rasterised a
     // handful of times per swipe instead of every frame)
     el.style.setProperty('--kt', '0');
@@ -1066,8 +1197,8 @@ const refill = (() => {
   const untouch = () => { if (touching) { touching = false; kick(); } };
   addEventListener('pointerup', untouch); addEventListener('pointercancel', untouch);
   return {
-    jump: (i) => { landed = false; slots.forEach((sl, k) => { rb[k] = 0; ex[k] = null; sl.style.setProperty('--rb', '0'); sl.classList.add('nobar'); }); loop.jump(i); },
-    hide() { drop(); landed = false; slots.forEach((sl, i) => { rb[i] = 0; ex[i] = null; sl.style.setProperty('--rb', '0'); sl.classList.add('nobar'); sl.firstElementChild.style.transform = ''; cancelOwn(sl.firstElementChild); }); },   // (back to hidden, to play in again)
+    jump: (i) => { kick(); landed = false; slots.forEach((sl, k) => { rb[k] = 0; ex[k] = null; sl.style.setProperty('--rb', '1'); }); loop.jump(i); },
+    hide() { kick(); drop(); landed = false; slots.forEach((sl, i) => { rb[i] = 0; ex[i] = null; sl.style.setProperty('--rb', '1'); sl.firstElementChild.style.transform = ''; cancelOwn(sl.firstElementChild); }); },   // (back to hidden, to play in again)
     reveal(delay) {
       drop();
       const d0 = reduce.matches ? 0 : delay, n = springPath.length - 1;

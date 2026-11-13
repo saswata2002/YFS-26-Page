@@ -510,7 +510,7 @@
 
 /* ── "TIME TO RESTOCK" (1544:62371): four last-bought cards (166 × 295), the arc, "SEE ALL →" ── */
 .pc9.wc { position: absolute; width: 166px; height: 295px; border-radius: 16px; overflow: hidden; z-index: 3;
-  box-shadow: 0 10px 28px -6px rgba(16,22,40,.08), 0 1px 2px rgba(16,22,40,.04); }
+  box-shadow: 0 10px 28px -6px rgba(16,22,40,.07), 0 1px 2px rgba(16,22,40,.035); }   /* (Figma's 8 % / 4 %, fitted to its render) */
 .pc9.wc::after { content: ''; position: absolute; inset: 0; border: 1px solid #eceef3; border-radius: inherit; pointer-events: none; z-index: 5; }
 .pc9.wc > * { position: absolute; translate: 1px 1px; }
 .pc9.wc .main { left: 6px; top: 6px; width: 154px; height: 205.3px; border-radius: 11px; background: #fff; }
@@ -524,6 +524,11 @@
 .pc9.wc .p2 { left: 46.1px; top: 224.3px; font: 400 12px/16px var(--noon); color: #8a90a2; white-space: nowrap; }
 .pc9.wc .p3 { left: 78px; top: 225px; font: 600 12px/16px var(--noon); letter-spacing: -0.1px; color: #26b57c; font-style: normal; white-space: nowrap; }
 .pc9.wc i { font-style: normal; }
+/* (the three in a row, Figma's 4 px gaps, so a longer live price pushes the others along instead of running into them) */
+.pc9.wc .prs { position: absolute; left: 10px; top: 219.3px; display: flex; align-items: flex-start; gap: 4px; white-space: nowrap; }
+.pc9.wc .prs > * { position: static; }
+.pc9.wc .prs .p2 { margin-top: 5px; }
+.pc9.wc .prs .p3 { margin-top: 5.7px; margin-left: 0.3px; }
 .pc9.wc .pc-add { right: 9px; bottom: 87px; width: 32px; height: 32px; }
 .pc9.wc .pc-add .pl { width: 20.545px; height: 20.545px; }
 .pc9.wc .qt { left: 9.5px; top: 244.83px; height: 18px; display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 4px; background: #f9f9fb; }
@@ -545,25 +550,24 @@
 /* ── "BEST DEALS, STRAIGHT FROM YOUR FAVS" (1544:62490, white, 375 × 556 at 0, 2977) ── */
 .f9-best { left: 0; top: 2977px; width: 375px; height: 556px; background: #fff; }
 .f9-best .f5-dec { z-index: 12; }
-.f9-best .tabs9 { position: absolute; left: 0; right: 0; top: 113px; height: 84px; display: flex; align-items: flex-end; padding: 0 12px; overflow-x: auto; overflow-y: hidden;
+.f9-best .tabs9 { position: absolute; left: 0; right: 0; top: 115.8px; height: 70.4px; display: flex; align-items: flex-start; padding: 6.4px 12px 0; overflow-x: auto; overflow-y: hidden;
   scrollbar-width: none; touch-action: pan-x pan-y; overscroll-behavior-x: contain; }
 .f9-best .tabs9::-webkit-scrollbar { display: none; }
 .f9-best .tabs9::after { content: ''; flex: none; width: 12px; height: 1px; }
-.tb9 { position: relative; flex: none; height: 84px; padding: 4px 0 12px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px;
-  border: 0; border-bottom: 1.067px solid #ebecef; background: none; cursor: pointer; }
+.tb9 { position: relative; flex: none; height: 64px; padding: 4px 12px 12px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px;
+  border: 0; box-shadow: inset 0 -1.067px #ebecef; background: none; cursor: pointer; }
 .tb9 img { width: 28px; height: 28px; }
-.tb9 span { width: 80px; text-align: center; font: 500 13px/16px var(--noon); color: #344054; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .2s cubic-bezier(0.33, 1, 0.68, 1); }
+.tb9 span { text-align: center; font: 500 13px/16px var(--noon); color: #344054; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .2s cubic-bezier(0.33, 1, 0.68, 1); }
 .tb9.on span { color: #000; }
-.f9-best .tabs9 .ul { position: absolute; left: 0; bottom: 1.067px; width: 94px; height: 4px; border-radius: 6px 6px 0 0; background: #000; pointer-events: none; will-change: transform; }
-.tb9.on { border-bottom-color: #000; }
-.f9-best .skus { position: absolute; left: 0; top: 204.67px; width: 375px; display: flex; gap: 12px; align-items: flex-start; padding: 16px 12px 0; overflow-x: auto; scrollbar-width: none;
+.f9-best .tabs9 .ul { position: absolute; left: 0; top: 66.4px; width: 94px; height: 4px; border-radius: 6px 6px 0 0; background: #000; pointer-events: none; will-change: transform; }
+.f9-best .skus { position: absolute; left: 0; top: 194.47px; width: 375px; display: flex; gap: 12px; align-items: flex-start; padding: 16px 12px 0; overflow-x: auto; scrollbar-width: none;
   touch-action: pan-x pan-y; overscroll-behavior-x: contain; }
 .f9-best .skus::-webkit-scrollbar { display: none; }
 .f9-best .skus::after { content: ''; flex: none; width: 1px; height: 1px; }
 .pc9.sku9 { flex: none; width: 134px; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; }
 .pc9.sku9 .main { position: relative; width: 134px; height: 174px; border-radius: 10px; background: #fff; }
 .pc9.sku9 .main::after { background: rgba(7,47,143,.04); }
-.pc9.sku9 .ph img { object-fit: cover; }
+.pc9.sku9 .ph img { object-fit: contain; }   /* (noon's photos are 640 × 873 with the product centred: the whole photo, not a crop) */
 .pc9.sku9 .pc-wish.o { padding: 4px; }
 .pc9.sku9 .pc-wish.o svg { width: 16px; height: 16px; }
 .pc9.sku9 .pc-add { left: 94px; top: 136px; right: auto; bottom: auto; width: 33.707px; height: 33.707px; border-width: 1.053px; border-radius: 9.48px; }
@@ -621,3 +625,246 @@
 
 /* a bar that isn't out isn't drawn at all (yf-page.js .nobar) — no hidden red for a clip to let through */
 .d3-dk.nobar .pc9.dk .bar, .d3-rslot.nobar .pc9.rf .bar { visibility: hidden; }
+
+/* ════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+   Figma Saswata 1562:64150 "For you" (375 × 3095): HEY NEHA + top 5 picks → the deck → PRICE DROP carousel →
+   BEST DEALS → LET'S RESTOCK grid → the feed's end
+   ════════════════════════════════════════════════════════════════════════════════════════════════════════════════ */
+.d3.f9.f10 { height: 3095px; }
+/* the heading frames: the big word, 30 px Google Sans Flex Black (wdth 87, ROND 39, slnt −10) in white, Figma's 3.06 px
+   black stroke outside the glyphs and its hard shadow (−1.02, 4.08) */
+.fh9 { width: 305px; height: 95.17px; pointer-events: none; z-index: 11; transform-origin: 50% 50%; }
+.fh9 > .in { position: absolute; inset: 0; transform: rotate(-2deg); }
+.fh9 .wd9 { position: absolute; left: 152.46px; top: 23.09px; transform: translateX(-50%); white-space: nowrap; font-family: 'Google Sans Flex', var(--noon);
+  font-size: 30px; line-height: 48.917px; font-weight: 924; font-stretch: 87%; letter-spacing: -0.2623px; font-variation-settings: "GRAD" 0, "ROND" 39, "slnt" -10;
+  filter: drop-shadow(-1.019px 4.076px 0 #000); }
+.fh9 .wd9::before { content: attr(data-t); position: absolute; inset: 0; color: #000; -webkit-text-fill-color: #000; -webkit-text-stroke: 6.11px #000; }
+.fh9 .wd9 > span { position: relative; color: #fff; }
+.fh9 .f5-dec { z-index: 1; }
+/* the ribbon: noon yellow inside a 6.19 px white edge, 12.38 px corners, its line 20 px Black (wdth 65), tipped −2° */
+.rb9 { pointer-events: none; z-index: 10; transform-origin: 50% 50%; }
+.rb9 > .in { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 15px 12.38px 10px; border: 6.19px solid #fff; border-radius: 12.38px;
+  background: #ffe733; transform: rotate(-2deg); }
+.rb9 b { display: block; transform: rotate(0.26deg); white-space: nowrap; font-family: 'Google Sans Flex', var(--noon); font-size: 20px; line-height: 22.006px; font-weight: 827;
+  font-stretch: 65%; letter-spacing: -0.1266px; color: #000; font-variation-settings: "GRAD" 0, "ROND" 39, "slnt" -10; }
+
+/* the deck (1562:64181 at 49, 266.5): the front card at (66.5, 333.5) */
+.f10 .d3-deck { top: 246.5px; }
+
+/* the price-drop carousel (1562:65183, the whole row tipped −0.26°): the middle card 222 × 423.4 at (77, 982.8) */
+.f10 .d3-refill { top: 962.78px; height: 424px; transform: rotate(-0.26deg); transform-origin: 188px 212px; }
+.f10 .d3-rslot { left: 76.95px; height: 423.4px; }
+.pc9.rf.pd { height: 423.4px; }
+.pc9.rf.pd .bar { border-radius: 0; }
+.pc9.rf.pd .bar .in { background: #0f8857; }
+.pc9.rf.pd .bar b { font: 700 14px/14.81px var(--noon); font-variation-settings: normal; letter-spacing: -0.1269px; }
+.pc9.rf.pd .bar b i { font-style: normal; }
+.pc9.rf.pd .dt { position: absolute; left: 8.5px; top: 259.3px; width: 204px; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
+.pc9.rf.pd .nm { width: 100%; height: 36px; min-height: 0; font: 500 14px/18px var(--noon); letter-spacing: -0.14px; color: #212121; font-feature-settings: "case" 1; -webkit-line-clamp: 2; }
+.pc9.rf.pd .rt2 { margin-top: 2px; height: 18px; display: flex; align-items: center; gap: 2px; padding: 2px 4px; border-radius: 4px; background: #f9f9fb;
+  font: 600 12px/14px var(--noon); letter-spacing: -0.12px; color: #101628; font-feature-settings: "case" 1; white-space: nowrap; }
+.pc9.rf.pd .rt2 img { width: 10.54px; height: 10.11px; margin: 0.81px 0.73px 0.56px; }
+.pc9.rf.pd .rt2 b { font-weight: 600; white-space: pre; }
+.pc9.rf.pd .rt2 i { font-style: normal; font-weight: 400; color: #666d85; }
+.pc9.rf.pd .p1 { margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+.pc9.rf.pd .p1 b { font: 700 16px/20px var(--noon); letter-spacing: -0.15px; color: #000; white-space: nowrap; }
+.pc9.rf.pd i { font-style: normal; }
+.pc9.rf.pd .bp { height: 18px; display: flex; align-items: center; gap: 4px; padding: 0 4px; border-radius: 4px; background: linear-gradient(265.66deg, rgba(189,248,224,.35) 0.88%, rgba(159,231,202,.35) 99.12%);
+  font: 500 12px/16px var(--noon); letter-spacing: -0.36px; color: #108757; white-space: nowrap; }
+.pc9.rf.pd .bp img { width: 12px; height: 12px; }
+.pc9.rf.pd .p2 { margin-top: 4px; display: flex; align-items: flex-end; gap: 4px; white-space: nowrap; }
+.pc9.rf.pd .p2 b { font: 500 13px/16px var(--noon); letter-spacing: 0.07px; color: #475067; font-feature-settings: "case" 1; }
+.pc9.rf.pd .p2 s { text-decoration: none; font: 400 12px/14px var(--noon); letter-spacing: -0.12px; color: #989fb3; }
+.pc9.rf.pd .p2 s u { text-decoration: line-through; }
+.pc9.rf.pd .p2 em { margin-left: -2px; font: 600 12px/14px var(--noon); letter-spacing: -0.12px; color: #13645f; font-style: normal; }
+.pc9 .ng.pdn { position: relative; margin-top: 4px; width: 204px; height: 16px; overflow: hidden; }
+.pc9 .ng.pdn .run > span { gap: 2px; width: 158px; }
+.pc9 .ng.pdn img { width: 14px; height: 14px; flex: none; }
+.pc9 .ng.pdn b { font: 400 12px/16px Figtree, var(--noon); letter-spacing: -0.12px; color: #475067; }
+.pc9.rf.pd .eta { margin-top: 8px; width: 149.5px; height: 22px; }
+
+/* BEST DEALS (1562:64370, white, at 0, 1454.5) */
+.f10 .f9-best { top: 1434.5px; }
+
+/* LET'S RESTOCK's grid (1562:66964, tipped −0.26° about its centre) */
+.g9w { left: 0; top: 0; width: 375px; height: 0; transform: rotate(-0.26deg); transform-origin: 187.21px 2480.75px; }
+
+/* the feed's end (1562:66966): under the grid, in the frame's free space at the bottom */
+.f10 .f5-end { left: 83px; top: 2820.5px; }
+
+/* (measured against Figma 1562:64150: the heading words and ribbons render 1 px higher than Figma sets them; BEST DEALS'
+   pair 4 px lower; the price-drop card's details 1 px higher; the grid's cards are already where Figma's tilted group
+   puts them — no tilt of their own) */
+.f10 .fh9, .f10 .rb9 { margin-top: 1px; }
+.pc9.rf.pd .dt { top: 260.3px; }
+.g9w { transform: none; }
+
+/* ════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+   Figma Saswata 1573:68634 "For you" (375 × 3256): one column, 48 apart — HEY NEHA + the deck → PRICE DROPS →
+   BEST DEALS → LETS RESTSOCK → the feed's end
+   ════════════════════════════════════════════════════════════════════════════════════════════════════════════════ */
+@font-face { font-family: Nippo; src: url('../fonts/Nippo-Medium.otf') format('opentype'); font-weight: 500; font-display: block; }
+.d3.f9.f11 { height: 3256px; }
+
+/* the headings: the word (32 px Google Sans Flex Black — wdth 90, ROND 40, slnt −10 — white, Figma's 3.06 px black stroke
+   outside and its hard shadow) over the yellow shape (its white edge and soft glow drawn in the SVG) and its line (18 px,
+   wdth 66) */
+.t11 { display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 11; }
+.t11 .t11r0 { flex: none; transform: rotate(-0.26deg); }
+.t11 .t11tt { height: 110px; padding: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.t11 .t11r1 { flex: none; width: 100%; display: flex; align-items: center; justify-content: center; }
+.t11 .t11r1i { flex: none; width: 100%; transform: rotate(-1.74deg); }
+.t11 .t11col { display: flex; flex-direction: column; align-items: center; justify-content: center; isolation: isolate; padding: 2px 8px; }
+.t11 .wd11 { position: relative; z-index: 2; margin-bottom: -28px; white-space: nowrap; text-align: center; font-family: 'Google Sans Flex', var(--noon);
+  font-size: 32px; line-height: 50px; font-weight: 940; font-stretch: 90%; letter-spacing: -0.25px; font-variation-settings: "GRAD" 0, "ROND" 40, "slnt" -10;
+  filter: drop-shadow(-1.019px 4.076px 0 #000); }
+.t11 .wd11::before { content: attr(data-t); position: absolute; inset: 0; color: #000; -webkit-text-fill-color: #000; -webkit-text-stroke: 6.11px #000; }
+.t11 .wd11 > span { position: relative; color: #fff; }
+.t11 .t11sw { position: relative; z-index: 1; flex: none; display: flex; align-items: center; justify-content: center; }
+.t11 .t11sw2 { flex: none; transform: rotate(2deg); }
+.t11 .t11sp { position: relative; display: flex; align-items: flex-start; justify-content: center; gap: 8px; padding: 16px 24px 10px 20px; }
+.t11 .t11shp { position: absolute; inset: -3.58% 0.49% -8% -0.18%; display: flex; align-items: center; justify-content: center; container-type: size; }
+.t11 .t11shi { flex: none; position: relative; height: hypot(0.873381cqw, 75.4272cqh); width: hypot(99.1266cqw, -24.5728cqh); }
+.t11 .t11si { position: absolute; display: block; }
+.t11 .t11si img { display: block; width: 100%; height: 100%; max-width: none; }
+.t11 .t11tx { position: relative; flex: none; display: flex; align-items: center; justify-content: center; }
+.t11 .t11tx p { flex: none; margin: 0; transform: rotate(-2.65deg); white-space: nowrap; text-align: center; font-family: 'Google Sans Flex', var(--noon);
+  font-size: 18px; line-height: 22.006px; font-weight: 828; font-stretch: 66%; letter-spacing: 0.5px; color: #000; font-variation-settings: "GRAD" 0, "ROND" 40, "slnt" -10; }
+
+/* the delivery pill (1562:64746): navy, the bolt, "Get in" and the time in Nippo yellow, the arrow, its darker tab under it */
+.eta11 { display: block; flex: none; width: 149.5px; height: 22px; }
+.eta11 .w { display: inline-flex; flex-direction: column; align-items: flex-start; isolation: isolate; }
+.eta11 .q { position: relative; z-index: 2; display: flex; align-items: center; gap: 2px; margin-bottom: -9px; padding: 3.25px 3px; border-radius: 4.4px; background: #1f20b7; }
+.eta11 .q img { flex: none; width: 13px; height: 13px; }
+.eta11 .q .ar { transform: rotate(-90deg); }
+.eta11 b { font: 400 12px/14px var(--noon); letter-spacing: -0.12px; color: #fff; white-space: nowrap; font-feature-settings: "case" 1; }
+.eta11 b em { font: 500 12px/14px Nippo, var(--noon); letter-spacing: -0.12px; color: #feee00; font-style: normal; }
+.eta11 .sh { position: relative; z-index: 1; display: block; align-self: stretch; height: 10.482px; border-radius: 0 0 4.4px 4.4px; background: #0e0e60; }
+
+/* the deck (1573:68687 at 71, 305.7): the front card at (71, 338.7); behind it Figma's two grey plates — the cards behind,
+   washed solid grey (#E3E3E3 194 wide, #EBEBEB 165 wide), their white edge and lift gone with the wash */
+.f11 .d3-deck { top: 271.7px; height: 560px; }
+.f11 .d3-dk { left: 71px; top: 67px; }
+.f11 .pc9.dk { position: relative; border: 0; padding: 1.5px 1.5px 9.5px;
+  box-shadow: inset 0 0 0 1.5px #fff, 0 -4px 8px -1px rgba(0,0,0,calc(.08 * (1 - var(--g, 0)))); }
+/* (Figma's 1.5 px white edge as an inset shadow over 1.5 px of padding: Chrome draws a 1.5 px border 1 px wide, shifting
+   everything inside by half a pixel; the grey wash covers the edge too) */
+.f11 .pc9.dk .main::after { background: rgba(0,40,136,.03); }
+.pc9.dk .gw { position: absolute; inset: 0; z-index: 40; border-radius: inherit; background: var(--gwc, #e3e3e3); opacity: var(--g, 0); pointer-events: none; }
+.d3-dk[data-slot="2"], .d3-dk[data-slot="3"] { --gwc: #ebebeb; }
+.f11 .d3-dk[data-slot="1"] .pc9.dk { border-radius: 12px; }   /* (Figma's plates have 10 px corners at their size) */
+
+/* the price-drop carousel (1573:68742 at 0, 988.1): the middle card 233 wide at (71.8, 0); the side ones at 90.04 %,
+   241.4 from it, 32 lower — flat */
+.f11 .d3-refill { top: 988.1px; height: 501px; transform: none; }
+.f11 .d3-rslot { left: 71.8px; width: 233px; height: 500.3px; display: block; transform-origin: 50% 0; }
+.pc9.dk.px { --bar: 1; }
+.pc9.dk.px .bar .in { background: #0f8857; }
+.pc9.dk.px .bar b i { font-style: normal; }
+.pc9.dk.px .mw { flex: none; margin: 0 8px; width: 214px; border-radius: 8px; overflow: hidden; background: #ffe5e5; }
+.pc9.dk.px .mw .main { margin: 0; background: #f7f9fb; }
+.pc9.dk.px .main::after { background: rgba(0,40,136,.03); }
+.pc9.px .tm, .pc9.wc2 .tm { overflow: hidden; }
+.pc9.dk.px .tm { height: calc(28px * (1 - var(--k, 0))); }
+.pc9.dk.px .tm > span { display: flex; align-items: center; gap: 2px; height: 28px; padding: 5px 8px; }
+.pc9 .lk { position: relative; flex: none; width: 14px; height: 14px; }
+.pc9 .lk img { position: absolute; left: 50%; top: 1.73px; width: 8.038px; height: 11px; transform: translateX(-50%); }
+.pc9.dk.px .tm b { font: 500 12px/18px var(--noon); letter-spacing: -0.1px; color: #ef151d; white-space: nowrap; }
+.pc9.px .tm b em, .pc9.wc2 .tm b em { margin-left: 1px; font-weight: 700; font-style: normal; }
+/* the two sets of details, one over the other; the card's height follows the morph (500.3 in the middle, 484.1 at the side
+   before its 90 %) */
+.pc9.dk.px .dts { position: relative; flex: none; height: calc(132.3px + 11.78px * var(--k, 0)); }
+.pc9.dk.px .dts > .dt { position: absolute; left: 0; top: 0; width: 100%; padding-top: 48.303px; }
+/* (the name is the same in both: it stays put while the rest crossfades) */
+.pc9.dk.px .nm0 { position: absolute; left: 10px; top: 0; width: 210px; z-index: 1; }
+/* (its own layer: iOS WebKit otherwise leaves this plain text blank after the card is scrolled away and back) */
+.pc9.dk.px .nm0, .pc9.dk.px .dts > .dt { will-change: transform; }
+.pc9.dk.px .dt.a { opacity: calc(1 - var(--k, 0) * 2); }
+.pc9.dk.px .dt.b { opacity: calc(var(--k, 0) * 2 - 1); gap: 0; }
+.pc9.dk.px .dt.b .p1 { display: flex; align-items: center; gap: 4px; }
+.pc9.dk.px .dt.b .p1 b { font: 700 16px/20px var(--noon); letter-spacing: -0.15px; color: #000; white-space: nowrap; }
+.pc9.dk.px .dt.b .p2 { margin-top: 4px; display: flex; align-items: flex-end; gap: 4px; white-space: nowrap; }
+.pc9.dk.px .dt.b .ng.pdn { width: 210px; }
+.pc9.dk.px .dt.b .ex11 { display: block; margin-top: 8px; width: 149.5px; height: 22px; }
+.pc9.px i, .pc9.wc2 i { font-style: normal; }
+/* (shared: "Best price", the usual price and the list price) */
+.pc9.px .bp, .pc9.wc2 .bp { height: 18px; display: flex; align-items: center; gap: 4px; padding: 0 4px; border-radius: 4px;
+  background: linear-gradient(265.66deg, rgba(189,248,224,.35) 0.88%, rgba(159,231,202,.35) 99.12%); font: 500 12px/16px var(--noon); letter-spacing: -0.36px; color: #108757; white-space: nowrap; }
+.pc9.px .bp img, .pc9.wc2 .bp img { width: 12px; height: 12px; }
+.pc9.px .p2 b, .pc9.wc2 .p2 b { font: 500 13px/16px var(--noon); letter-spacing: 0.07px; color: #475067; font-feature-settings: "case" 1; }
+.pc9.px .p2 s, .pc9.wc2 .p2 s { text-decoration: none; font: 400 12px/14px var(--noon); letter-spacing: -0.12px; color: #989fb3; }
+.pc9.px .p2 s u, .pc9.wc2 .p2 s u { text-decoration: line-through; }
+.pc9.px .p2 em, .pc9.wc2 .p2 em { margin-left: -2px; font: 600 12px/14px var(--noon); letter-spacing: -0.12px; color: #13645f; font-style: normal; }
+
+/* BEST DEALS (1573:68949 at 0, 1536.4): clear to white by a quarter down; the seven tabs at 127.5, the products at 219.5 */
+.f11 .f9-best { top: 1536.4px; height: 567.4px; background: linear-gradient(180.2deg, rgba(255,255,255,0) 0.115%, #fff 25.268%); }
+.f11 .f9-best .tabs9 { top: 127.5px; height: 84px; padding: 0 12px; align-items: flex-end; }
+.f11 .tb9 { flex: none; min-width: 66.129px; padding: 4px 0 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  box-shadow: inset 0 -1.067px #ebecef; }
+.f11 .tb9.ta::after { content: ''; flex: none; width: 100%; height: 4px; }
+.f11 .tb9 .c { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 12px; }
+.f11 .tb9 img { flex: none; width: 28px; height: 28px; }
+.f11 .tb9 .l { display: block; width: 77px; height: 32px; overflow: hidden; text-overflow: ellipsis; white-space: pre; text-align: center; font: 500 13px/16px var(--noon); color: #344054;
+  transition: color .2s cubic-bezier(0.33, 1, 0.68, 1); }
+.f11 .tb9:first-child .l { width: 80px; }
+.f11 .tb9.tb { padding: 4px 12px 12px; gap: 0; }
+.f11 .tb9.tb .c { gap: 5px; padding: 0; }
+.f11 .tb9.tb .l { width: auto; height: 16px; }
+.f11 .tb9.on .l { color: #000; }
+.f11 .f9-best .tabs9 .ul { top: auto; bottom: 0; height: 5.067px; border-radius: 6px 6px 0 0; }
+.f11 .f9-best .skus { top: 219.5px; }
+
+/* LETS RESTSOCK (1573:69188): four cards, 165.5 wide, white with a white edge; the photo 3 : 4 over its strip */
+.f11 .g9w { transform: none; }
+.pc9.wc2 { position: absolute; width: 165.5px; height: 321px; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 5.5px 1.5px;
+  border: 0; box-shadow: inset 0 0 0 1.5px #fff; border-radius: 14px; overflow: hidden; background: #fff; z-index: 3; }
+.pc9.wc2.vd { height: 325.21px; justify-content: flex-start; }
+.pc9.wc2 .mw { flex: none; margin: 0 4px; border-radius: 8px; overflow: hidden; }
+.pc9.wc2.va .mw { background: #ffe5e5; }
+.pc9.wc2.vb .mw { background: #000; }
+.pc9.wc2.vc .mw { background: #e4e6ec; }
+.pc9.wc2 .main { position: relative; width: 100%; height: auto; aspect-ratio: 3 / 4; border-radius: 8px; background: #f7f9fb; overflow: hidden; }
+.pc9.wc2 .main::after { background: rgba(0,40,136,.03); }
+.pc9.wc2 .ph { width: 152px; height: 208px; margin-left: -0.25px; }
+.pc9.wc2 .rt { left: 6px; bottom: 6.07px; height: 18px; gap: 2px; padding: 2px 4px; border-radius: 4px; background: #f9f9fb;
+  font: 600 12px/14px var(--noon); letter-spacing: -0.12px; color: #101628; font-feature-settings: "case" 1; }
+.pc9.wc2 .rt img { width: 10.54px; height: 10.11px; margin: 0.81px 0.73px 0.56px; }
+.pc9.wc2 .pc-add { right: 6.5px; bottom: 5.5px; width: 36px; height: 36px; border: 1.156px solid rgba(16,22,40,.1); border-radius: 8px; background: #fff; }
+.pc9.wc2 .pc-add .pl { width: 34.682px; height: 34.682px; }
+.pc9.wc2 .pc-wish.o { top: 4px; right: 4.5px; }
+.pc9.wc2 .pc-wish.o svg { width: 18.667px; height: 18.667px; }
+.pc9.wc2 .tm { flex: none; height: 24px; display: flex; align-items: center; gap: 2px; padding: 4px; }
+.pc9.wc2.vb .tm { padding: 4px 6px; }
+.pc9.wc2 .tm b { flex: 1 0 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 12px/18px var(--noon); letter-spacing: -0.1px; color: #ef151d; }
+.pc9.wc2.vb .tm b { font-weight: 600; color: #ededed; }
+.pc9.wc2.vc .tm b { color: #1d2539; }
+.pc9.wc2 .dt { display: flex; flex-direction: column; gap: 8px; padding: 0 6px 4px; }
+.pc9.wc2 .pg { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.pc9.wc2 .pr { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.pc9.wc2 .pr .rp { white-space: pre; height: 20px; display: flex; align-items: center; padding: 2px 4px; border-radius: 4px; background: linear-gradient(270deg, #d41406 107.84%, #fe262d 111.58%);
+  font: 700 14px/20px var(--noon); color: #fff; }
+.pc9.wc2 .pr .lp { height: 20px; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 0; overflow: hidden; border: 0.75px solid #ef151d; border-radius: 4px; background: #fff;
+  box-shadow: .5px .5px 0 #ef151d; font: 700 14px/20px var(--noon); letter-spacing: -0.1px; color: #ef151d; }
+.pc9.wc2 .lq { flex: none; width: 20px; height: 20px; margin: -0.75px 0 -0.75px -0.75px; display: flex; align-items: center; justify-content: center; background: #ef151d; }
+.pc9.wc2 .lq img { width: 12px; height: 12px; }
+.pc9.wc2 .pr s { font: 400 12px/14px var(--noon); letter-spacing: -0.12px; color: #989fb3; font-feature-settings: "case" 1; }
+.pc9.wc2 .pr em { font: 600 12px/14px var(--noon); letter-spacing: -0.12px; color: #0f8857; font-style: normal; font-feature-settings: "case" 1; }
+.pc9.wc2 .sv { height: 18px; display: flex; align-items: center; padding: 2px 4px; border-radius: 4px 3px 3px 4px; white-space: nowrap;
+  background: linear-gradient(261.7deg, rgba(189,248,224,.3) 0.88%, rgba(159,231,202,.3) 99.12%); font: 600 12px/16px var(--noon); letter-spacing: -0.36px; color: #108757; font-feature-settings: "case" 1; }
+.pc9.wc2 .p1 { display: flex; align-items: center; gap: 4px; }
+.pc9.wc2 .p1 b { font: 700 16px/20px var(--noon); letter-spacing: -0.15px; color: #000; white-space: nowrap; }
+.pc9.wc2 .p2 { height: 18px; display: flex; align-items: flex-end; gap: 4px; white-space: nowrap; }
+.pc9.wc2 .ng.wc { position: relative; width: 100%; height: 16px; overflow: hidden; }
+
+/* the feed's end (1573:69690) */
+.f11 .f5-end { left: 83px; top: 2993px; }
+
+/* (measured against Figma 1573:68634: its price pill is 20 px — 14/20 Bold, 4 px corners — and the list price and
+   discount 12/14; the offers chip 22 px with its hairline inside; the tab row 1 px lower; the restock cards' contents
+   from the top) */
+.f11 .pc9.dk .pr { gap: 4px; }
+.f11 .pc9.dk .pr b { height: 20px; padding: 0 4px; border-radius: 4px; font-size: 14px; line-height: 20px; }
+.f11 .pc9.dk .pr s, .f11 .pc9.dk .pr em { font-size: 12px; line-height: 14px; letter-spacing: -0.12px; }
+.f11 .pc9.dk .off9 { height: 22px; display: flex; align-items: center; padding: 0 6px; }
+.f11 .tb9 .c { position: relative; top: 1px; }   /* (the box at Figma's 127.5; its type renders 1 px higher than Figma sets it) */
+.pc9.wc2 { justify-content: flex-start; }

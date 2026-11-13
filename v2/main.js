@@ -147,7 +147,7 @@ scene.add(rim);
 // ~5× fewer pixels than a full-screen WebGL layer over a scrolling page.
 const VIEW = {
   home: { cx: 327, cy: 681.5, unit: 30 },        // 1068:81084 — 80×80 FAB at (287, 644)
-  page: { cx: 191.5, cy: 120, unit: 40 },   // iteration 03: where Figma 1544:61922 draws the bot (4 px right of centre)     // iteration 5: the bot rests big at the top centre of its page, above HEY NEHA (Figma 1520:59225's bot); yf-page.js docks it in the corner on scroll
+  page: { cx: 187.35, cy: 140.15, unit: 36.15 },   // (Figma 1573:68634: Orbi's body, 72.3 across, centred at 187.35, 140.15)   // (Figma 1562:64150 draws the bot 10 px left of 1544:61922's spot)   // iteration 03: where Figma 1544:61922 draws the bot (4 px right of centre)     // iteration 5: the bot rests big at the top centre of its page, above HEY NEHA (Figma 1520:59225's bot); yf-page.js docks it in the corner on scroll
 };
 const view = { ...VIEW.home };
 // room around the ball for hops, the dizzy orbit, Zz and the soft shadows, even
@@ -2282,7 +2282,7 @@ function frame(now) {
 // tumble come along; a sideways spin can't (the drawing is flat).
 const LOT = { el: document.getElementById('orbiLot'), box: 168, cx: 250, cy: 262.4, r: 125, last: '', cls: '' };
 const lotAnim = window.lottie && LOT.el ? window.lottie.loadAnimation({
-  container: LOT.el, renderer: 'svg', loop: true, autoplay: true, path: 'lottie/orbi-idle.json',
+  container: LOT.el, renderer: 'svg', loop: true, autoplay: true, path: 'lottie/noon-bot.json',   // (noon_BOT_test_1.lottie "Golu Idle Loop v1", its stray frame-1 time-remap key fixed)
   rendererSettings: { preserveAspectRatio: 'xMidYMid meet', progressiveLoad: false },
 }) : null;
 if (lotAnim) {
